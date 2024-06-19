@@ -10,7 +10,7 @@ FPS_MAX = 60
 FPS_TARGET = 60
 
 # layers. Highest priority top
-TERRAIN_FLAT = "Terrain_flat"
+TERRAIN_BASIC = "Terrain_basic"
 TERRAIN_R_RAMP = "Terrain_r_ramp"
 TERRAIN_L_RAMP = "Terrain_l_ramp"
 

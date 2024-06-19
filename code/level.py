@@ -16,8 +16,6 @@ class Level:
         self.terrain_tiles = pygame.sprite.Group()
 
         self.player_group = pygame.sprite.GroupSingle()
-        self.player = Player()
-        self.player_group.add(self.player)
 
         self.setup()
 
@@ -25,15 +23,18 @@ class Level:
         # get the layers and objects from the tmx_map and store them in the correct list
 
         # tile for terrain
-        for layer in [TERRAIN_FLAT, TERRAIN_R_RAMP, TERRAIN_L_RAMP]:
+        for layer in [TERRAIN_BASIC, TERRAIN_R_RAMP, TERRAIN_L_RAMP]:
             for x, y, surf in self.tmx_map.get_layer_by_name(layer).tiles():
                 Sprite((x * TILE_SIZE, y * TILE_SIZE), surf, self.terrain_tiles, layer)
+
+        # player
+        self.player = Player((600, 25), self.player_group, self.terrain_tiles)
 
     def collision_terrain(self, group_single):
         collide_lst = pygame.sprite.spritecollide(group_single.sprite, self.terrain_tiles, False)
 
         if (collide_lst):
-            collide_flat_lst = [spr for spr in collide_lst if spr.type == TERRAIN_FLAT]
+            collide_flat_lst = [spr for spr in collide_lst if spr.type == TERRAIN_BASIC]
             collide_ramp_lst = [spr for spr in collide_lst if spr.type in (TERRAIN_R_RAMP, TERRAIN_L_RAMP)]
             for spr in collide_flat_lst:
                 print(spr.type)
@@ -45,14 +46,15 @@ class Level:
         self.display_surface.fill("black")
 
         # update sprites
-        self.player_group.update()
+        self.player_group.update(dt)
 
         # check collisions
-        self.collision_terrain(self.player_group)
+        #self.collision_terrain(self.player_group)
 
         # draw
         # draw terrain
         self.terrain_tiles.draw(self.display_surface)
         # draw player
         self.player_group.draw(self.display_surface)
+        
         

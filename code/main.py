@@ -2,13 +2,13 @@ from pytmx.util_pygame import load_pygame
 
 import debug
 from settings import *
-import level
+from level import Level
 
 class Game:
     
     def __init__(self):
         pygame.init()
-        self.previous_time = 0
+        self.previous_time = time.time()
         self.display_surface = pygame.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT))
         pygame.display.set_caption("Jackie The Dog")
 
@@ -18,12 +18,12 @@ class Game:
             [1, 1, load_pygame(os.path.join("../", "data/levels", "testGround.tmx"))]
         ]
 
-        self.run_level = level.Level(self.levels[self.curr_level])
+        self.run_level = Level(self.levels[self.curr_level])
 
     def run(self):
         while (True):
 
-            dt = (time.time() - self.previous_time) * (FPS_TARGET/2)
+            dt = (time.time() - self.previous_time) * (FPS_TARGET)
             self.previous_time = time.time()
 
             for event in pygame.event.get():
