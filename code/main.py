@@ -14,11 +14,11 @@ class Game:
 
         self.curr_level = 0
 
-        self.levels = [
-            [1, 1, load_pygame(os.path.join("../", "data/levels", "testGround.tmx"))]
+        self.level_maps = [
+            [1, 1, load_pygame(os.path.join("..", "data", "levels", "testGround.tmx"))]
         ]
 
-        self.run_level = Level(self.levels[self.curr_level])
+        self.run_level = Level(self.level_maps[self.curr_level])
 
     def run(self):
         while (True):
@@ -30,7 +30,7 @@ class Game:
                 if (event.type == pygame.QUIT):
                     pygame.quit()
                     sys.exit()
-
+            
             self.run_level.run(dt)
             pygame.display.update()
 

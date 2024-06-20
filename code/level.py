@@ -13,48 +13,38 @@ class Level:
         self.tmx_map = level_data[2]
 
         # sprite groups
-        self.terrain_tiles = pygame.sprite.Group()
-
-        self.player_group = pygame.sprite.GroupSingle()
+        self.all_sprites = pygame.sprite.Group()
+        self.collision_sprites = pygame.sprite.Group()
 
         self.setup()
 
     def setup(self):
-        # get the layers and objects from the tmx_map and store them in the correct list
+        """
+        get the layers and objects from the tmx_map and store them in the correct list
+        """
 
-        # tile for terrain
-        for layer in [TERRAIN_BASIC, TERRAIN_R_RAMP, TERRAIN_L_RAMP]:
+        # tiles for terrain
+        for layer in [BG, TERRAIN_BASIC, TERRAIN_R_RAMP, TERRAIN_L_RAMP]:
             for x, y, surf in self.tmx_map.get_layer_by_name(layer).tiles():
-                Sprite((x * TILE_SIZE, y * TILE_SIZE), surf, self.terrain_tiles, layer)
+                if (layer == BG):
+                    Sprite((x * TILE_SIZE, y * TILE_SIZE), surf, self.all_sprites, layer)
+                else:
+                    Sprite((x * TILE_SIZE, y * TILE_SIZE), surf, (self.all_sprites, self.collision_sprites), layer)
 
-        # player
-        self.player = Player((600, 25), self.player_group, self.terrain_tiles)
-
-    def collision_terrain(self, group_single):
-        collide_lst = pygame.sprite.spritecollide(group_single.sprite, self.terrain_tiles, False)
-
-        if (collide_lst):
-            collide_flat_lst = [spr for spr in collide_lst if spr.type == TERRAIN_BASIC]
-            collide_ramp_lst = [spr for spr in collide_lst if spr.type in (TERRAIN_R_RAMP, TERRAIN_L_RAMP)]
-            for spr in collide_flat_lst:
-                print(spr.type)
-            for spr in collide_ramp_lst:
-                print(spr.type)
+        # object for player
+        for obj in self.tmx_map.get_layer_by_name("Objects"):
+            if (obj.name == "testPlayer"):
+                self.player = Player((obj.x, obj.y), (obj.width, obj.height), self.all_sprites, self.collision_sprites)
 
     def run(self, dt):
         # game loop here for level. like checking collisions and updating screen
         self.display_surface.fill("black")
 
         # update sprites
-        self.player_group.update(dt)
+        self.all_sprites.update(dt)
 
-        # check collisions
-        #self.collision_terrain(self.player_group)
+        # draw all sprites
+        self.all_sprites.draw(self.display_surface)
 
-        # draw
-        # draw terrain
-        self.terrain_tiles.draw(self.display_surface)
-        # draw player
-        self.player_group.draw(self.display_surface)
         
         
