@@ -34,6 +34,7 @@ class Level:
         # object for player
         for obj in self.tmx_map.get_layer_by_name("Objects"):
             if (obj.name == "testPlayer"):
+                #self.player = Player((obj.x, obj.y), (obj.width, obj.height), self.all_sprites, self.collision_sprites)
                 self.player = Player((obj.x, obj.y), (obj.width, obj.height), self.all_sprites, self.collision_sprites)
 
     def run(self, dt):
@@ -45,6 +46,3 @@ class Level:
 
         # draw all sprites
         self.all_sprites.draw(self.display_surface)
-
-        
-        

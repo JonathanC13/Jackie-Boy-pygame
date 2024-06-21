@@ -19,7 +19,11 @@ BG = "BG"
 
 # Tiled. w, h = 18.2, 10.2
 
+# Physics
 # Player settings
 PLAYER_ACCEL = 0.75
-PLAYER_MAX_VEL_X = 10
+PLAYER_MAX_VEL_X = 15
 PLAYER_VEL_Y = 10   # 4 tile jump gap
+
+# Environment
+GRAVITY = 0.35

@@ -34,6 +34,8 @@ class Game:
             self.run_level.run(dt)
             pygame.display.update()
 
+            
+
 
 if __name__ == "__main__":
     game = Game()
