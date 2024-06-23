@@ -62,7 +62,7 @@ class Player(pygame.sprite.Sprite):
         
         self.acceleration.x += self.velocity.x * self.friction
         self.velocity.x += self.acceleration.x * dt
-        self.limit_velocity(self.velocity.x, 4)
+        self.limit_velocity(self.velocity.x, PLAYER_MAX_VEL_X)
         self.rect.x += self.velocity.x * dt + (self.acceleration.x * 0.5) * (dt * dt)
 
         self.collision("horizontal")
@@ -71,10 +71,15 @@ class Player(pygame.sprite.Sprite):
         """
         Blending Newton's Laws and Kinematic Equations for y
         """ 
+        vel_y_change = 0
         if (self.on_ramp_slope["on"] and not self.is_jumping):
-            self.velocity.y += math.ceil(abs(self.velocity.x))  # 1:1
+            vel_y_change = math.ceil(abs(self.velocity.x))  # 1:1
+        elif (not self.collision_side["bot"] and any((self.collision_side["left"], self.collision_side["right"])) and not self.is_jumping):
+            vel_y_change = (self.acceleration.y / 10) * dt
         else:
-            self.velocity.y += self.acceleration.y * dt
+            vel_y_change = self.acceleration.y * dt
+
+        self.velocity.y += vel_y_change
 
         if (self.velocity.y > PLAYER_MAX_VEL_Y):
             self.velocity.y = PLAYER_MAX_VEL_Y 
@@ -93,10 +98,23 @@ class Player(pygame.sprite.Sprite):
             vel_vec = 0 
 
     def jump(self):
+        """
+        1. Normal jump. Bottom true, top false, and not currenly is_jumping = Jump and apply normal gravity. is_jumping back to false when touch ground or space released
+        2. Normal jump then touches wall. Bottom true, top false, and not currenly is_jumping = Jump. Contact with side wall.
+            2.1. If space held, is_jump remains True and apply normal gravity
+            2.2. If space released while on wall, is_jump changes to True. Allows wall jump and initial x direction is away from the wall.
+
+        Wall jump, no hold space to prolong jump, just one instance.
+        """
         if (self.collision_side["bot"] and not self.collision_side["top"] and not self.is_jumping):
             self.is_jumping = True
             self.velocity.y -= PLAYER_VEL_Y
             #self.collision_side["bot"] = False
+        elif (not self.collision_side["bot"] and any((self.collision_side["left"], self.collision_side["right"])) and not self.is_jumping):
+            self.is_jumping = True
+            self.velocity.y -= PLAYER_VEL_Y * 0.7
+            # force jump away from wall
+            self.velocity.x = PLAYER_MAX_VEL_X if self.collision_side["left"] else -PLAYER_MAX_VEL_X
 
     def fill_collide_lists(self, tar_rect, sprite_group):
         # tiles
@@ -164,6 +182,7 @@ class Player(pygame.sprite.Sprite):
         """
         Loop through all collision_sprites and evaluate collision
         """
+        # involves both axes and both conditions are external states assgined externally
         if (self.on_ramp_slope["on"] and self.collision_side["top"]):
             # handle on ramp but top is restricted.
             self.collision_side["top"] = False
@@ -174,6 +193,7 @@ class Player(pygame.sprite.Sprite):
                 self.is_jumping = False
 
             self.velocity.x = 0
+            # move back to the previous position so not in contact with tile above
             offset = 1
             if (self.on_ramp_slope["ramp_type"] == TERRAIN_R_RAMP):
                 offset = -1
@@ -192,12 +212,20 @@ class Player(pygame.sprite.Sprite):
                     if (not self.on_ramp_slope["on"]):
                         # fixed hitching when off ramping onto a basic tile
                         self.velocity.x = 0
-                    self.rect.left = sprite.rect.right                   
+
+                    if (self.velocity.y < 0):
+                        self.velocity.y = 0  
+
+                    self.rect.left = sprite.rect.right
                 elif (self.rect.right >= sprite.rect.left and self.old_rect.right <= sprite.rect.left):
                     # right collision and approach from left
                     if (not self.on_ramp_slope["on"]):
                         self.velocity.x = 0
-                    self.rect.right = sprite.rect.left               
+
+                    if (self.velocity.y < 0):
+                        self.velocity.y = 0     
+
+                    self.rect.right = sprite.rect.left          
             else:
                 # vertical
                 if (self.rect.bottom >= sprite.rect.top and self.old_rect.bottom <= sprite.rect.top):
@@ -223,6 +251,9 @@ class Player(pygame.sprite.Sprite):
                         self.on_ramp_wall = True
 
                         self.velocity.x = 0
+                        if (self.velocity.y < 0):
+                            self.velocity.y = 0  
+
                         self.rect.left = sprite.rect.right
                     elif (self.rect.right >= sprite.rect.left and self.old_rect.right <= sprite.rect.left and self.rect.bottom > sprite.rect.bottom):
                         # of bottom edge of slope, if below don't hook on
@@ -233,6 +264,9 @@ class Player(pygame.sprite.Sprite):
                         self.on_ramp_wall = True
 
                         self.velocity.x = 0
+                        if (self.velocity.y < 0):
+                            self.velocity.y = 0 
+
                         self.rect.right = sprite.rect.left
                     elif (self.rect.left <= sprite.rect.right and self.old_rect.left >= sprite.rect.right and self.rect.bottom > sprite.rect.bottom):
                         self.rect.left = sprite.rect.right

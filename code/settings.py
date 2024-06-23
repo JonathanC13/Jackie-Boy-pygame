@@ -21,11 +21,11 @@ BG = "BG"
 
 # Physics
 # Player settings
-PLAYER_ACCEL = 0.8
+PLAYER_ACCEL = 0.85
 PLAYER_MAX_VEL_X = 15
 PLAYER_VEL_Y = 10   # 4 tile jump gap
-PLAYER_MAX_VEL_Y = 7
+PLAYER_MAX_VEL_Y = 15
 
 # Environment
-GRAVITY_NORM = 0.35
 # note for 1:1 ramp. gravity displacement (velocity) is 1/1 of horizontal velocity rounded up. Adjusted in player.py
+GRAVITY_NORM = 0.35
