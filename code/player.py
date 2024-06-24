@@ -1,4 +1,5 @@
 from settings import *
+from timerClass import Timer
 
 class Player(pygame.sprite.Sprite):
 
@@ -29,16 +30,24 @@ class Player(pygame.sprite.Sprite):
         self.velocity = pygame.math.Vector2(0, 0)
         self.acceleration = pygame.math.Vector2(0, self.gravity)
 
+        # timer
+        self.timers = {
+            "wall_jump_move_block": Timer(200)  # blocks the use of LEFT and RIGHT right after wall jump
+        }
+
     def player_input(self):
         keys = pygame.key.get_pressed()
 
         # key down
         if (keys[pygame.K_SPACE]):
             self.jump()
-        if (keys[pygame.K_LEFT]):
-            self.LEFT_KEY = True
-        if (keys[pygame.K_RIGHT]):
-            self.RIGHT_KEY = True
+
+        if (not self.timers["wall_jump_move_block"].active):
+            # blocks these keys if just jumped off a wall. Prevent infinite climbing with wall jump
+            if (keys[pygame.K_LEFT]):
+                self.LEFT_KEY = True
+            if (keys[pygame.K_RIGHT]):
+                self.RIGHT_KEY = True
         
         # key up
         if (not keys[pygame.K_SPACE]):
@@ -75,6 +84,9 @@ class Player(pygame.sprite.Sprite):
         if (self.on_ramp_slope["on"] and not self.is_jumping):
             vel_y_change = math.ceil(abs(self.velocity.x))  # 1:1
         elif (not self.collision_side["bot"] and any((self.collision_side["left"], self.collision_side["right"])) and not self.is_jumping):
+            if (self.velocity.y < 0):
+                # stop it from going any higher since touched wall
+                self.velocity.y = 0
             vel_y_change = (self.acceleration.y / 10) * dt
         else:
             vel_y_change = self.acceleration.y * dt
@@ -103,18 +115,20 @@ class Player(pygame.sprite.Sprite):
         2. Normal jump then touches wall. Bottom true, top false, and not currenly is_jumping = Jump. Contact with side wall.
             2.1. If space held, is_jump remains True and apply normal gravity
             2.2. If space released while on wall, is_jump changes to True. Allows wall jump and initial x direction is away from the wall.
-
-        Wall jump, no hold space to prolong jump, just one instance.
         """
         if (self.collision_side["bot"] and not self.collision_side["top"] and not self.is_jumping):
             self.is_jumping = True
             self.velocity.y -= PLAYER_VEL_Y
             #self.collision_side["bot"] = False
-        elif (not self.collision_side["bot"] and any((self.collision_side["left"], self.collision_side["right"])) and not self.is_jumping):
+        elif (not self.collision_side["bot"] and any((self.collision_side["left"], self.collision_side["right"])) and not self.is_jumping and not self.timers["wall_jump_move_block"].active):
             self.is_jumping = True
             self.velocity.y -= PLAYER_VEL_Y * 0.7
             # force jump away from wall
             self.velocity.x = PLAYER_MAX_VEL_X if self.collision_side["left"] else -PLAYER_MAX_VEL_X
+
+            self.timers["wall_jump_move_block"].activate()
+            self.LEFT_KEY = False
+            self.RIGHT_KEY = False
 
     def fill_collide_lists(self, tar_rect, sprite_group):
         # tiles
@@ -213,17 +227,11 @@ class Player(pygame.sprite.Sprite):
                         # fixed hitching when off ramping onto a basic tile
                         self.velocity.x = 0
 
-                    if (self.velocity.y < 0):
-                        self.velocity.y = 0  
-
                     self.rect.left = sprite.rect.right
                 elif (self.rect.right >= sprite.rect.left and self.old_rect.right <= sprite.rect.left):
                     # right collision and approach from left
                     if (not self.on_ramp_slope["on"]):
-                        self.velocity.x = 0
-
-                    if (self.velocity.y < 0):
-                        self.velocity.y = 0     
+                        self.velocity.x = 0  
 
                     self.rect.right = sprite.rect.left          
             else:
@@ -251,8 +259,6 @@ class Player(pygame.sprite.Sprite):
                         self.on_ramp_wall = True
 
                         self.velocity.x = 0
-                        if (self.velocity.y < 0):
-                            self.velocity.y = 0  
 
                         self.rect.left = sprite.rect.right
                     elif (self.rect.right >= sprite.rect.left and self.old_rect.right <= sprite.rect.left and self.rect.bottom > sprite.rect.bottom):
@@ -264,8 +270,6 @@ class Player(pygame.sprite.Sprite):
                         self.on_ramp_wall = True
 
                         self.velocity.x = 0
-                        if (self.velocity.y < 0):
-                            self.velocity.y = 0 
 
                         self.rect.right = sprite.rect.left
                     elif (self.rect.left <= sprite.rect.right and self.old_rect.left >= sprite.rect.right and self.rect.bottom > sprite.rect.bottom):
@@ -327,9 +331,15 @@ class Player(pygame.sprite.Sprite):
         new_rect = rotated_image.get_frect(center = image.get_rect(center = (x, y)).center)
 
         return rotated_image, new_rect
+    
+    def update_timers(self):
+        for timer in self.timers.values():
+            timer.update()
 
     def update(self, dt):
         self.old_rect = self.rect.copy()
+
+        self.update_timers()
 
         # player movement
         self.player_input()

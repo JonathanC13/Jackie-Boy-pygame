@@ -5,6 +5,7 @@ class Timer:
 		self.duration = duration
 		self.func = func
 		self.start_time = 0
+		self.ended_time = 0
 		self.active = False
 		self.repeat = repeat
 
@@ -15,6 +16,7 @@ class Timer:
 	def deactivate(self):
 		self.active = False
 		self.start_time = 0
+		self.ended_time = get_ticks()
 		if self.repeat:
 			self.activate()
 

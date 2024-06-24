@@ -11,7 +11,9 @@ ANIMATION_SPEED = 6
 FPS_MAX = 60
 FPS_TARGET = 60
 
-# layers. Highest priority top
+# layers and objects. Highest priority top
+OBJECTS = "Objects"
+MOVING_OBJECTS = "Moving Objects"
 TERRAIN_L_RAMP = "Terrain_l_ramp"   # \
 TERRAIN_R_RAMP = "Terrain_r_ramp"   # /
 TERRAIN_BASIC = "Terrain_basic"
@@ -28,4 +30,4 @@ PLAYER_MAX_VEL_Y = 15
 
 # Environment
 # note for 1:1 ramp. gravity displacement (velocity) is 1/1 of horizontal velocity rounded up. Adjusted in player.py
-GRAVITY_NORM = 0.35
+GRAVITY_NORM = 0.33

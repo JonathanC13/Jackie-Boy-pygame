@@ -1,5 +1,5 @@
 from settings import *
-from sprites import Sprite
+from sprites import Sprite, MovingSprite
 from player import Player
 
 class Level:
@@ -22,7 +22,6 @@ class Level:
         """
         get the layers and objects from the tmx_map and store them in the correct list
         """
-
         # tiles for terrain
         for layer in [BG, TERRAIN_BASIC, TERRAIN_R_RAMP, TERRAIN_L_RAMP]:
             for x, y, surf in self.tmx_map.get_layer_by_name(layer).tiles():
@@ -31,11 +30,29 @@ class Level:
                 else:
                     Sprite((x * TILE_SIZE, y * TILE_SIZE), surf, (self.all_sprites, self.collision_sprites), layer)
 
-        # object for player
-        for obj in self.tmx_map.get_layer_by_name("Objects"):
+        # objects
+        for obj in self.tmx_map.get_layer_by_name(OBJECTS):
             if (obj.name == "testPlayer"):
                 #self.player = Player((obj.x, obj.y), (obj.width, obj.height), self.all_sprites, self.collision_sprites)
                 self.player = Player((obj.x, obj.y), (obj.width, obj.height), self.all_sprites, self.collision_sprites)
+
+        # moving objects
+        for obj in self.tmx_map.get_layer_by_name(MOVING_OBJECTS):
+            if (obj.name == "platform_path"):
+                if (obj.width > obj.height):
+                    # horizontal path
+                    path_plane = "x"
+                    start_pos = (obj.x, obj.y + (obj.height / 2))
+                    end_pos = (obj.x + obj.width, obj.y + (obj.height / 2))
+                else:
+                    # vertical path
+                    path_plane = "y"
+                    start_pos = (obj.x + (obj.width / 2), obj.y)
+                    end_pos = (obj.x + (obj.width / 2), obj.y + obj.height)
+                speed = obj.properties["speed"]
+                start_end = obj.properties["start_end"]
+
+                MovingSprite(start_pos, end_pos, path_plane, start_end, speed, (self.all_sprites, self.all_sprites), MOVING_OBJECTS)
 
     def run(self, dt):
         # game loop here for level. like checking collisions and updating screen
