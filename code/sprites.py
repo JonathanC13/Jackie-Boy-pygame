@@ -7,7 +7,8 @@ class Sprite(pygame.sprite.Sprite):
 		super().__init__(groups)
 
 		self.image = surf
-		self.image.fill("white")
+		if (type == MOVING_OBJECTS):
+			self.image.fill("white")
 		self.rect = self.image.get_frect(topleft = pos)
 
 		self.old_rect = self.rect.copy()
@@ -15,19 +16,21 @@ class Sprite(pygame.sprite.Sprite):
 
 class MovingSprite(Sprite):
 
-	def __init__(self, start_pos, end_pos, path_plane, start_end = False, speed = 0, groups = None, flip = False, type = None):
+	def __init__(self, start_pos, end_pos, path_plane, start_end = False, speed = 0, full_collision = True, groups = None, flip = False, type = None):
 
-		surf = pygame.Surface((100, 5))
+		surf = pygame.Surface((50, 25))
 		super().__init__(start_pos, surf, groups, type)
-		print(start_end)
-
+		if (not full_collision):
+			self.image.fill("green")
 		self.start_pos = start_pos
 		self.end_pos = end_pos
 
 		# movement
+		self.moving = True
 		self.flip = flip
 		self.start_end = start_end
 		self.speed = speed
+		self.full_collision = full_collision
 		self.path_plane = path_plane
 
 

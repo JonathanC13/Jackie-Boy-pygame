@@ -11,7 +11,7 @@ class Game:
         self.previous_time = time.time()
         self.display_surface = pygame.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT))
         pygame.display.set_caption("Jackie The Dog")
-
+  
         self.curr_level = 0
 
         self.level_maps = [

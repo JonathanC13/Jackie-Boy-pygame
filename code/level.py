@@ -15,6 +15,7 @@ class Level:
         # sprite groups
         self.all_sprites = pygame.sprite.Group()
         self.collision_sprites = pygame.sprite.Group()
+        self.semi_collision_sprites = pygame.sprite.Group()
 
         self.setup()
 
@@ -34,7 +35,7 @@ class Level:
         for obj in self.tmx_map.get_layer_by_name(OBJECTS):
             if (obj.name == "testPlayer"):
                 #self.player = Player((obj.x, obj.y), (obj.width, obj.height), self.all_sprites, self.collision_sprites)
-                self.player = Player((obj.x, obj.y), (obj.width, obj.height), self.all_sprites, self.collision_sprites)
+                self.player = Player((obj.x, obj.y), (obj.width, obj.height), self.all_sprites, self.collision_sprites, self.semi_collision_sprites)
 
         # moving objects
         for obj in self.tmx_map.get_layer_by_name(MOVING_OBJECTS):
@@ -49,10 +50,19 @@ class Level:
                     path_plane = "y"
                     start_pos = (obj.x + (obj.width / 2), obj.y)
                     end_pos = (obj.x + (obj.width / 2), obj.y + obj.height)
+                flip = obj.properties["flip"]
+                full_collision = obj.properties["full_collision"]
                 speed = obj.properties["speed"]
                 start_end = obj.properties["start_end"]
 
-                MovingSprite(start_pos, end_pos, path_plane, start_end, speed, (self.all_sprites, self.all_sprites), MOVING_OBJECTS)
+                groups = [self.all_sprites]
+                if (full_collision):
+                    groups.append(self.collision_sprites)
+                else:
+                    groups.append(self.semi_collision_sprites)
+                groups = tuple(groups)
+
+                MovingSprite(start_pos, end_pos, path_plane, start_end, speed, full_collision, groups, False, MOVING_OBJECTS)
 
     def run(self, dt):
         # game loop here for level. like checking collisions and updating screen
