@@ -11,13 +11,30 @@ ANIMATION_SPEED = 6
 FPS_MAX = 60
 FPS_TARGET = 60
 
-# layers and objects. Highest priority top
-OBJECTS = "Objects"
-MOVING_OBJECTS = "Moving Objects"
+# names of layers and objects from Tiled.
+FG = "FG"
+GENERAL_OBJECTS = "General_objects"
+PLAYER_OBJECTS = "Player_objects"
+MOVING_OBJECTS = "Moving_objects"
+PLATFORMS_PARTIAL = "Platforms_partial"
 TERRAIN_L_RAMP = "Terrain_l_ramp"   # \
 TERRAIN_R_RAMP = "Terrain_r_ramp"   # /
+TERRAIN_FLOOR_ONLY = "Terrain_floor_only"
 TERRAIN_BASIC = "Terrain_basic"
+BG_DETAILS = "BG_details"
 BG = "BG"
+
+# Layer order to be draw. Higher number is higher priority
+Z_LAYERS = {
+    "bg": 0,
+    "clouds": 1,
+    "bg_tiles": 2,
+    "path": 3,
+    "bg_details": 4,
+    "main": 5,      # game entities that are interactable
+    "water": 6,
+    "fg": 7
+}
 
 # Tiled. w, h = 18.2, 10.2
 

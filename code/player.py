@@ -3,31 +3,40 @@ from timerClass import Timer
 
 class Player(pygame.sprite.Sprite):
 
-    def __init__(self, pos, surf = pygame.Surface((TILE_SIZE,TILE_SIZE)), groups = None, collision_sprites = None, semi_collision_sprites = None):
+    def __init__(self, pos, surf = pygame.Surface((TILE_SIZE,TILE_SIZE)), groups = None, collision_sprites = None, semi_collision_sprites = None, ramp_collision_sprites = None, masked_sprites = None):
         super().__init__(groups)
 
         self.display_surface = pygame.display.get_surface()
 
-        self.image = pygame.Surface(surf)
-        self.image.fill("red")
+        #self.image = pygame.Surface(surf)
+        self.image = pygame.image.load(os.path.join("..", "graphics", "player", "idle","0.png"))
         # rects
+        # rect to hold entire image
         self.rect = self.image.get_frect(topleft = pos)
+        # reduce rect for actual representation of the hit box of the image. -50 means 25 pixels from left and 25 from right
+        # Use masking later for more accurate hit box
+        self.hitbox_rect = self.rect.inflate(-76, 0)
         # previous rect in previous frame to know which direction this rect came from
-        self.old_rect = self.rect.copy()
+        self.old_rect = self.hitbox_rect.copy()
+
+        self.z = Z_LAYERS["main"]
 
         # collision
         self.collision_sprites = collision_sprites
         self.semi_collision_sprites = semi_collision_sprites
+        self.ramp_collision_sprites = ramp_collision_sprites
+        self.masked_sprites = masked_sprites
         self.on_ramp_wall = False   # flag for same sprite
         self.on_ramp_slope = {"on": False, "ramp_type": None} 
         self.collision_side = {"top": False, "left": False, "bot": False, "right": False}
         self.list_collide_basic, self.list_collide_ramps, self.list_semi_collide = [], [], []
-        self.platform_moving = None
+        self.platform = None
 
         # movement
         self.LEFT_KEY, self.RIGHT_KEY, self.FACING_LEFT = False, False, False
         self.is_jumping = False
         self.gravity, self.friction = GRAVITY_NORM, -0.12   # incr frict for less slide
+        #self.position = pygame.math.Vector2(self.hitbox_rect.bottomleft)
         self.velocity = pygame.math.Vector2(0, 0)
         self.acceleration = pygame.math.Vector2(0, self.gravity)
 
@@ -77,7 +86,9 @@ class Player(pygame.sprite.Sprite):
         self.acceleration.x += self.velocity.x * self.friction
         self.velocity.x += self.acceleration.x * dt
         self.limit_velocity(self.velocity.x, PLAYER_MAX_VEL_X)
-        self.rect.x += self.velocity.x * dt + (self.acceleration.x * 0.5) * (dt * dt)
+        #self.position.x += self.velocity.x * dt + (self.acceleration.x * 0.5) * (dt * dt)
+        #self.hitbox_rect.x = self.position.x
+        self.hitbox_rect.x += self.velocity.x * dt + (self.acceleration.x * 0.5) * (dt * dt)
 
         self.collision("horizontal")
 
@@ -101,7 +112,9 @@ class Player(pygame.sprite.Sprite):
         if (self.velocity.y > PLAYER_MAX_VEL_Y):
             self.velocity.y = PLAYER_MAX_VEL_Y 
         
-        self.rect.bottom += self.velocity.y * dt + (self.acceleration.y * 0.5) * (dt * dt)
+        #self.position.y += self.velocity.y * dt + (self.acceleration.y * 0.5) * (dt * dt)
+        #self.hitbox_rect.bottom = self.position.y
+        self.hitbox_rect.bottom += self.velocity.y * dt + (self.acceleration.y * 0.5) * (dt * dt)
 
         self.on_ramp_slope["on"] = False
         self.collision("vertical")
@@ -139,23 +152,23 @@ class Player(pygame.sprite.Sprite):
         """
         Adjust the player while on a moving platform
         """
-        if (self.platform_moving and (self.collision_side["bot"] or self.platform_moving.full_collision)):
+        if (self.platform):
             # sprite not None and (full collision or (not full collision and bottom has contact))
-            self.rect.topleft += self.platform_moving.direction * self.platform_moving.speed * dt
+            self.hitbox_rect.topleft += self.platform.direction * self.platform.speed  * dt
 
-    def fill_collide_lists(self, tar_rect, sprite_groups):
+    def fill_collide_lists(self, tar_rect):
         # tiles
         self.list_collide_basic = []
         self.list_collide_ramps = []
         self.list_semi_collide = []
 
-        for group in sprite_groups:
+        for group in [self.collision_sprites, self.semi_collision_sprites, self.ramp_collision_sprites]:
             for sprite in group:
                 if sprite.rect.colliderect(tar_rect):
                     if (group == self.collision_sprites):
-                        if (sprite.type in [TERRAIN_BASIC, MOVING_OBJECTS]):
-                            self.list_collide_basic.append(sprite)                 
-                        elif (sprite.type in [TERRAIN_R_RAMP, TERRAIN_L_RAMP]):
+                        self.list_collide_basic.append(sprite)
+                    elif (group == self.ramp_collision_sprites):               
+                        if (sprite.type in [TERRAIN_R_RAMP, TERRAIN_L_RAMP]):
                             self.list_collide_ramps.append(sprite)
                     elif (group == self.semi_collision_sprites):
                         self.list_semi_collide.append(sprite)
@@ -165,17 +178,17 @@ class Player(pygame.sprite.Sprite):
         Get current collisions on the player
         """
         # hit box is 1 pixels jutting out.
-        top_rect = pygame.FRect(self.rect.topleft + vector(0, -1), (self.rect.width, 1))
-        pygame.draw.rect(self.display_surface, "green", top_rect)
-        bot_rect = pygame.FRect(self.rect.bottomleft, (self.rect.width, 1))
+        top_rect = pygame.FRect(self.hitbox_rect.topleft + vector(0, -1), (self.hitbox_rect.width, 1))
+        #pygame.draw.rect(self.display_surface, "green", top_rect)
+        bot_rect = pygame.FRect(self.hitbox_rect.bottomleft, (self.hitbox_rect.width, 1))
         #pygame.draw.rect(self.display_surface, "green", bot_rect)
-        left_rect = pygame.FRect(self.rect.topleft + vector(-1,self.rect.height / 4), (1,self.rect.height / 2))
+        left_rect = pygame.FRect(self.hitbox_rect.topleft + vector(-1,self.hitbox_rect.height / 4), (1,self.hitbox_rect.height / 2))
         #pygame.draw.rect(self.display_surface, "green", left_rect)
-        right_rect = pygame.FRect(self.rect.topright + vector(0,self.rect.height / 4),(1,self.rect.height / 2))
+        right_rect = pygame.FRect(self.hitbox_rect.topright + vector(0,self.hitbox_rect.height / 4),(1,self.hitbox_rect.height / 2))
         #pygame.draw.rect(self.display_surface, "green", right_rect)
-        collide_rects = [sprite.rect for sprite in self.collision_sprites if sprite.type in [TERRAIN_BASIC, MOVING_OBJECTS]]
+        collide_rects = [sprite.rect for sprite in self.collision_sprites]
         #semi_collide_rects = [sprite.rect for sprite in self.semi_collision_sprites]
-        collide_ramps = [sprite for sprite in self.collision_sprites if sprite.type in [TERRAIN_R_RAMP, TERRAIN_L_RAMP]]
+        collide_ramps = [sprite for sprite in self.ramp_collision_sprites]
         
         # check collisions
         # top
@@ -188,8 +201,9 @@ class Player(pygame.sprite.Sprite):
         # right
         curr_right_collide = True if (right_rect.collidelist(collide_rects) >= 0) else False
 
-        # semi - collisions
-        for spr in self.semi_collision_sprites:
+        # semi - collisions (floor only)
+        semi_collide_sprites = self.semi_collision_sprites.sprites()
+        for spr in semi_collide_sprites:
             if (self.velocity.y >= 0 and bot_rect.colliderect(spr.rect) and bot_rect.top <= spr.rect.top):
                 # must be "falling", collided, and hit box top is less than or equal than the platform top
                 curr_bot_collide = True
@@ -218,35 +232,27 @@ class Player(pygame.sprite.Sprite):
         self.collision_side["left"] = curr_left_collide
         self.collision_side["right"] = curr_right_collide
 
-        # moving platform
-        self.platform_moving = None
+        # moving platform. Check if player is standing on one
+        self.platform = None
         platform_sprites = self.collision_sprites.sprites() + self.semi_collision_sprites.sprites()
         for sprite in [sprite for sprite in platform_sprites if hasattr(sprite, "moving")]:
             if (bot_rect.colliderect(sprite)):
-                self.platform_moving = sprite
+                self.platform = sprite
 
-    def semi_collisions(self, axis):
+        #print(self.collision_side)
+
+    def semi_collisions(self):
         if (not self.timers["unlock_semi_drop_down"].active):
             # only apply floor collision if player has not expressly keyed down to drop down through the platform
             for sprite in self.list_semi_collide:
-                # semi collision rect only has top collision for player to stand on
-                if (axis == "vertical"):
-                    if (sprite.type == MOVING_OBJECTS):
-                        if (sprite.path_plane == "y"):
-                            if (sprite.rect.top <= self.rect.bottom and sprite.old_rect.top + sprite.speed >= self.rect.bottom):
-                                # upward moving platform collides with bottom of the player
-                                if (self.velocity.y > 0):
-                                    # if falling into it.
-                                    self.velocity.y = 0
-                                self.rect.bottom = sprite.rect.top
-                    
-                    if (self.rect.bottom >= sprite.rect.top and self.old_rect.bottom <= sprite.rect.top):
-                        # touch the platform, player approaching from top
-                        #self.collision_side["bot"] = True
-                        if (self.velocity.y > 0):
-                            # if falling into it.
-                            self.velocity.y = 0
-                        self.rect.bottom = sprite.rect.top
+                move_offset = 0
+                if (sprite.type == MOVING_OBJECTS):
+                    move_offset = sprite.speed
+
+                if (self.hitbox_rect.bottom >= sprite.rect.top and self.old_rect.bottom - move_offset <= sprite.rect.top):
+                    if (self.velocity.y > 0):
+                        self.velocity.y = 0
+                    self.hitbox_rect.bottom = sprite.rect.top
 
     def collision_ramp(self, tar_rect, ramp_sprite):
         """
@@ -261,7 +267,7 @@ class Player(pygame.sprite.Sprite):
         # since the ramp is a right isoceles, height can be determined by the overlap in the x axis
         if (ramp_sprite.type == TERRAIN_R_RAMP):
             # right edge
-            pos_h = rel_x + self.rect.width
+            pos_h = rel_x + self.hitbox_rect.width
             # center
             #pos_h = rel_x + center
         else:
@@ -275,8 +281,8 @@ class Player(pygame.sprite.Sprite):
         # height that will be in the ramp tile
         target_y = ramp_sprite.rect.y + TILE_SIZE - pos_h
         #print(tar_rect.bottom, ":", target_y)
-        if (tar_rect.bottom >= target_y and tar_rect.bottom - 1 <= ramp_sprite.rect.bottom): 
-            # check if the player collided with the actual ramp and that the player y pos is level or within ramp
+        if (tar_rect.bottom >= target_y):
+            # check if the player collided with the actual ramp #and that the player y pos is level or within ramp
             # adjust player height
             #self.collision_side["bot"] = True
             return (True, target_y)
@@ -303,106 +309,96 @@ class Player(pygame.sprite.Sprite):
             if (self.on_ramp_slope["ramp_type"] == TERRAIN_R_RAMP):
                 offset = -1
             temp = self.old_rect.left + offset
-            self.rect.left = self.old_rect.left + offset
+            self.hitbox_rect.left = self.old_rect.left + offset
             self.old_rect.left = temp   
 
         # populate collided rects
-        self.fill_collide_lists(self.rect, [self.collision_sprites, self.semi_collision_sprites])
+        self.fill_collide_lists(self.hitbox_rect)
 
         # for semi collision rects
-        self.semi_collisions(axis)
+        self.semi_collisions()
                 
         # terrain basic
         for sprite in self.list_collide_basic:
             if (axis == "horizontal"):
+                move_offset = 0
                 if (sprite.type == MOVING_OBJECTS):
-                    if (sprite.path_plane == "x"):
-                        if (sprite.rect.right >= self.rect.left and sprite.old_rect.right - sprite.speed <= self.rect.left):
-                            # right moving platform collides with left of player
-                            self.rect.left = sprite.rect.right
-                        elif (sprite.rect.left <= self.rect.right and sprite.old_rect.left + sprite.speed >= self.rect.right):
-                            # left moving platform collides with right of player
-                            self.rect.right = sprite.rect.left
-
-                if (self.rect.left <= sprite.rect.right and self.old_rect.left >= sprite.rect.right):
+                    move_offset = sprite.speed
+                
+                if (self.hitbox_rect.left <= sprite.rect.right and self.old_rect.left + move_offset >= sprite.rect.right):
                     # left collision and player approach from right
                     if (not self.on_ramp_slope["on"]):
                         # fixed hitching when off ramping onto a basic tile
                         self.velocity.x = 0
 
-                    self.rect.left = sprite.rect.right
-                elif (self.rect.right >= sprite.rect.left and self.old_rect.right <= sprite.rect.left):
+                    self.hitbox_rect.left = sprite.rect.right
+                elif (self.hitbox_rect.right >= sprite.rect.left and self.old_rect.right - move_offset <= sprite.rect.left):
                     # right collision and player approach from left
                     if (not self.on_ramp_slope["on"]):
                         self.velocity.x = 0  
 
-                    self.rect.right = sprite.rect.left
+                    self.hitbox_rect.right = sprite.rect.left
             else:
+                moving_offset = 0
                 if (sprite.type == MOVING_OBJECTS):
-                    if (sprite.path_plane == "y"):
-                        if (sprite.rect.top <= self.rect.bottom and sprite.old_rect.top + sprite.speed >= self.rect.bottom):
-                            # upward moving platform collides with bottom of the player
-                            self.velocity.y = 0
-                            self.rect.bottom = sprite.rect.top
-                        elif (sprite.rect.bottom >= self.rect.top and sprite.old_rect.bottom - sprite.speed <= self.rect.top):
-                            if (self.is_jumping):
-                                self.velocity.y *= 0.25
-                                self.is_jumping = False
-                            self.rect.top = sprite.rect.bottom
+                    moving_offset = sprite.speed
+                    
                 # vertical
-                if (self.rect.bottom >= sprite.rect.top and self.old_rect.bottom <= sprite.rect.top):
+                if (self.hitbox_rect.bottom >= sprite.rect.top and self.old_rect.bottom - moving_offset <= sprite.rect.top):
                     # touch ground, player approaching from top
                     #self.collision_side["bot"] = True
                     self.velocity.y = 0
-                    self.rect.bottom = sprite.rect.top
-                elif (self.rect.top <= sprite.rect.bottom and self.old_rect.top >= sprite.rect.bottom):
+                    self.hitbox_rect.bottom = sprite.rect.top
+                elif (self.hitbox_rect.top <= sprite.rect.bottom and self.old_rect.top + moving_offset>= sprite.rect.bottom):
                     # sprite hit top, player approach from below
                     if (self.is_jumping):
                         # if jumping, stop it and set flag so input key up doesn't apply this again
                         self.velocity.y *= 0.25
                         self.is_jumping = False
-                    self.rect.top = sprite.rect.bottom
+                    self.hitbox_rect.top = sprite.rect.bottom
 
         for sprite in self.list_collide_ramps:
             # collided with frect of the ramp
             if (axis == "horizontal"):
                 self.on_ramp_wall = False
                 if (sprite.type == TERRAIN_R_RAMP):
-                    if (self.rect.left <= sprite.rect.right and self.old_rect.left >= sprite.rect.right):
+                    if (self.hitbox_rect.left <= sprite.rect.right and self.old_rect.left >= sprite.rect.right):
                         # wall of right ramp, player approach from the right
-                        self.on_ramp_wall = True
+                        if (not self.on_ramp_slope["on"]):
+                            self.on_ramp_wall = True
 
                         self.velocity.x = 0
 
-                        self.rect.left = sprite.rect.right
-                    elif (self.rect.right >= sprite.rect.left and self.old_rect.right <= sprite.rect.left and self.rect.bottom > sprite.rect.bottom):
+                        self.hitbox_rect.left = sprite.rect.right
+                    elif (self.hitbox_rect.right >= sprite.rect.left and self.old_rect.right <= sprite.rect.left and self.hitbox_rect.bottom > sprite.rect.bottom):
                         # of bottom edge of slope, if below don't hook on
-                        self.rect.right = sprite.rect.left
+                        self.hitbox_rect.right = sprite.rect.left
                 else:                   
-                    if (self.rect.right >= sprite.rect.left and self.old_rect.right <= sprite.rect.left):
+                    if (self.hitbox_rect.right >= sprite.rect.left and self.old_rect.right <= sprite.rect.left):
                         # wall of left ramp, player approach from the left
-                        self.on_ramp_wall = True
+                        if (not self.on_ramp_slope["on"]):
+                            self.on_ramp_wall = True
 
                         self.velocity.x = 0
 
-                        self.rect.right = sprite.rect.left
-                    elif (self.rect.left <= sprite.rect.right and self.old_rect.left >= sprite.rect.right and self.rect.bottom > sprite.rect.bottom):
-                        self.rect.left = sprite.rect.right
+                        self.hitbox_rect.right = sprite.rect.left
+                    elif (self.hitbox_rect.left <= sprite.rect.right and self.old_rect.left >= sprite.rect.right and self.hitbox_rect.bottom > sprite.rect.bottom):
+                        self.hitbox_rect.left = sprite.rect.right
             else:
-                if (self.rect.top <= sprite.rect.bottom and self.old_rect.top >= sprite.rect.bottom):
+                if (self.hitbox_rect.top <= sprite.rect.bottom and self.old_rect.top >= sprite.rect.bottom):
                     # bottom of ramp, player approach from bottom
                     if (self.is_jumping):
                         self.velocity.y *= 0.25
                         self.is_jumping = False
-                    self.rect.top = sprite.rect.bottom
+                    self.hitbox_rect.top = sprite.rect.bottom
                 elif (not self.on_ramp_wall): 
-                    res = self.collision_ramp(self.rect, sprite)
+                    res = self.collision_ramp(self.hitbox_rect, sprite)
                     if (res[0]):
                         self.on_ramp_slope["on"] = True
                         self.on_ramp_slope["ramp_type"] = sprite.type
 
                         self.velocity.y = 0
-                        self.rect.bottom = res[1]
+                        self.hitbox_rect.bottom = res[1]
                     
     
     def rot_center(self, image, angle, x, y):
@@ -417,7 +413,7 @@ class Player(pygame.sprite.Sprite):
             timer.update()
 
     def update(self, dt):
-        self.old_rect = self.rect.copy()
+        self.old_rect = self.hitbox_rect.copy()
 
         self.update_timers()
 
@@ -425,5 +421,12 @@ class Player(pygame.sprite.Sprite):
         self.player_input()
         self.horizontal_movement(dt)
         self.vertical_movement(dt)
+        # recenter image rect with the hitbox rect
+        self.rect.center = self.hitbox_rect.center
+        #self.position = pygame.math.Vector2(self.hitbox_rect.bottomleft)
         self.check_contact()
         self.platform_move(dt)
+
+        # reset x vel
+        if (self.velocity.x > -0.01 and self.velocity.x < 0.01):
+            self.velocity.x = 0

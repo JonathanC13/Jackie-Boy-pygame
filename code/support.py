@@ -7,6 +7,9 @@ def import_image(*path, alpha = True, format = 'png'):
 	return pygame.image.load(full_path).convert_alpha() if alpha else pygame.image.load(full_path).convert()
 
 def import_folder(*path):
+	"""
+	returns a list of surfaces in the specified path folder
+	"""
 	frames = []
 	for folder_path, subfolders, image_names in walk(join(*path)):
 		for image_name in sorted(image_names, key = lambda name: int(name.split('.')[0])):

@@ -2,26 +2,46 @@ from settings import *
 
 class Sprite(pygame.sprite.Sprite):
 
-	def __init__(self, pos, surf = pygame.Surface((TILE_SIZE,TILE_SIZE)), groups = None, type = None):
+	def __init__(self, pos, surf = pygame.Surface((TILE_SIZE,TILE_SIZE)), groups = None, type = None, z = Z_LAYERS["main"]):
 		
 		super().__init__(groups)
 
 		self.image = surf
-		if (type == MOVING_OBJECTS):
-			self.image.fill("white")
 		self.rect = self.image.get_frect(topleft = pos)
 
 		self.old_rect = self.rect.copy()
 		self.type = type
+		self.z = z
+
+class AnimatedSprite(Sprite):
+
+	def __init__(self, pos, frames, groups, type = None, z = Z_LAYERS["main"], animation_speed = ANIMATION_SPEED):
+
+		self.frames, self.frame_index = frames, 0
+		self.len_frames = len(frames)
+		super().__init__(pos, self.frames[self.frame_index], groups, type, z)
+
+		self.animation_speed = animation_speed
+
+	def animate(self, dt):
+		self.frame_index += self.animation_speed * dt/FPS_TARGET
+		if (self.frame_index > self.len_frames):
+			self.frame_index = 0
+		self.image = self.frames[int(self.frame_index)]
+
+	def update(self, dt):
+		self.animate(dt)
 
 class MovingSprite(Sprite):
 
-	def __init__(self, start_pos, end_pos, path_plane, start_end = False, speed = 0, full_collision = True, groups = None, flip = False, type = None):
+	def __init__(self, start_pos, end_pos, path_plane, start_end = False, speed = 0, full_collision = True, groups = None, flip = False, type = None, z = Z_LAYERS["main"]):
 
-		surf = pygame.Surface((50, 25))
-		super().__init__(start_pos, surf, groups, type)
+		surf = pygame.Surface((100, 25))
+		super().__init__(start_pos, surf, groups, type, z)
 		if (not full_collision):
 			self.image.fill("green")
+		else:
+			self.image.fill("white")
 		self.start_pos = start_pos
 		self.end_pos = end_pos
 
