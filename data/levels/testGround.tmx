@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.10" tiledversion="1.10.2" orientation="orthogonal" renderorder="right-down" width="29" height="11" tilewidth="70" tileheight="70" infinite="0" nextlayerid="14" nextobjectid="43">
+<map version="1.10" tiledversion="1.10.2" orientation="orthogonal" renderorder="right-down" width="29" height="11" tilewidth="70" tileheight="70" infinite="0" nextlayerid="14" nextobjectid="51">
  <tileset firstgid="1" source="../tilesets/tiles.tsx"/>
  <tileset firstgid="173" source="testPlayer.tsx"/>
  <tileset firstgid="174" source="D:/jonhs/Downloads/tiledtest/data/tilesets/objects.tsx"/>
@@ -96,7 +96,7 @@
 </data>
  </layer>
  <objectgroup id="9" name="Moving_objects">
-  <object id="8" name="platform_path" x="116" y="60" width="10" height="206.666">
+  <object id="8" name="platform" x="116" y="60" width="10" height="206.666">
    <properties>
     <property name="flip" type="bool" value="false"/>
     <property name="full_collision" type="bool" value="false"/>
@@ -105,7 +105,7 @@
     <property name="start_end" type="bool" value="true"/>
    </properties>
   </object>
-  <object id="10" name="platform_path" x="366.667" y="274.667" width="256" height="10">
+  <object id="10" name="platform" x="366.667" y="274.667" width="256" height="10">
    <properties>
     <property name="flip" type="bool" value="false"/>
     <property name="full_collision" type="bool" value="true"/>
@@ -114,7 +114,7 @@
     <property name="start_end" type="bool" value="false"/>
    </properties>
   </object>
-  <object id="12" name="platform_path" x="197.667" y="211.334" width="10" height="206.666">
+  <object id="12" name="platform" x="197.667" y="211.334" width="10" height="206.666">
    <properties>
     <property name="flip" type="bool" value="false"/>
     <property name="full_collision" type="bool" value="true"/>
@@ -123,7 +123,7 @@
     <property name="start_end" type="bool" value="false"/>
    </properties>
   </object>
-  <object id="13" name="platform_path" x="364" y="193.667" width="256" height="10">
+  <object id="13" name="platform" x="364" y="193.667" width="256" height="10">
    <properties>
     <property name="flip" type="bool" value="false"/>
     <property name="full_collision" type="bool" value="false"/>
@@ -132,7 +132,7 @@
     <property name="start_end" type="bool" value="true"/>
    </properties>
   </object>
-  <object id="41" name="platform_path" x="1010" y="212.667" width="10" height="344.666">
+  <object id="41" name="platform" x="1010" y="212.667" width="10" height="344.666">
    <properties>
     <property name="flip" type="bool" value="false"/>
     <property name="full_collision" type="bool" value="false"/>
@@ -141,13 +141,45 @@
     <property name="start_end" type="bool" value="true"/>
    </properties>
   </object>
-  <object id="42" name="platform_path" x="1368" y="49.667" width="10" height="360.666">
+  <object id="42" name="platform" x="1368" y="49.667" width="10" height="360.666">
    <properties>
     <property name="flip" type="bool" value="false"/>
     <property name="full_collision" type="bool" value="true"/>
     <property name="platform" type="bool" value="true"/>
     <property name="speed" type="float" value="2"/>
     <property name="start_end" type="bool" value="true"/>
+   </properties>
+  </object>
+  <object id="43" gid="185" x="1085" y="76" width="64" height="64">
+   <properties>
+    <property name="end_angle" type="int" value="180"/>
+    <property name="platform" type="bool" value="false"/>
+    <property name="radius" type="int" value="100"/>
+    <property name="speed" type="int" value="2"/>
+    <property name="start_angle" type="int" value="0"/>
+   </properties>
+  </object>
+  <object id="44" name="saw" x="615" y="41.667" width="10" height="126.666">
+   <properties>
+    <property name="flip" type="bool" value="false"/>
+    <property name="full_collision" type="bool" value="false"/>
+    <property name="platform" type="bool" value="false"/>
+    <property name="speed" type="float" value="2"/>
+    <property name="start_end" type="bool" value="false"/>
+   </properties>
+  </object>
+  <object id="45" name="saw" x="277" y="38" width="256" height="10">
+   <properties>
+    <property name="flip" type="bool" value="false"/>
+    <property name="full_collision" type="bool" value="false"/>
+    <property name="platform" type="bool" value="false"/>
+    <property name="speed" type="float" value="3"/>
+    <property name="start_end" type="bool" value="false"/>
+   </properties>
+  </object>
+  <object id="48" name="floor_spike" gid="1073742008" x="228" y="-56" width="64" height="64">
+   <properties>
+    <property name="inverted" type="bool" value="true"/>
    </properties>
   </object>
  </objectgroup>
@@ -165,6 +197,21 @@
   <object id="37" name="palm_bg_left" gid="186" x="1655" y="278" width="104" height="106"/>
   <object id="38" name="palm_small" gid="180" x="1148" y="285" width="80" height="103"/>
   <object id="40" name="palm_large" gid="178" x="1721" y="259" width="78" height="136"/>
+  <object id="46" name="saw" x="424" y="78" width="64" height="64">
+   <properties>
+    <property name="speed" type="float" value="2"/>
+   </properties>
+  </object>
+  <object id="49" name="floor_spike" gid="184" x="1961" y="490" width="64" height="64">
+   <properties>
+    <property name="inverted" type="bool" value="false"/>
+   </properties>
+  </object>
+  <object id="50" name="floor_spike" gid="1073742008" x="1961" y="298" width="64" height="64">
+   <properties>
+    <property name="inverted" type="bool" value="true"/>
+   </properties>
+  </object>
  </objectgroup>
  <objectgroup id="2" name="Player_objects">
   <object id="3" name="testPlayer" gid="173" x="592" y="630" width="69" height="97"/>

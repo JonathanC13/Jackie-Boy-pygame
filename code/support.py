@@ -27,6 +27,9 @@ def import_folder_dict(*path):
 	return frame_dict
 
 def import_sub_folders(*path):
+	"""
+	returns a dict with the folder name as the 'key' and a list of the associated surfaces as the 'value'
+	"""
 	frame_dict = {}
 	for _, sub_folders, __ in walk(join(*path)): 
 		if sub_folders:

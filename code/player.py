@@ -3,13 +3,18 @@ from timerClass import Timer
 
 class Player(pygame.sprite.Sprite):
 
-    def __init__(self, pos, surf = pygame.Surface((TILE_SIZE,TILE_SIZE)), groups = None, collision_sprites = None, semi_collision_sprites = None, ramp_collision_sprites = None, masked_sprites = None):
+    def __init__(self, pos, surf = pygame.Surface((TILE_SIZE,TILE_SIZE)), groups = None, collision_sprites = None, semi_collision_sprites = None, ramp_collision_sprites = None, masked_sprites = None, frames = None):
+        # general setup
         super().__init__(groups)
+        self.z = Z_LAYERS["main"]
 
         self.display_surface = pygame.display.get_surface()
 
         #self.image = pygame.Surface(surf)
-        self.image = pygame.image.load(os.path.join("..", "graphics", "player", "idle","0.png"))
+        self.frames, self.frame_index = frames, 0
+        self.state, self.facing_right = "idle", True
+        self.image = self.frames[self.state][self.frame_index]
+
         # rects
         # rect to hold entire image
         self.rect = self.image.get_frect(topleft = pos)
@@ -18,8 +23,6 @@ class Player(pygame.sprite.Sprite):
         self.hitbox_rect = self.rect.inflate(-76, 0)
         # previous rect in previous frame to know which direction this rect came from
         self.old_rect = self.hitbox_rect.copy()
-
-        self.z = Z_LAYERS["main"]
 
         # collision
         self.collision_sprites = collision_sprites
@@ -33,17 +36,21 @@ class Player(pygame.sprite.Sprite):
         self.platform = None
 
         # movement
-        self.LEFT_KEY, self.RIGHT_KEY, self.FACING_LEFT = False, False, False
+        self.LEFT_KEY, self.RIGHT_KEY = False, False
         self.is_jumping = False
         self.gravity, self.friction = GRAVITY_NORM, -0.12   # incr frict for less slide
         #self.position = pygame.math.Vector2(self.hitbox_rect.bottomleft)
         self.velocity = pygame.math.Vector2(0, 0)
         self.acceleration = pygame.math.Vector2(0, self.gravity)
 
+        # attacks
+        self.is_attacking = False
+
         # timer
         self.timers = {
             "wall_jump_move_block": Timer(200), # blocks the use of LEFT and RIGHT right after wall jump
-            "unlock_semi_drop_down": Timer(100) # disables the floor collision for semi collision platforms so that the player can drop down through them
+            "unlock_semi_drop_down": Timer(100), # disables the floor collision for semi collision platforms so that the player can drop down through them
+            "normal_attack_cooldown": Timer(500)
         }
 
     def player_input(self):
@@ -57,8 +64,10 @@ class Player(pygame.sprite.Sprite):
             # blocks these keys if just jumped off a wall. Prevent infinite climbing with wall jump
             if (keys[pygame.K_a]):
                 self.LEFT_KEY = True
+                self.facing_right = False
             if (keys[pygame.K_d]):
                 self.RIGHT_KEY = True
+                self.facing_right = True
         
         if (keys[pygame.K_s]):
             self.timers["unlock_semi_drop_down"].activate()
@@ -72,6 +81,12 @@ class Player(pygame.sprite.Sprite):
             self.LEFT_KEY = False
         if (not keys[pygame.K_d]):
             self.RIGHT_KEY = False
+
+    def attack(self):
+        if (not self.is_attacking and not self.timers["normal_attack_cooldown"].active):
+            self.is_attacking = True
+            self.frame_index = 0
+            self.timers["normal_attack_cooldown"].activate()
 
     def horizontal_movement(self, dt):
         """
@@ -143,6 +158,7 @@ class Player(pygame.sprite.Sprite):
             self.velocity.y -= PLAYER_VEL_Y * 0.7
             # force jump away from wall
             self.velocity.x = PLAYER_MAX_VEL_X if self.collision_side["left"] else -PLAYER_MAX_VEL_X
+            self.facing_right = True if self.collision_side["left"] else False
 
             self.timers["wall_jump_move_block"].activate()
             self.LEFT_KEY = False
@@ -411,10 +427,49 @@ class Player(pygame.sprite.Sprite):
     def update_timers(self):
         for timer in self.timers.values():
             timer.update()
+            
+    def animate(self, dt):
+        self.frame_index += ANIMATION_SPEED * dt/FPS_TARGET
 
-    def update(self, dt):
+        if (self.is_attacking and self.frame_index >= len(self.frames[self.state])):
+            self.frame_index = 0
+            self.is_attacking = False
+            self.get_state()
+
+        if (self.frame_index >= len(self.frames[self.state])):
+            self.frame_index = 0
+
+        self.image = self.frames[self.state][int(self.frame_index)]
+        self.image = self.image if self.facing_right else pygame.transform.flip(self.image, True, False)
+
+    def get_state(self):
+        if (self.collision_side["bot"]):
+            if (self.is_attacking):
+                self.state = "attack"
+            else:
+                self.state = "idle" if self.velocity.x == 0 else "run"
+        else:
+            if (self.is_attacking):
+                self.state = "air_attack"
+            else:
+                if (any((self.collision_side["left"], self.collision_side["right"]))):
+                    self.state = "wall"
+                else:
+                    self.state = "jump" if self.velocity.y < 0 else "fall"
+
+    def update(self, dt, event_list):
+        for event in event_list:
+            if (event.type == pygame.MOUSEBUTTONDOWN):
+                if (event.button == 1):
+                    self.attack()
+                    print(event.pos)
+
+            # later ball attack is a charge attack and only shoots when left button released
+            # if (event.type == pygame.MOUSEBUTTONUP):
+            #     if (event.button == 1):
+            #         self.has_released_attack = True
+
         self.old_rect = self.hitbox_rect.copy()
-
         self.update_timers()
 
         # player movement
@@ -426,6 +481,9 @@ class Player(pygame.sprite.Sprite):
         #self.position = pygame.math.Vector2(self.hitbox_rect.bottomleft)
         self.check_contact()
         self.platform_move(dt)
+
+        self.get_state()
+        self.animate(dt)
 
         # reset x vel
         if (self.velocity.x > -0.01 and self.velocity.x < 0.01):

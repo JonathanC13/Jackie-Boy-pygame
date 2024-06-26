@@ -1,3 +1,5 @@
+from random import uniform
+
 from settings import *
 from sprites import Sprite, AnimatedSprite, MovingSprite
 from player import Player
@@ -21,6 +23,7 @@ class Level:
         self.ramp_collision_sprites = pygame.sprite.Group()
         self.semi_collision_sprites = pygame.sprite.Group()
         self.masked_sprites = pygame.sprite.Group()
+        self.damage_sprites = pygame.sprite.Group()
 
         self.setup(level_frames)
 
@@ -57,7 +60,7 @@ class Level:
 
         # moving objects
         for obj in self.tmx_map.get_layer_by_name(MOVING_OBJECTS):
-            if (obj.name == "platform_path"):
+            if (obj.name == "platform"):
                 if (obj.width > obj.height):
                     # horizontal path
                     path_plane = "x"
@@ -89,22 +92,38 @@ class Level:
                 Sprite((obj.x, obj.y), obj.image, (self.all_sprites, self.collision_sprites), GENERAL_OBJECTS, Z_LAYERS["main"])
             else:
                 # animated
-                if (obj.name == "flag"):
-                    frames = level_frames[obj.name]
-                    AnimatedSprite((obj.x, obj.y), frames, (self.all_sprites), GENERAL_OBJECTS, Z_LAYERS["main"], ANIMATION_SPEED)
+                # frames 
+                frames = level_frames[obj.name] if not 'palm' in obj.name else level_frames['palms'][obj.name]
+                if obj.name == 'floor_spike' and obj.properties['inverted']:
+                    frames = [pygame.transform.flip(frame, False, True) for frame in frames]
+
+                # groups 
+                groups = [self.all_sprites]
+                if obj.name in('palm_small', 'palm_large'): 
+                    groups.append(self.semi_collision_sprites)
+                elif obj.name in ('saw', 'floor_spike'): 
+                    groups.append(self.damage_sprites)
+
+                # z index
+                z = Z_LAYERS['main'] if not 'bg' in obj.name else Z_LAYERS['bg_details']
+
+                # animation speed
+                animation_speed = ANIMATION_SPEED if not 'palm' in obj.name else ANIMATION_SPEED + uniform(-1,1)
+
+                AnimatedSprite((obj.x, obj.y), frames, groups, GENERAL_OBJECTS, z, animation_speed)
 
         # player objects
         for obj in self.tmx_map.get_layer_by_name(PLAYER_OBJECTS):
             if (obj.name == "testPlayer"):
                 #self.player = Player((obj.x, obj.y), (obj.width, obj.height), self.all_sprites, self.collision_sprites)
-                self.player = Player((obj.x, obj.y), (obj.width, obj.height), self.all_sprites, self.collision_sprites, self.semi_collision_sprites, self.ramp_collision_sprites, self.masked_sprites)
+                self.player = Player((obj.x, obj.y), (obj.width, obj.height), self.all_sprites, self.collision_sprites, self.semi_collision_sprites, self.ramp_collision_sprites, self.masked_sprites, level_frames["player"])
 
-    def run(self, dt):
+    def run(self, dt, event_list):
         # game loop here for level. like checking collisions and updating screen
         self.display_surface.fill("black")
 
         # update sprites
-        self.all_sprites.update(dt)
+        self.all_sprites.update(dt, event_list)
 
         # draw all sprites
         self.all_sprites.draw(self.player.hitbox_rect.center, self.player.hitbox_rect.width, self.tmx_map_max_width)

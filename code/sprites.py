@@ -29,7 +29,7 @@ class AnimatedSprite(Sprite):
 			self.frame_index = 0
 		self.image = self.frames[int(self.frame_index)]
 
-	def update(self, dt):
+	def update(self, dt, event_list):
 		self.animate(dt)
 
 class MovingSprite(Sprite):
@@ -89,7 +89,7 @@ class MovingSprite(Sprite):
 				self.rect.top = self.start_pos[1]
 			self.reverse['y'] = True if self.direction.y > 0 else False
 
-	def update(self, dt):
+	def update(self, dt, event_list):
 		self.old_rect = self.rect.copy()
 		self.rect.center += self.direction * self.speed * dt
 		self.check_border()
