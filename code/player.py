@@ -10,17 +10,17 @@ class Player(pygame.sprite.Sprite):
 
         self.display_surface = pygame.display.get_surface()
 
-        #self.image = pygame.Surface(surf)
         self.frames, self.frame_index = frames, 0
         self.state, self.facing_right = "idle", True
-        self.image = self.frames[self.state][self.frame_index]
+        self.image = surf
+        #self.image = self.frames[self.state][self.frame_index]
 
         # rects
         # rect to hold entire image
         self.rect = self.image.get_frect(topleft = pos)
         # reduce rect for actual representation of the hit box of the image. -50 means 25 pixels from left and 25 from right
         # Use masking later for more accurate hit box
-        self.hitbox_rect = self.rect.inflate(-76, 0)
+        self.hitbox_rect = self.rect.inflate(0, 0)
         # previous rect in previous frame to know which direction this rect came from
         self.old_rect = self.hitbox_rect.copy()
 
@@ -194,13 +194,13 @@ class Player(pygame.sprite.Sprite):
         Get current collisions on the player
         """
         # hit box is 1 pixels jutting out.
-        top_rect = pygame.FRect(self.hitbox_rect.topleft + vector(0, -1), (self.hitbox_rect.width, 1))
-        #pygame.draw.rect(self.display_surface, "green", top_rect)
+        top_rect = pygame.FRect(self.hitbox_rect.topleft + vector(self.hitbox_rect.width / 4, -1), (self.hitbox_rect.width / 2, 1))
+        pygame.draw.rect(self.display_surface, "green", top_rect)
         bot_rect = pygame.FRect(self.hitbox_rect.bottomleft, (self.hitbox_rect.width, 1))
         #pygame.draw.rect(self.display_surface, "green", bot_rect)
-        left_rect = pygame.FRect(self.hitbox_rect.topleft + vector(-1,self.hitbox_rect.height / 4), (1,self.hitbox_rect.height / 2))
+        left_rect = pygame.FRect(self.hitbox_rect.topleft + vector(-1,self.hitbox_rect.height / 4), (1,self.hitbox_rect.height / 4))
         #pygame.draw.rect(self.display_surface, "green", left_rect)
-        right_rect = pygame.FRect(self.hitbox_rect.topright + vector(0,self.hitbox_rect.height / 4),(1,self.hitbox_rect.height / 2))
+        right_rect = pygame.FRect(self.hitbox_rect.topright + vector(0,self.hitbox_rect.height / 4),(1,self.hitbox_rect.height / 4))
         #pygame.draw.rect(self.display_surface, "green", right_rect)
         collide_rects = [sprite.rect for sprite in self.collision_sprites]
         #semi_collide_rects = [sprite.rect for sprite in self.semi_collision_sprites]
@@ -415,14 +415,6 @@ class Player(pygame.sprite.Sprite):
 
                         self.velocity.y = 0
                         self.hitbox_rect.bottom = res[1]
-                    
-    
-    def rot_center(self, image, angle, x, y):
-    
-        rotated_image = pygame.transform.rotate(image, angle)
-        new_rect = rotated_image.get_frect(center = image.get_rect(center = (x, y)).center)
-
-        return rotated_image, new_rect
     
     def update_timers(self):
         for timer in self.timers.values():
@@ -482,9 +474,11 @@ class Player(pygame.sprite.Sprite):
         self.check_contact()
         self.platform_move(dt)
 
-        self.get_state()
-        self.animate(dt)
+        #self.get_state()
+        #self.animate(dt)
 
+        #pygame.draw.rect(self.display_surface, "green", self.hitbox_rect)
+        
         # reset x vel
         if (self.velocity.x > -0.01 and self.velocity.x < 0.01):
             self.velocity.x = 0

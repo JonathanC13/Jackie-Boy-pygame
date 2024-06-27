@@ -30,7 +30,8 @@ class AnimatedSprite(Sprite):
 		self.image = self.frames[int(self.frame_index)]
 
 	def update(self, dt, event_list):
-		self.animate(dt)
+		#self.animate(dt)
+		pass
 
 class MovingSprite(Sprite):
 
