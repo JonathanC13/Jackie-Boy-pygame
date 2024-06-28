@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<tileset version="1.10" tiledversion="1.10.2" name="objects_characters" tilewidth="92" tileheight="186" tilecount="12" columns="0">
+<tileset version="1.10" tiledversion="1.10.2" name="objects_characters" tilewidth="92" tileheight="186" tilecount="13" columns="0">
  <grid orientation="orthogonal" width="1" height="1"/>
  <tile id="0">
   <image width="64" height="116" source="../../graphics/objects/characters/big_chain.png"/>
@@ -36,5 +36,8 @@
  </tile>
  <tile id="11">
   <image width="44" height="30" source="../../graphics/objects/characters/bat.png"/>
+ </tile>
+ <tile id="12">
+  <image width="66" height="92" source="../../graphics/objects/characters/bosses/Boss_1_sign.png"/>
  </tile>
 </tileset>

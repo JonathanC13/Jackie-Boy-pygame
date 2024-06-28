@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<tileset version="1.10" tiledversion="1.10.2" name="objects_env" tilewidth="247" tileheight="630" tilecount="51" columns="0">
+<tileset version="1.10" tiledversion="1.10.2" name="objects_env" tilewidth="247" tileheight="630" tilecount="54" columns="0">
  <grid orientation="orthogonal" width="1" height="1"/>
  <tile id="0">
   <image width="70" height="70" source="../../graphics/objects/environment/treeTrunkSplitLeft.png"/>
@@ -153,5 +153,14 @@
  </tile>
  <tile id="56">
   <image width="172" height="630" source="../../graphics/objects/environment/tree_large.png"/>
+ </tile>
+ <tile id="57">
+  <image width="5" height="18" source="../../graphics/tiles/sandLedgeLeft.png"/>
+ </tile>
+ <tile id="58">
+  <image width="5" height="18" source="../../graphics/tiles/sandLedgeRight.png"/>
+ </tile>
+ <tile id="60">
+  <image width="70" height="70" source="../../graphics/objects/environment/tochLit.png"/>
  </tile>
 </tileset>

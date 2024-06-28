@@ -12,7 +12,7 @@ class AllSprites(pygame.sprite.Group):
         self.offset.x = -(target_pos[0] - (WINDOW_WIDTH / 2) + player_width)
 
         # bounds
-        self.offset.x = max(min(self.offset.x, 0), -((tmx_map_width - 1) * TILE_SIZE - WINDOW_WIDTH + player_width))
+        self.offset.x = max(min(self.offset.x, 0), -((tmx_map_width - 2) * TILE_SIZE - WINDOW_WIDTH + player_width))
 
         for sprite in sorted(self, key = lambda sprite : sprite.z):
             offset_pos = sprite.rect.topleft + self.offset

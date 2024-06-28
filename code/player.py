@@ -195,7 +195,7 @@ class Player(pygame.sprite.Sprite):
         """
         # hit box is 1 pixels jutting out.
         top_rect = pygame.FRect(self.hitbox_rect.topleft + vector(self.hitbox_rect.width / 4, -1), (self.hitbox_rect.width / 2, 1))
-        pygame.draw.rect(self.display_surface, "green", top_rect)
+        #pygame.draw.rect(self.display_surface, "green", top_rect)
         bot_rect = pygame.FRect(self.hitbox_rect.bottomleft, (self.hitbox_rect.width, 1))
         #pygame.draw.rect(self.display_surface, "green", bot_rect)
         left_rect = pygame.FRect(self.hitbox_rect.topleft + vector(-1,self.hitbox_rect.height / 4), (1,self.hitbox_rect.height / 4))

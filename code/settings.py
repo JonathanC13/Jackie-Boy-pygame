@@ -11,7 +11,10 @@ FPS_MAX = 60
 FPS_TARGET = 60
 
 # names of layers and objects from Tiled.
+TRIGGERS = "Triggers"
 FG = "FG"
+WATER_OBJECTS = "Water_objects"
+ITEM_OBJECTS = "Item_objects"
 ENEMY_OBJECTS = "Enemy_objects"
 PLAYER_OBJECTS = "Player_objects"
 MOVING_OBJECTS = "Moving_objects"

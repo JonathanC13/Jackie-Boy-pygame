@@ -15,12 +15,14 @@ class Game:
         pygame.display.set_caption("Jackie Boy")
         self.import_assets()
         
-        self.curr_level = 1
+        self.curr_level = 4
 
         self.level_maps = [
             [0, 0, load_pygame(os.path.join("..", "data", "levels", "test_ground.tmx"))],
             [1, 1, load_pygame(os.path.join("..", "data", "levels", "1_1.tmx"))],
-            [1, 2, load_pygame(os.path.join("..", "data", "levels", "1_2.tmx"))]
+            [1, 2, load_pygame(os.path.join("..", "data", "levels", "1_2.tmx"))],
+            [1, 3, load_pygame(os.path.join("..", "data", "levels", "1_3.tmx"))],
+            [1, 4, load_pygame(os.path.join("..", "data", "levels", "1_4.tmx"))]
         ]
 
         self.run_level = Level(self.level_maps[self.curr_level], self.level_frames)

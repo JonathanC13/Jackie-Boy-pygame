@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.10" tiledversion="1.10.2" orientation="orthogonal" renderorder="right-down" width="73" height="11" tilewidth="70" tileheight="70" infinite="0" nextlayerid="17" nextobjectid="250">
+<map version="1.10" tiledversion="1.10.2" orientation="orthogonal" renderorder="right-down" width="73" height="11" tilewidth="70" tileheight="70" infinite="0" nextlayerid="19" nextobjectid="250">
  <tileset firstgid="1" source="../tilesets/objects_characters.tsx"/>
- <tileset firstgid="13" source="../tilesets/objects_env.tsx"/>
- <tileset firstgid="70" source="../tilesets/tiles_terrain.tsx"/>
+ <tileset firstgid="14" source="../tilesets/objects_env.tsx"/>
+ <tileset firstgid="79" source="../tilesets/tiles_terrain.tsx"/>
  <layer id="4" name="BG" width="73" height="11">
   <data encoding="csv">
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
@@ -94,6 +94,13 @@
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
 </data>
  </layer>
+ <objectgroup id="12" name="Mid_details"/>
+ <objectgroup id="10" name="General_objects"/>
+ <objectgroup id="9" name="Moving_objects"/>
+ <objectgroup id="3" name="Player_objects"/>
+ <objectgroup id="13" name="Enemy_objects"/>
+ <objectgroup id="18" name="Item_objects"/>
+ <objectgroup id="17" name="Water_objects"/>
  <layer id="11" name="FG" width="73" height="11">
   <data encoding="csv">
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
@@ -109,11 +116,6 @@
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
 </data>
  </layer>
- <objectgroup id="12" name="Mid_details"/>
- <objectgroup id="10" name="General_objects"/>
- <objectgroup id="9" name="Moving_objects"/>
- <objectgroup id="3" name="Player_objects"/>
- <objectgroup id="13" name="Enemy_objects"/>
  <objectgroup id="16" name="Triggers"/>
  <objectgroup id="15" name="notes"/>
 </map>
