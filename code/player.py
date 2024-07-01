@@ -3,7 +3,7 @@ from timerClass import Timer
 
 class Player(pygame.sprite.Sprite):
 
-    def __init__(self, pos, surf = pygame.Surface((TILE_SIZE,TILE_SIZE)), groups = None, collision_sprites = None, semi_collision_sprites = None, ramp_collision_sprites = None, masked_sprites = None, frames = None):
+    def __init__(self, pos, surf = pygame.Surface((TILE_SIZE,TILE_SIZE)), groups = None, collision_sprites = None, semi_collision_sprites = None, ramp_collision_sprites = None, frames = None):
         # general setup
         super().__init__(groups)
         self.z = Z_LAYERS["main"]
@@ -28,7 +28,7 @@ class Player(pygame.sprite.Sprite):
         self.collision_sprites = collision_sprites
         self.semi_collision_sprites = semi_collision_sprites
         self.ramp_collision_sprites = ramp_collision_sprites
-        self.masked_sprites = masked_sprites
+        # self.masked_sprites = masked_sprites
         self.on_ramp_wall = False   # flag for same sprite
         self.on_ramp_slope = {"on": False, "ramp_type": None} 
         self.collision_side = {"top": False, "left": False, "bot": False, "right": False}
@@ -309,6 +309,13 @@ class Player(pygame.sprite.Sprite):
         """
         Loop through all collision_sprites and evaluate collision
         """
+
+        # populate collided rects
+        self.fill_collide_lists(self.hitbox_rect)
+
+        # for semi collision rects
+        self.semi_collisions()
+
         # involves both axes and both conditions are external states assgined externally
         if (self.on_ramp_slope["on"] and self.collision_side["top"]):
             # handle on ramp but top is restricted.
@@ -319,21 +326,16 @@ class Player(pygame.sprite.Sprite):
                 self.velocity.y *= 0.25
                 self.is_jumping = False
 
-            self.velocity.x = 0
-            # move back to the previous position so not in contact with tile above
-            offset = 1
+            # move back so to not be in contact with tile above
+            offset = 15
             if (self.on_ramp_slope["ramp_type"] == TERRAIN_R_RAMP):
-                offset = -1
+                offset = -offset
             temp = self.old_rect.left + offset
             self.hitbox_rect.left = self.old_rect.left + offset
             self.old_rect.left = temp   
 
-        # populate collided rects
-        self.fill_collide_lists(self.hitbox_rect)
-
-        # for semi collision rects
-        self.semi_collisions()
-                
+            self.velocity.x = 0
+             
         # terrain basic
         for sprite in self.list_collide_basic:
             if (axis == "horizontal"):
@@ -345,13 +347,15 @@ class Player(pygame.sprite.Sprite):
                     # left collision and player approach from right
                     if (not self.on_ramp_slope["on"]):
                         # fixed hitching when off ramping onto a basic tile
-                        self.velocity.x = 0
+                        pass
+                        #self.velocity.x = 0
 
                     self.hitbox_rect.left = sprite.rect.right
                 elif (self.hitbox_rect.right >= sprite.rect.left and self.old_rect.right - move_offset <= sprite.rect.left):
                     # right collision and player approach from left
                     if (not self.on_ramp_slope["on"]):
-                        self.velocity.x = 0  
+                        pass
+                        #self.velocity.x = 0  
 
                     self.hitbox_rect.right = sprite.rect.left
             else:
@@ -415,6 +419,27 @@ class Player(pygame.sprite.Sprite):
 
                         self.velocity.y = 0
                         self.hitbox_rect.bottom = res[1]
+
+    def collision_tweak(self):
+        # involves both axes and both conditions are external states assgined externally
+        if (self.on_ramp_slope["on"] and self.collision_side["top"]):
+            # handle on ramp but top is restricted.
+            self.collision_side["top"] = False
+
+            if (self.is_jumping):
+                # if jumping, stop it and set flag so input key up doesn't apply this again
+                self.velocity.y *= 0.25
+                self.is_jumping = False
+
+            # move back so to not be in contact with tile above
+            offset = vector(0, 0)
+            if (self.on_ramp_slope["ramp_type"] == TERRAIN_R_RAMP):
+                offset = -offset
+            temp = self.old_rect.center + offset
+            self.hitbox_rect.center = self.old_rect.center + offset
+            self.old_rect.center = temp   
+
+            self.velocity.x = 0
     
     def update_timers(self):
         for timer in self.timers.values():
@@ -472,6 +497,7 @@ class Player(pygame.sprite.Sprite):
         self.rect.center = self.hitbox_rect.center
         #self.position = pygame.math.Vector2(self.hitbox_rect.bottomleft)
         self.check_contact()
+        self.collision_tweak()
         self.platform_move(dt)
 
         #self.get_state()

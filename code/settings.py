@@ -30,15 +30,16 @@ BG = "BG"
 
 # Layer order to be draw. Higher number is higher priority
 Z_LAYERS = {
-    "bg_env": 0,
-    "clouds": 1,
-    "bg": 2,
-    "bg_details": 3, 
-    "terrain": 4,
-    "mid_details": 5,
-    "main": 6,
-    "water": 7,
-    "fg": 8
+    "invis": 0,
+    "bg_env": 1,
+    "clouds": 2,
+    "bg": 3,
+    "bg_details": 4, 
+    "terrain": 5,
+    "mid_details": 6,
+    "main": 7,
+    "water": 8,
+    "fg": 9
 }
 
 # Tiled, one scene w, h = 18.2, 10.2

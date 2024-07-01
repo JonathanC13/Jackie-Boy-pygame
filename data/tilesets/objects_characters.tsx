@@ -35,7 +35,7 @@
   <image width="68" height="186" source="../../graphics/objects/flag.png"/>
  </tile>
  <tile id="11">
-  <image width="44" height="30" source="../../graphics/objects/characters/bat.png"/>
+  <image width="44" height="30" source="../../graphics/objects/characters/bats.png"/>
  </tile>
  <tile id="12">
   <image width="66" height="92" source="../../graphics/objects/characters/bosses/Boss_1_sign.png"/>
