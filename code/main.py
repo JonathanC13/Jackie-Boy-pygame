@@ -15,7 +15,7 @@ class Game:
         pygame.display.set_caption("Jackie Boy")
         self.import_assets()
         
-        self.curr_level = 3
+        self.curr_level = 0
 
         self.level_maps = [
             [0, 0, load_pygame(os.path.join("..", "data", "levels", "test_ground.tmx"))],
@@ -29,7 +29,7 @@ class Game:
 
     def import_assets(self):
         self.level_frames = {
-            'items': import_sub_folders('..', 'graphics', 'items'),
+            'items': import_sub_folders('..', 'graphics', 'item s'),
             'platform': import_folder('..', 'graphics', 'level', 'platform'),
 			'boat': import_folder('..',  'graphics', 'objects', 'boat'),
             'floor_spikes': import_folder('..', 'graphics','enemies', 'floor_spikes'),
@@ -38,7 +38,8 @@ class Game:
             'water_top': import_folder('..', 'graphics', 'level', 'water', 'top'),
 			'water_body': import_image('..', 'graphics', 'level', 'water', 'body'),
 			'cloud_small': import_folder('..', 'graphics','level', 'clouds', 'small'),
-			'cloud_large': import_image('..', 'graphics','level', 'clouds', 'large_cloud')
+			'cloud_large': import_image('..', 'graphics','level', 'clouds', 'large_cloud'),
+            'dog': import_sub_folders('..', 'graphics','enemies', 'dog')
         }
 
     def run(self):

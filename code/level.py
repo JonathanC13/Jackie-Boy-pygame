@@ -4,6 +4,7 @@ from settings import *
 from sprites import Sprite, AnimatedSprite, MovingSprite, Orbit
 from player import Player
 from groups import AllSprites
+from enemies import Dog
 
 class Level:
 
@@ -18,11 +19,15 @@ class Level:
         self.tmx_map_max_width = self.tmx_map.width
 
         # sprite groups
+        #self.all_sprites = pygame.sprite.Group()
         self.all_sprites = AllSprites()
+        self.player_sprites = pygame.sprite.Group()
         self.collision_sprites = pygame.sprite.Group()
         self.ramp_collision_sprites = pygame.sprite.Group()
         self.semi_collision_sprites = pygame.sprite.Group()
         # self.masked_sprites = pygame.sprite.Group()
+        self.enemy_sprites = pygame.sprite.Group()
+        self.dog_sprites = pygame.sprite.Group()
         self.damage_sprites = pygame.sprite.Group()
 
         self.setup(level_frames)
@@ -167,9 +172,6 @@ class Level:
                     z = z,
                     animation_speed = ANIMATION_SPEED)
 
-        for obj in self.tmx_map.get_layer_by_name(ENEMY_OBJECTS):
-            pass
-
         # player objects
         for obj in self.tmx_map.get_layer_by_name(PLAYER_OBJECTS):
             if (obj.name == "player"):
@@ -177,11 +179,28 @@ class Level:
                 self.player = Player(
                                 pos = (obj.x, obj.y), 
                                 surf = obj.image, 
-                                groups = self.all_sprites, 
+                                groups = (self.all_sprites, self.player_sprites), 
                                 collision_sprites = self.collision_sprites, 
                                 semi_collision_sprites = self.semi_collision_sprites, 
                                 ramp_collision_sprites = self.ramp_collision_sprites,
-                                frames = None)
+                                enemy_sprites = self.enemy_sprites,
+                                frames = None,
+                                type = PLAYER_OBJECTS)
+                
+        # enemies
+        for obj in self.tmx_map.get_layer_by_name(ENEMY_OBJECTS):
+            if (obj.name == "dog"):
+                Dog(
+                    pos = (obj.x, obj.y),
+                    frames = level_frames["dog"],
+                    groups = (self.all_sprites, self.enemy_sprites, self.dog_sprites),
+                    collision_sprites = self.collision_sprites,
+                    semi_collision_sprites = self.semi_collision_sprites, 
+                    ramp_collision_sprites = self.ramp_collision_sprites,
+                    player_sprites = self.player_sprites,
+                    enemy_sprites = self.enemy_sprites,
+                    type = obj.name
+                    )
                 
         # items
         
@@ -197,4 +216,5 @@ class Level:
         self.all_sprites.update(dt, event_list)
 
         # draw all sprites
+        #self.all_sprites.draw(self.display_surface)
         self.all_sprites.draw(self.player.hitbox_rect.center, self.player.hitbox_rect.width, self.tmx_map_max_width)

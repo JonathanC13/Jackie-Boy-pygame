@@ -6,7 +6,7 @@ from pygame.math import Vector2 as vector
 
 WINDOW_WIDTH, WINDOW_HEIGHT = 1280, 720
 TILE_SIZE = 70
-ANIMATION_SPEED = 6
+ANIMATION_SPEED = 3
 FPS_MAX = 60
 FPS_TARGET = 60
 
@@ -54,3 +54,9 @@ PLAYER_MAX_VEL_Y = 15
 # Environment
 # note for 1:1 ramp. gravity displacement (velocity) is 1/1 of horizontal velocity rounded up. Adjusted in player.py
 GRAVITY_NORM = 0.33
+
+# Enemies
+DOG_ACCEL = 0.4
+DOG_MAX_VEL_X = 5
+DOG_VEL_Y = 6   # 4 tile jump gap
+DOG_MAX_VEL_Y = 7
