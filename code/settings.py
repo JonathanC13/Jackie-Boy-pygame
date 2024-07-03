@@ -60,3 +60,15 @@ DOG_ACCEL = 0.4
 DOG_MAX_VEL_X = 5
 DOG_VEL_Y = 6   # 4 tile jump gap
 DOG_MAX_VEL_Y = 7
+
+# Weapon types
+ALL = "All"
+STICK = "Stick"
+BALL = "Ball"
+UMBRELLA = "Umbrella"
+
+# image_orientation offset
+IMAGE_RIGHT = 90
+IMAGE_UP = 180
+IMAGE_LEFT = 270
+IMAGE_DOWN = 0

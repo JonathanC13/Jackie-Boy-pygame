@@ -4,6 +4,8 @@ from settings import *
 from timerClass import Timer
 from movement import Movement
 
+# make parent enemy class later
+
 class Dog(pygame.sprite.Sprite):
 
     def __init__(self, pos, frames, groups, collision_sprites = None, semi_collision_sprites = None, ramp_collision_sprites = None, player_sprites = None, enemy_sprites = None, type = ENEMY_OBJECTS):
@@ -12,6 +14,8 @@ class Dog(pygame.sprite.Sprite):
         self.display_surface = pygame.display.get_surface()
         self.z = Z_LAYERS["main"]
         self.type = type
+        # weapon sprite
+        self.weapon = None
 
         self.frames, self.frame_index = frames, 0
         self.state, self.facing_right = "idle", True
@@ -93,11 +97,11 @@ class Dog(pygame.sprite.Sprite):
 
     def horizontal_movement(self, dt):        
         self.movement.horizontal_movement(dt)
-        self.movement.collision("horizontal")
+        self.movement.collision("horizontal", dt)
 
     def vertical_movement(self, dt):
         self.movement.vertical_movement(dt)
-        self.movement.collision("vertical")
+        self.movement.collision("vertical", dt)
 
     def jump(self):
         if (self.is_jumping):
@@ -202,7 +206,7 @@ class Dog(pygame.sprite.Sprite):
         #    print(self.collision_side)
 
     def enemy_input(self):
-
+        
         if (not self.timers["movement_duration"].active):
             # set new time and pick direction
             self.rand_jump = randint(0, 100)
@@ -242,6 +246,9 @@ class Dog(pygame.sprite.Sprite):
         self.movement.platform_move(dt)
 
         self.animate(dt)
+
+        # update weapon sprite center
+        self.weapon.center = self.rect.center
 
         # reset x vel
         if (self.velocity.x > -0.01 and self.velocity.x < 0.01):

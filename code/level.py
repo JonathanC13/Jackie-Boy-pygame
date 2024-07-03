@@ -5,6 +5,7 @@ from sprites import Sprite, AnimatedSprite, MovingSprite, Orbit
 from player import Player
 from groups import AllSprites
 from enemies import Dog
+from weapons import Stick
 
 class Level:
 
@@ -91,7 +92,9 @@ class Level:
 					start_angle = obj.properties["start_angle"],
 					end_angle = obj.properties["end_angle"],
                     groups = (self.all_sprites, self.damage_sprites),
-                    type = MOVING_OBJECTS)
+                    type = MOVING_OBJECTS,
+                    direction_changes = -1,
+                    rotate = False)
 
             elif (obj.name in ("platform", "boat")):
                 if (obj.width > obj.height):
@@ -190,7 +193,7 @@ class Level:
         # enemies
         for obj in self.tmx_map.get_layer_by_name(ENEMY_OBJECTS):
             if (obj.name == "dog"):
-                Dog(
+                dog_obj = Dog(
                     pos = (obj.x, obj.y),
                     frames = level_frames["dog"],
                     groups = (self.all_sprites, self.enemy_sprites, self.dog_sprites),
@@ -201,6 +204,22 @@ class Level:
                     enemy_sprites = self.enemy_sprites,
                     type = obj.name
                     )
+                
+                # each dog gets a stick as a weapon
+                dog_obj.weapon = Stick(
+                    pos = (obj.x, obj.y),
+                    groups = (self.all_sprites, self.damage_sprites),
+                    frames = level_frames["stick"],
+                    owner = dog_obj,
+                    damage = 1,
+                    damage_type = STICK,
+                    level = 1,
+                    attack_cooldown = 500,
+                    attack_speed = 1
+                )
+
+        # for spr in self.enemy_sprites:
+        #     print(spr.weapon.level)
                 
         # items
         

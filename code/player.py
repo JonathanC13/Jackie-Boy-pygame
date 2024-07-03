@@ -117,7 +117,7 @@ class Player(pygame.sprite.Sprite):
         # self.hitbox_rect.x += self.velocity.x * dt + (self.acceleration.x * 0.5) * (dt * dt)
 
         #self.collision("horizontal")
-        self.movement.collision("horizontal")
+        self.movement.collision("horizontal", dt)
 
     def vertical_movement(self, dt):
         """
@@ -147,7 +147,7 @@ class Player(pygame.sprite.Sprite):
         # self.on_ramp_slope["on"] = False
 
         #self.collision("vertical")
-        self.movement.collision("vertical")
+        self.movement.collision("vertical", dt)
 
     def limit_velocity(self, vel_vec, max_vel):
         """
@@ -325,11 +325,11 @@ class Player(pygame.sprite.Sprite):
     #     else:
     #         return (False, 0)
         
-    def collision(self, axis):
+    def collision(self, axis, dt):
         """
         Loop through all collision_sprites and evaluate collision
         """
-        self.movement.collision(axis)
+        self.movement.collision(axis, dt)
         # # populate collided rects
         # self.fill_collide_lists(self.hitbox_rect)
 

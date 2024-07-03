@@ -1,4 +1,4 @@
-from math import sin, cos, radians
+from math import sin, cos, radians, atan2, degrees
 
 from settings import *
 
@@ -95,7 +95,7 @@ class MovingSprite(AnimatedSprite):
 			self.image = pygame.transform.flip(self.image, self.reverse['x'], self.reverse['y'])
 
 class Orbit(AnimatedSprite):
-	def __init__(self, pos, frames, radius, speed, start_angle, end_angle, groups, type = None,z = Z_LAYERS['main']):
+	def __init__(self, pos, frames, radius, speed, start_angle, end_angle, groups, type = None,z = Z_LAYERS['main'], direction_changes = -1, rotate = False, image_orientation = IMAGE_RIGHT,**kwargs):
 		self.center = pos
 		self.radius = radius
 		self.speed = speed
@@ -104,6 +104,10 @@ class Orbit(AnimatedSprite):
 		self.angle = self.start_angle
 		self.direction = 1
 		self.full_circle = True if self.end_angle == -1 else False
+		self.rotate = rotate
+		self.image_orientation = image_orientation
+		self.direction_changes = direction_changes
+		self.direction_changes_completed = 0
 
 		# trigonometry
 		# sin(deg) = op/hyp
@@ -111,20 +115,33 @@ class Orbit(AnimatedSprite):
 		# cos(deg) = adj/hyp
 		x = self.center[0] + cos(radians(self.angle)) * self.radius
 
-		super().__init__((x,y), frames, groups, type, z)
+		super().__init__(pos = (x,y), frames = frames, groups = groups, type = type, z = z, **kwargs)
+
+	def rotate_image(self, image_orientation):
+		direction = pygame.math.Vector2(math.cos(radians(self.angle)), math.sin(radians(self.angle))).normalize()
+
+		self.image = pygame.transform.rotozoom(self.image, degrees(atan2(direction.x, direction.y)) - image_orientation, 1)
+		self.rect = self.image.get_frect(center = self.center + direction * self.radius)
+		#pygame.draw.rect(pygame.display.get_surface(), "red", self.rect)
 
 	def update(self, dt, event_list):
-		self.angle += self.direction * self.speed * dt
+		if (self.direction_changes == -1 or self.direction_changes_completed < self.direction_changes):
 
-		if not self.full_circle:
-			if self.angle >= self.end_angle:
-				self.direction = -1
-			if self.angle < self.start_angle:
-				self.direction = 1
+			self.angle += self.direction * self.speed * dt
 
+			if (not self.full_circle):
+				if (self.angle >= self.end_angle):
+					self.direction = -1
+					self.direction_changes_completed = self.direction_changes_completed + 1 if self.direction_changes >= 0 else 0
+				if (self.angle < self.start_angle):
+					self.direction = 1
+					self.direction_changes_completed = self.direction_changes_completed + 1 if self.direction_changes >= 0 else 0		
 
 		y = self.center[1] + sin(radians(self.angle)) * self.radius
 		x = self.center[0] + cos(radians(self.angle)) * self.radius
 		self.rect.center = (x,y)
 
 		self.animate(dt)
+
+		if (self.rotate):
+			self.rotate_image(self.image_orientation)

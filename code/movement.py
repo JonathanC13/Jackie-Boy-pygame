@@ -106,7 +106,7 @@ class Movement():
                         self.obj.velocity.y = 0
                     self.obj.hitbox_rect.bottom = sprite.rect.top
 
-    def collision(self, axis):
+    def collision(self, axis, dt):
         """
         Loop through all collision_sprites and evaluate collision
         """
@@ -122,7 +122,8 @@ class Movement():
             if (axis == "horizontal"):    
                 move_offset = 0
                 if (sprite.type == MOVING_OBJECTS):
-                    move_offset = sprite.rect.width / 4
+                    move_offset = sprite.rect.width / 4 # abs(self.obj.velocity.x + sprite.speed * dt) # doesn't work
+                    print(move_offset)
                 elif (hasattr(sprite, "velocity")):
                     # completely inelastic collision. final v = (ma * ua - mb * ub) / (ma + mb). Let ma = mb.   v = (ua - ub) / 2
                     # but sim elastic when adjust rects
@@ -221,11 +222,11 @@ class Movement():
                 self.obj.velocity.y *= 0.25
 
             # move back so to not be in contact with tile above
-            offset = vector(0, 0)
-            if (self.obj.on_ramp_slope["ramp_type"] == TERRAIN_R_RAMP):
-                offset = -offset
-            temp = self.obj.old_rect.center + offset
-            self.obj.hitbox_rect.center = self.obj.old_rect.center + offset
+            # offset = vector(0, 0)
+            # if (self.obj.on_ramp_slope["ramp_type"] == TERRAIN_R_RAMP):
+            #     offset = -offset
+            temp = self.obj.old_rect.center #+ offset
+            self.obj.hitbox_rect.center = self.obj.old_rect.center #+ offset
             self.obj.old_rect.center = temp   
 
             self.obj.velocity.x = 0
