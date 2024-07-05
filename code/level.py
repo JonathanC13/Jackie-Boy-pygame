@@ -20,8 +20,8 @@ class Level:
         self.tmx_map_max_width = self.tmx_map.width
 
         # sprite groups
-        #self.all_sprites = pygame.sprite.Group()
-        self.all_sprites = AllSprites()
+        self.all_sprites = pygame.sprite.Group()
+        #self.all_sprites = AllSprites()
         self.player_sprites = pygame.sprite.Group()
         self.collision_sprites = pygame.sprite.Group()
         self.ramp_collision_sprites = pygame.sprite.Group()
@@ -227,6 +227,8 @@ class Level:
 
         # triggers
 
+    # handle item, damage, end level collisions here
+
     def run(self, dt, event_list):
         # game loop here for level. like checking collisions and updating screen
         self.display_surface.fill("black")
@@ -235,5 +237,5 @@ class Level:
         self.all_sprites.update(dt, event_list)
 
         # draw all sprites
-        #self.all_sprites.draw(self.display_surface)
-        self.all_sprites.draw(self.player.hitbox_rect.center, self.player.hitbox_rect.width, self.tmx_map_max_width)
+        self.all_sprites.draw(self.display_surface)
+        #self.all_sprites.draw(self.player.hitbox_rect.center, self.player.hitbox_rect.width, self.tmx_map_max_width)

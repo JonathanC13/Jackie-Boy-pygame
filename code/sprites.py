@@ -95,7 +95,7 @@ class MovingSprite(AnimatedSprite):
 			self.image = pygame.transform.flip(self.image, self.reverse['x'], self.reverse['y'])
 
 class Orbit(AnimatedSprite):
-	def __init__(self, pos, frames, radius, speed, start_angle, end_angle, groups, type = None,z = Z_LAYERS['main'], direction_changes = -1, rotate = False, image_orientation = IMAGE_RIGHT,**kwargs):
+	def __init__(self, pos, frames, radius, speed, start_angle, end_angle, groups, type = None,z = Z_LAYERS['main'], direction_changes = -1, rotate = False, image_orientation = IMAGE_RIGHT, **kwargs):
 		self.center = pos
 		self.radius = radius
 		self.speed = speed
@@ -119,10 +119,17 @@ class Orbit(AnimatedSprite):
 
 	def rotate_image(self, image_orientation):
 		direction = pygame.math.Vector2(math.cos(radians(self.angle)), math.sin(radians(self.angle))).normalize()
+		angle = degrees(atan2(direction.x, direction.y)) - image_orientation
 
-		self.image = pygame.transform.rotozoom(self.image, degrees(atan2(direction.x, direction.y)) - image_orientation, 1)
+		if (direction.x > 0 or (image_orientation in [IMAGE_UP, IMAGE_DOWN])):
+			self.image = pygame.transform.rotozoom(self.image, angle, 1)
+		else:
+			self.image = pygame.transform.rotozoom(self.image, abs(angle), 1)
+			self.image = pygame.transform.flip(self.image, False, True)
+		
 		self.rect = self.image.get_frect(center = self.center + direction * self.radius)
 		#pygame.draw.rect(pygame.display.get_surface(), "red", self.rect)
+
 
 	def update(self, dt, event_list):
 		if (self.direction_changes == -1 or self.direction_changes_completed < self.direction_changes):

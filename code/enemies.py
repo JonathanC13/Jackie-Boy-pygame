@@ -38,6 +38,11 @@ class Dog(pygame.sprite.Sprite):
         self.collision_side = {"top": False, "left": False, "bot": False, "right": False, "bot_left": False, "bot_right": False}
         self.list_collide_basic, self.list_collide_ramps, self.list_semi_collide = [], [], []
         self.platform = None
+        self.detection_rect = None
+        self.player_sprite = None
+        self.player_proximity = {"detected": False, "weapon_in_range": False}
+        self.player_location = pygame.Vector2(0, 0)
+        
 
         # movement
         self.LEFT_KEY, self.RIGHT_KEY = False, False
@@ -63,7 +68,7 @@ class Dog(pygame.sprite.Sprite):
         # modules
         self.movement = Movement(self)
 
-        self.LEFT_KEY = True
+        #self.LEFT_KEY = True
 
     def fill_collide_lists(self, tar_rect):
         # tiles
@@ -110,6 +115,27 @@ class Dog(pygame.sprite.Sprite):
                 self.velocity.y = self.jump_height
                 self.hitbox_rect.bottom -= 1
             self.is_jumping = False
+
+    def check_for_player(self):
+        # detection zone
+        self.detection_rect = self.hitbox_rect.inflate(300, self.weapon.range * 2)
+        pygame.draw.rect(self.display_surface, "yellow", self.detection_rect)
+        weapon_range_rect = pygame.FRect(self.hitbox_rect.center - pygame.Vector2(self.weapon.range, self.weapon.range), (self.weapon.range * 2, self.weapon.range * 2))
+        pygame.draw.rect(pygame.display.get_surface(), "green", weapon_range_rect)
+        
+        for spr in self.player_sprites:
+            pygame.draw.rect(self.display_surface, "yellow", spr.hitbox_rect)
+            self.player_proximity["detected"] = self.detection_rect.colliderect(spr.rect)
+            
+            if (self.player_proximity["detected"]):
+                self.player_sprite = spr
+                self.player_location = spr.rect.center
+
+                self.weapon.check_in_range(spr)
+                break
+
+        self.player_proximity = {"detected": False, "weapon_in_range": False}
+        self.player_location = pygame.Vector2(0, 0)
 
     def check_contact(self):
         """
@@ -207,22 +233,30 @@ class Dog(pygame.sprite.Sprite):
 
     def enemy_input(self):
         
-        if (not self.timers["movement_duration"].active):
-            # set new time and pick direction
-            self.rand_jump = randint(0, 100)
+        # if player in detection, charge toward x
+        if (self.detected_player):
+            pass
 
-            self.LEFT_KEY = choice([False, True])
-            self.RIGHT_KEY = choice([False, True])
-            self.facing_right = self.facing_right if (self.LEFT_KEY != self.RIGHT_KEY) else self.RIGHT_KEY
+            # if player in weapon hit zone, 50/50 rand to attack or back off. cool down for attack, if cooling down, 100 % back off.
+        else:
+            # if player not in detection
+            if (not self.timers["movement_duration"].active):
+                # set new time and pick direction
+                self.rand_jump = randint(0, 100)
 
-            self.timers["movement_duration"] = Timer(randint(1000, 2000))
-            self.timers["movement_duration"].activate()
+                self.LEFT_KEY = choice([False, True])
+                self.RIGHT_KEY = choice([False, True])
+                self.facing_right = self.facing_right if (self.LEFT_KEY != self.RIGHT_KEY) else self.RIGHT_KEY
+
+                self.timers["movement_duration"] = Timer(randint(1000, 2000))
+                self.timers["movement_duration"].activate()
 
         if (self.rand_jump >= 90):
             self.is_jumping = True
             self.rand_jump = 0
             self.jump()
 
+        # check if detect ledge that can fall off of
         if (self.collision_side["left"] or not self.collision_side["bot_left"]):
             self.LEFT_KEY = False
             self.RIGHT_KEY = True
@@ -232,11 +266,14 @@ class Dog(pygame.sprite.Sprite):
             self.RIGHT_KEY = False
             self.facing_right = self.RIGHT_KEY
 
+
+
     def update(self, dt, event_list):
         self.old_rect = self.hitbox_rect.copy()
         self.update_timers()
         
-        self.enemy_input()
+        self.check_for_player()
+        #self.enemy_input()
         self.horizontal_movement(dt)
         self.vertical_movement(dt)
         # recenter image rect with the hitbox rect
