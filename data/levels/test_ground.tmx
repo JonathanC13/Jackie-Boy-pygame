@@ -147,7 +147,6 @@
   <object id="85" name="player" gid="5" x="980" y="350" width="92" height="66"/>
  </objectgroup>
  <objectgroup id="13" name="Enemy_objects">
-  <object id="107" name="dog" gid="3" x="520" y="330.667" width="51" height="51"/>
   <object id="116" name="dog" gid="3" x="821" y="442.5" width="51" height="51"/>
  </objectgroup>
  <objectgroup id="18" name="Item_objects"/>

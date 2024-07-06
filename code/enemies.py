@@ -41,7 +41,7 @@ class Dog(pygame.sprite.Sprite):
         self.detection_rect = None
         self.player_sprite = None
         self.player_proximity = {"detected": False, "weapon_in_range": False}
-        self.player_location = pygame.Vector2(0, 0)
+        self.player_location = pygame.math.Vector2(0, 0)
         
 
         # movement
@@ -125,17 +125,16 @@ class Dog(pygame.sprite.Sprite):
         
         for spr in self.player_sprites:
             pygame.draw.rect(self.display_surface, "yellow", spr.hitbox_rect)
-            self.player_proximity["detected"] = self.detection_rect.colliderect(spr.rect)
-            
+            self.player_proximity["detected"] = self.detection_rect.colliderect(spr.hitbox_rect)
             if (self.player_proximity["detected"]):
+                # check if player in weapon range
                 self.player_sprite = spr
-                self.player_location = spr.rect.center
+                self.player_location.x = spr.hitbox_rect.centerx
+                self.player_location.y = spr.hitbox_rect.centery
 
                 self.weapon.check_in_range(spr)
                 break
-
-        self.player_proximity = {"detected": False, "weapon_in_range": False}
-        self.player_location = pygame.Vector2(0, 0)
+        #print(self.player_proximity)
 
     def check_contact(self):
         """
@@ -273,6 +272,7 @@ class Dog(pygame.sprite.Sprite):
         self.update_timers()
         
         self.check_for_player()
+        self.weapon.point_weapon()
         #self.enemy_input()
         self.horizontal_movement(dt)
         self.vertical_movement(dt)

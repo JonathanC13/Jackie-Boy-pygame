@@ -119,7 +119,7 @@ class Orbit(AnimatedSprite):
 
 	def rotate_image(self, image_orientation):
 		direction = pygame.math.Vector2(math.cos(radians(self.angle)), math.sin(radians(self.angle))).normalize()
-		angle = degrees(atan2(direction.x, direction.y)) - image_orientation
+		angle = degrees(atan2(direction.x, direction.y)) - image_orientation		# need to re look why x, y and not y, x
 
 		if (direction.x > 0 or (image_orientation in [IMAGE_UP, IMAGE_DOWN])):
 			self.image = pygame.transform.rotozoom(self.image, angle, 1)
@@ -129,7 +129,6 @@ class Orbit(AnimatedSprite):
 		
 		self.rect = self.image.get_frect(center = self.center + direction * self.radius)
 		#pygame.draw.rect(pygame.display.get_surface(), "red", self.rect)
-
 
 	def update(self, dt, event_list):
 		if (self.direction_changes == -1 or self.direction_changes_completed < self.direction_changes):
