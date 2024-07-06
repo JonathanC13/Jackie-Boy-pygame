@@ -91,6 +91,7 @@ class Level:
 					speed = obj.properties["speed"],
 					start_angle = obj.properties["start_angle"],
 					end_angle = obj.properties["end_angle"],
+                    clockwise = obj.properties["clockwise"],
                     groups = (self.all_sprites, self.damage_sprites),
                     type = MOVING_OBJECTS,
                     direction_changes = -1,

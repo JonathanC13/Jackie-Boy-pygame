@@ -16,15 +16,13 @@ class Stick(Weapon, Orbit):
     def __init__(self, pos, groups, frames, owner, damage, damage_type, level, attack_cooldown, attack_speed):
         # owner sprite
         self.owner = owner
-        self.radius = self.owner.rect.width
+        self.sk_radius = self.owner.rect.width
         self.target_angle = 0 if owner.facing_right else 180
-        self.start_angle = self.end_angle = self.target_angle
-
-        self.range = self.radius + frames[0].get_width()/2 - 5 # -5 to ensure within range
+        self.range = self.sk_radius + frames[0].get_width()/2 - 5 # -5 to ensure within range
         self.weapon_range_rect = pygame.FRect(self.owner.hitbox_rect.center - pygame.Vector2(self.range, self.range), (self.range * 2, self.range * 2))
 
         super().__init__(damage = damage, damage_type = damage_type, level = level, attack_cooldown = attack_cooldown, attack_speed = attack_speed,
-                         pos = pos, frames = frames, radius = self.radius, speed = 0, start_angle = 0, end_angle = 0, groups = groups, type = STICK, z = Z_LAYERS['main'], direction_changes= -1, rotate = True, image_orientation = IMAGE_RIGHT
+                         pos = pos, frames = frames, radius = self.sk_radius, speed = 0, start_angle = 0, end_angle = 0, clockwise = True, groups = groups, type = STICK, z = Z_LAYERS['main'], direction_changes = 0, rotate = True, image_orientation = IMAGE_RIGHT
                          )
         
     def check_in_range(self, player_sprite):
@@ -56,10 +54,17 @@ class Stick(Weapon, Orbit):
 
     def point_weapon(self):
         if (self.owner.player_proximity["detected"]):
+            # move to angle
             angle = degrees(atan2(self.owner.player_location.y - self.weapon_range_rect.centery, self.owner.player_location.x - self.weapon_range_rect.centerx))
-            self.start_angle = self.end_angle = self.angle = angle
+            new_end_angle = 360 - abs(angle) if (angle < 0) else angle
+            #self.move_to_angle(detected = self.owner.player_proximity["detected"], end_angle = new_end_angle, speed = 5, direction = 0, direction_changes = 1)
+            self.start_angle = self.end_angle = self.angle = new_end_angle
+            
         else:
-            self.start_angle = self.end_angle = 0 if self.owner.facing_right else -180
+            pass
+            # reset
+            self.start_angle = self.end_angle = self.angle = 0 if self.owner.facing_right else 180
+            
                 
     def attack(self):
         # Orbit

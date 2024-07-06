@@ -233,11 +233,12 @@ class Dog(pygame.sprite.Sprite):
     def enemy_input(self):
         
         # if player in detection, charge toward x
-        if (self.detected_player):
+        if (self.player_proximity["detected"]):
+            self.facing_right = True if (self.hitbox_rect.x >= self.player_location.x) else False
             pass
 
             # if player in weapon hit zone, 50/50 rand to attack or back off. cool down for attack, if cooling down, 100 % back off.
-        else:
+        else: 
             # if player not in detection
             if (not self.timers["movement_duration"].active):
                 # set new time and pick direction
@@ -249,7 +250,7 @@ class Dog(pygame.sprite.Sprite):
 
                 self.timers["movement_duration"] = Timer(randint(1000, 2000))
                 self.timers["movement_duration"].activate()
-
+        
         if (self.rand_jump >= 90):
             self.is_jumping = True
             self.rand_jump = 0
@@ -273,6 +274,9 @@ class Dog(pygame.sprite.Sprite):
         
         self.check_for_player()
         self.weapon.point_weapon()
+        if (self.player_proximity["detected"]):
+            self.facing_right = True if (self.hitbox_rect.x < self.player_location.x) else False
+
         #self.enemy_input()
         self.horizontal_movement(dt)
         self.vertical_movement(dt)

@@ -196,6 +196,7 @@
   </object>
   <object id="266" name="bats" gid="12" x="1864.67" y="255" width="44" height="30">
    <properties>
+    <property name="clockwise" type="bool" value="true"/>
     <property name="end_angle" type="float" value="180"/>
     <property name="platform" type="bool" value="false"/>
     <property name="radius" type="float" value="50"/>

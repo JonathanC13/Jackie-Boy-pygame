@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.10" tiledversion="1.10.2" orientation="orthogonal" renderorder="right-down" width="120" height="11" tilewidth="70" tileheight="70" infinite="0" nextlayerid="19" nextobjectid="119">
+<map version="1.10" tiledversion="1.10.2" orientation="orthogonal" renderorder="right-down" width="120" height="11" tilewidth="70" tileheight="70" infinite="0" nextlayerid="19" nextobjectid="122">
  <tileset firstgid="1" source="../tilesets/objects_characters.tsx"/>
  <tileset firstgid="14" source="../tilesets/objects_env.tsx"/>
  <tileset firstgid="75" source="../tilesets/tiles_terrain.tsx"/>
@@ -115,13 +115,14 @@
     <property name="start_end" type="bool" value="true"/>
    </properties>
   </object>
-  <object id="113" name="bats" gid="12" x="1176.67" y="202.333" width="44" height="30">
+  <object id="113" name="bats" gid="12" x="678.003" y="131.666" width="44" height="30">
    <properties>
-    <property name="end_angle" type="float" value="180"/>
+    <property name="clockwise" type="bool" value="true"/>
+    <property name="end_angle" type="float" value="495"/>
     <property name="platform" type="bool" value="false"/>
-    <property name="radius" type="float" value="50"/>
+    <property name="radius" type="float" value="100"/>
     <property name="speed" type="float" value="2"/>
-    <property name="start_angle" type="float" value="0"/>
+    <property name="start_angle" type="float" value="315"/>
    </properties>
   </object>
   <object id="114" name="platform" x="543.333" y="339" width="164" height="10">
@@ -142,12 +143,22 @@
     <property name="start_end" type="bool" value="false"/>
    </properties>
   </object>
+  <object id="119" name="bats" gid="12" x="962" y="198.333" width="44" height="30">
+   <properties>
+    <property name="clockwise" type="bool" value="false"/>
+    <property name="end_angle" type="float" value="225"/>
+    <property name="platform" type="bool" value="false"/>
+    <property name="radius" type="float" value="100"/>
+    <property name="speed" type="float" value="2"/>
+    <property name="start_angle" type="float" value="400"/>
+   </properties>
+  </object>
  </objectgroup>
  <objectgroup id="3" name="Player_objects">
-  <object id="85" name="player" gid="5" x="980" y="350" width="92" height="66"/>
+  <object id="85" name="player" gid="5" x="566.667" y="537.333" width="92" height="66"/>
  </objectgroup>
  <objectgroup id="13" name="Enemy_objects">
-  <object id="116" name="dog" gid="3" x="821" y="442.5" width="51" height="51"/>
+  <object id="120" name="dog" gid="3" x="819" y="443.333" width="51" height="51"/>
  </objectgroup>
  <objectgroup id="18" name="Item_objects"/>
  <objectgroup id="17" name="Water_objects"/>
