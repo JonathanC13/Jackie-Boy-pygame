@@ -40,8 +40,7 @@ class Game:
 			'cloud_small': import_folder('..', 'graphics','level', 'clouds', 'small'),
 			'cloud_large': import_image('..', 'graphics','level', 'clouds', 'large_cloud'),
             'dog': import_sub_folders('..', 'graphics','enemies', 'dog'),
-
-            'stick': import_folder('..', 'graphics','weapons', 'stick')
+            'stick': import_sub_folders('..', 'graphics','weapons', 'stick')
         }
 
     def run(self):

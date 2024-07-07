@@ -157,7 +157,7 @@ class Orbit(AnimatedSprite):
 		if (direction == 0):
 			self.direction = 1 if self.clockwise else -1
 
-	def update(self, dt, event_list):
+	def update_angle(self, dt):
 		if (self.detected):
 			if (self.clockwise):
 				
@@ -199,7 +199,12 @@ class Orbit(AnimatedSprite):
 		x = self.center[0] + cos(radians(self.angle)) * self.radius
 		self.rect.center = (x,y)
 
+
+	def update(self, dt, event_list):
+		self.update_angle(dt)
+
 		self.animate(dt)
 
 		if (self.rotate):
 			self.rotate_image(self.image_orientation)
+			

@@ -145,8 +145,6 @@ class Dog(pygame.sprite.Sprite):
                 self.player_sprite = spr
                 self.player_location.x = spr.hitbox_rect.centerx
                 self.player_location.y = spr.hitbox_rect.centery
-
-                self.weapon.check_in_range(spr)
                 break
         #print(self.player_proximity)
 
@@ -329,7 +327,7 @@ class Dog(pygame.sprite.Sprite):
         self.update_timers()
         
         self.check_for_player()
-        self.weapon.point_weapon()
+        self.weapon.enemy_point_weapon(self.player_location)
 
         self.enemy_input()
         self.horizontal_movement(dt)

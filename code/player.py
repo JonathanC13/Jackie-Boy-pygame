@@ -11,7 +11,7 @@ class Player(pygame.sprite.Sprite):
         self.type = type
 
         self.display_surface = pygame.display.get_surface()
-
+        
         self.frames, self.frame_index = frames, 0
         self.state, self.facing_right = "idle", True
         self.image = surf
