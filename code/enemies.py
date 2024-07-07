@@ -57,12 +57,26 @@ class Dog(pygame.sprite.Sprite):
         self.acceleration = pygame.math.Vector2(0, self.gravity)
         self.rand_jump = randint(0, 100)
 
+        # attack patterns
+        self.is_attacking = False
+        self.attack_patterns = {
+            "attack_delay": [{"timer_name":"attack_delay", "func": self.nothing}],
+            "uppercut": [{"timer_name":"uppercut", "func": self.attack_uppercut}, {"timer_name":"attack_delay", "func": self.nothing}],
+            "advancing_slashes": [{"timer_name":"movement_duration", "func": self.advance_toward_player}, {"timer_name":"slash", "func": self.attack_slash}, {"timer_name":"movement_duration", "func": self.advance_toward_player}, {"timer_name":"slash", "func": self.attack_slash}, {"timer_name":"attack_delay", "func": self.nothing}],
+            "jump_attack": [{"timer_name":"air_time_before_attack", "func": self.jump}, {"timer_name":"slash", "func": self.attack_slash}, {"timer_name":"attack_delay", "func": self.nothing}]
+        }
+        self.attack_seq, self.attack_seq_len, self.attack_index = self.attack_patterns["attack_delay"], 0, 0
+
         # timer
         self.timers = {
             "wall_jump_move_block": Timer(200), # blocks the use of LEFT and RIGHT right after wall jump
             "unlock_semi_drop_down": Timer(100), # disables the floor collision for semi collision platforms so that the player can drop down through them
             "normal_attack_cooldown": Timer(500),
-            "movement_duration": Timer(randint(1000, 2000))
+            "movement_duration": Timer(randint(1000, 2000)),
+            "attack_delay": Timer(2000),
+            "uppercut": Timer(3000),
+            "slash": Timer(1000),
+            "air_time_before_attack": Timer(300)
         }
 
         # modules
@@ -230,14 +244,58 @@ class Dog(pygame.sprite.Sprite):
         #if (self.type == ENEMY_OBJECTS):
         #    print(self.collision_side)
 
-    def enemy_input(self):
-        
-        # if player in detection, charge toward x
-        if (self.player_proximity["detected"]):
-            self.facing_right = True if (self.hitbox_rect.x >= self.player_location.x) else False
-            pass
+    def attack_uppercut(self):
+        print("hi")
+        pass
 
-            # if player in weapon hit zone, 50/50 rand to attack or back off. cool down for attack, if cooling down, 100 % back off.
+    def attack_slash(self):
+        print('bye')
+
+    def nothing(self):
+        print("nothing")
+        pass
+
+    def advance_toward_player(self):
+        if (self.player_location.x <= self.hitbox_rect.x):
+            self.LEFT_KEY = True
+            self.RIGHT_KEY = False
+        else: 
+            self.LEFT_KEY = False
+            self.RIGHT_KEY = True
+
+    def perform_attack(self):
+        if (self.is_attacking):
+            if (self.attack_index < self.attack_seq_len):
+                if (((self.attack_index == 0) or (self.attack_index > 0 and not self.timers[self.attack_seq[self.attack_index - 1]["timer_name"]].active))
+                        and not self.timers[self.attack_seq[self.attack_index]["timer_name"]].active):
+                    # Either:   1. if first move in list and timer has not started yet = start
+                    #           2. if other moves, check if previous move timer is complete before starting.
+                    self.timers[self.attack_seq[self.attack_index]["timer_name"]].activate()
+                    self.attack_seq[self.attack_index]["func"]()
+                    print(self.timers[self.attack_seq[self.attack_index]["timer_name"]].start_time)
+                    self.attack_index += 1
+            else:
+                if (not self.timers[self.attack_seq[self.attack_index - 1]["timer_name"]].active):
+                    # disable is_attacking after last timer is finished
+                    self.is_attacking = False
+                    print(self.timers[self.attack_seq[self.attack_index - 1]["timer_name"]].ended_time)
+                    print('fin')
+        else:
+            if (self.player_location.y > self.hitbox_rect.y):
+                # if the player is generally above the enemy
+                self.is_attacking = True
+                self.attack_index = 0
+                self.attack_seq = self.attack_patterns["uppercut"]
+                self.attack_seq_len = len(self.attack_seq)
+         
+    def enemy_input(self):   
+        # if player in detection, charge toward x
+        if (self.player_proximity["detected"] or self.is_attacking):
+            if (self.player_proximity["weapon_in_range"] or self.is_attacking):
+                self.perform_attack()
+            else:
+                # move toward player
+                self.advance_toward_player()
         else: 
             # if player not in detection
             if (not self.timers["movement_duration"].active):
@@ -260,13 +318,11 @@ class Dog(pygame.sprite.Sprite):
         if (self.collision_side["left"] or not self.collision_side["bot_left"]):
             self.LEFT_KEY = False
             self.RIGHT_KEY = True
-            self.facing_right = self.RIGHT_KEY
         elif (self.collision_side["right"] or not self.collision_side["bot_right"]):
             self.LEFT_KEY = True
             self.RIGHT_KEY = False
-            self.facing_right = self.RIGHT_KEY
 
-
+        self.facing_right = self.RIGHT_KEY
 
     def update(self, dt, event_list):
         self.old_rect = self.hitbox_rect.copy()
@@ -274,10 +330,8 @@ class Dog(pygame.sprite.Sprite):
         
         self.check_for_player()
         self.weapon.point_weapon()
-        if (self.player_proximity["detected"]):
-            self.facing_right = True if (self.hitbox_rect.x < self.player_location.x) else False
 
-        #self.enemy_input()
+        self.enemy_input()
         self.horizontal_movement(dt)
         self.vertical_movement(dt)
         # recenter image rect with the hitbox rect

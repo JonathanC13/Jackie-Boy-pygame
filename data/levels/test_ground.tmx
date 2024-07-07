@@ -125,7 +125,7 @@
     <property name="start_angle" type="float" value="315"/>
    </properties>
   </object>
-  <object id="114" name="platform" x="543.333" y="339" width="164" height="10">
+  <object id="114" name="platform" x="1126" y="301.667" width="164" height="10">
    <properties>
     <property name="flip" type="bool" value="false"/>
     <property name="full_collision" type="bool" value="false"/>
@@ -155,10 +155,10 @@
   </object>
  </objectgroup>
  <objectgroup id="3" name="Player_objects">
-  <object id="85" name="player" gid="5" x="566.667" y="537.333" width="92" height="66"/>
+  <object id="85" name="player" gid="5" x="1012" y="549.333" width="92" height="66"/>
  </objectgroup>
  <objectgroup id="13" name="Enemy_objects">
-  <object id="120" name="dog" gid="3" x="819" y="443.333" width="51" height="51"/>
+  <object id="120" name="dog" gid="3" x="603" y="415.333" width="51" height="51"/>
  </objectgroup>
  <objectgroup id="18" name="Item_objects"/>
  <objectgroup id="17" name="Water_objects"/>
