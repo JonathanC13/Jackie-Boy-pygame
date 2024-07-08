@@ -25,18 +25,18 @@ class Stick(Weapon, Orbit):
         self.range = self.sk_radius + frames[self.state][self.frame_index].get_width()/2 - 5 # -5 to ensure within range
         self.weapon_range_rect = pygame.FRect(self.owner.hitbox_rect.center - pygame.Vector2(self.range, self.range), (self.range * 2, self.range * 2))
 
-
-
         super().__init__(damage = damage, damage_type = damage_type, level = level, attack_cooldown = attack_cooldown, attack_speed = attack_speed,
                          pos = pos, frames = frames[self.state], radius = self.sk_radius, speed = 0, start_angle = 0, end_angle = 0, clockwise = True, groups = groups, type = STICK, z = Z_LAYERS['main'], direction_changes = 0, rotate = True, image_orientation = IMAGE_RIGHT
                          )
         
         # override class AnimatedSprite attr
         self.frames = frames
+
+        self.can_damage = False
         
     def check_in_range(self, player_sprite):
         # weapon range for enemy sprite
-        self.weapon_range_rect = pygame.FRect(player_sprite.hitbox_rect.center - pygame.Vector2(self.range, self.range), (self.range * 2, self.range * 2))
+        self.weapon_range_rect = pygame.FRect(self.owner.rect.center - pygame.Vector2(self.range, self.range), (self.range * 2, self.range * 2))
         weapon_range_rect_center = self.weapon_range_rect.center
         pygame.draw.rect(pygame.display.get_surface(), "green", self.weapon_range_rect)
 
@@ -60,9 +60,13 @@ class Stick(Weapon, Orbit):
                 weapon_range_slice_rect = pygame.FRect((self.weapon_range_rect.x + self.range + rel_x + slice_offset, weapon_range_rect_center[1] - rel_y), (1, rel_y * 2))
                 pygame.draw.rect(pygame.display.get_surface(), "red", weapon_range_slice_rect)
                 self.owner.player_proximity["weapon_in_range"] = weapon_range_slice_rect.colliderect(player_sprite.hitbox_rect)
+            else:
+                self.owner.player_proximity["weapon_in_range"] = False
+        else:
+            self.owner.player_proximity["weapon_in_range"] = False
 
     def point_weapon(self, location):
-        angle = degrees(atan2(location.y - self.weapon_range_rect.centery, location.x - self.weapon_range_rect.centerx))
+        angle = degrees(atan2(location.y - self.owner.rect.centery, location.x - self.owner.rect.centerx))
         new_end_angle = 360 - abs(angle) if (angle < 0) else angle
         #self.move_to_angle(detected = self.owner.player_proximity["detected"], end_angle = new_end_angle, speed = 5, direction = 0, direction_changes = 1)
         self.start_angle = self.end_angle = self.angle = new_end_angle
@@ -76,16 +80,19 @@ class Stick(Weapon, Orbit):
             # reset
             self.start_angle = self.end_angle = self.angle = 0 if self.owner.facing_right else 180
 
-    def attack(self):
-        # Orbit
-        # change speed, start_angle, end_angle, direction_changes to initiate the weapon to swing
-        pass
+    def swing(self, start_angle, end_angle, speed, clockwise, direction_changes, can_damage):
+        self.can_damage = can_damage
+        self.orbit_to_angle(start_angle, end_angle, speed, clockwise, direction_changes)
+
+    def set_state(self, state, can_damage):
+        self.state = state
+        self.can_damage = can_damage
 
     def get_state(self):
-        if (self.owner.is_attacking):
-            self.state = "attacking"
+        if (self.can_damage):
+            self.state = "attack"
         else:
-            self.state = "attacking"
+            self.state = "idle"
 
     def animate(self, dt):
         self.frame_index += ANIMATION_SPEED * dt/FPS_TARGET

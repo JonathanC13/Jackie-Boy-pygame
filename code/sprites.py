@@ -103,15 +103,14 @@ class Orbit(AnimatedSprite):
 		self.speed = speed
 		self.start_angle = start_angle
 		self.end_angle = end_angle
-		self.clockwise = clockwise
+		self.clockwise = clockwise	# starting orbit direction
 		self.angle = self.start_angle
-		self.direction = 1 if clockwise else -1
+		self.direction = 1 if clockwise else -1	# current orbit direction 
 		self.full_circle = True if self.end_angle == -1 else False
 		self.rotate = rotate
 		self.image_orientation = image_orientation
 		self.direction_changes = direction_changes
 		self.direction_changes_completed = 0
-		self.detected = False
 
 		# trigonometry
 		# sin(deg) = op/hyp
@@ -134,16 +133,19 @@ class Orbit(AnimatedSprite):
 		self.rect = self.image.get_frect(center = self.center + direction * self.radius)
 		#pygame.draw.rect(pygame.display.get_surface(), "red", self.rect)
 
-	def move_to_angle(self, detected, end_angle, speed, direction, direction_changes):
-
-		self.detected = detected
-		self.start_angle = self.angle
+	def orbit_to_angle(self, start_angle, end_angle, speed, clockwise, direction_changes):
+		# one time call per orbit to new destination
+		self.start_angle = self.angle = start_angle
 		self.end_angle = end_angle
+		self.speed = speed
+		self.direction_changes = direction_changes
+		self.direction_changes_completed = 0
 
 		#curr = pygame.math.Vector2(math.cos(radians(self.angle)), math.sin(radians(self.angle))).normalize()
 		#new = pygame.math.Vector2(math.cos(radians(self.end_angle)), math.sin(radians(self.end_angle))).normalize()
 
-		self.clockwise = True
+		self.clockwise = clockwise
+		self.direction = 1 if clockwise else -1
 
 		if (self.clockwise and end_angle < self.angle):
 			self.end_angle = 360 + end_angle
@@ -153,36 +155,32 @@ class Orbit(AnimatedSprite):
 		elif (not self.clockwise and self.start_angle < end_angle):
 			self.start_angle = self.angle = 360 + self.angle
 
-		self.speed = speed
-		if (direction == 0):
-			self.direction = 1 if self.clockwise else -1
-
 	def update_angle(self, dt):
-		if (self.detected):
-			if (self.clockwise):
+		# if (self.detected):
+		# 	if (self.clockwise):
 				
-				if (self.angle < self.end_angle):
-					self.angle += self.direction * self.speed * dt
+		# 		if (self.angle < self.end_angle):
+		# 			self.angle += self.direction * self.speed * dt
 
-				if (self.end_angle >= 360 and self.angle % 360 <= self.end_angle % 360):
-					self.angle = self.angle % 360
-					self.end_angle = self.end_angle % 360	
+		# 		if (self.end_angle >= 360 and self.angle % 360 <= self.end_angle % 360):
+		# 			self.angle = self.angle % 360
+		# 			self.end_angle = self.end_angle % 360	
 
-				if (self.angle >= self.end_angle):
-					self.angle = self.end_angle
-					#print("=========================")
-					self.detected = False
-			else:
-				if (self.angle > self.end_angle):
-					self.angle += self.direction * self.speed * dt
+		# 		if (self.angle >= self.end_angle):
+		# 			self.angle = self.end_angle
+		# 			#print("=========================")
+		# 			self.detected = False
+		# 	else:
+		# 		if (self.angle > self.end_angle):
+		# 			self.angle += self.direction * self.speed * dt
 
-				if (self.angle <= self.end_angle):
-					self.angle = self.end_angle
-					#print("=========================")
-					self.detected = False
+		# 		if (self.angle <= self.end_angle):
+		# 			self.angle = self.end_angle
+		# 			#print("=========================")
+		# 			self.detected = False
 
 			#print(self.start_angle, ", ", self.end_angle, ", ", self.angle)
-		elif (self.direction_changes == -1 or self.direction_changes_completed < self.direction_changes):		
+		if (self.direction_changes == -1 or self.direction_changes_completed < self.direction_changes):		
 			self.angle += self.direction * self.speed * dt
 
 			if (not self.full_circle):

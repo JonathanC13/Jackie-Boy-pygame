@@ -41,8 +41,7 @@ class Movement():
 
         self.obj.velocity.y += vel_y_change
 
-        if (self.obj.velocity.y > self.obj.vel_max_y):
-            self.obj.velocity.y = self.obj.vel_max_y 
+        self.obj.velocity.y = min(self.obj.velocity.y, self.obj.vel_max_y)
         
         #self.obj.position.y += self.obj.velocity.y * dt + (self.obj.acceleration.y * 0.5) * (dt * dt)
         #self.obj.hitbox_rect.bottom = self.obj.position.y
