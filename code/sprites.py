@@ -135,6 +135,10 @@ class Orbit(AnimatedSprite):
 
 	def orbit_to_angle(self, start_angle, end_angle, speed, clockwise, direction_changes):
 		# one time call per orbit to new destination
+
+		start_angle = 360 + start_angle if (start_angle < 0) else start_angle
+		end_angle = 360 + end_angle if (end_angle < 0) else end_angle
+
 		self.start_angle = self.angle = start_angle
 		self.end_angle = end_angle
 		self.speed = speed
@@ -154,6 +158,10 @@ class Orbit(AnimatedSprite):
 				self.end_angle = self.end_angle % 360	
 		elif (not self.clockwise and self.start_angle < end_angle):
 			self.start_angle = self.angle = 360 + self.angle
+
+		print('====')
+		print(self.start_angle)
+		print(self.end_angle)
 
 	def update_angle(self, dt):
 		# if (self.detected):

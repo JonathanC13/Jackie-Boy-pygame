@@ -155,12 +155,12 @@
  <objectgroup id="9" name="Moving_objects">
   <object id="312" name="bats" gid="12" x="1834" y="468.333" width="44" height="30">
    <properties>
+    <property name="angle_end" type="float" value="180"/>
+    <property name="angle_start" type="float" value="0"/>
     <property name="clockwise" type="bool" value="true"/>
-    <property name="end_angle" type="float" value="180"/>
     <property name="platform" type="bool" value="false"/>
     <property name="radius" type="float" value="100"/>
     <property name="speed" type="float" value="2"/>
-    <property name="start_angle" type="float" value="0"/>
    </properties>
   </object>
  </objectgroup>

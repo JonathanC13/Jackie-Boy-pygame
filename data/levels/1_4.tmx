@@ -157,11 +157,11 @@
   </object>
   <object id="335" name="grassHalf" gid="102" x="4270" y="490" width="70" height="70">
    <properties>
-    <property name="end_angle" type="float" value="-1"/>
+    <property name="angle_end" type="float" value="-1"/>
+    <property name="angle_start" type="float" value="0"/>
     <property name="platform" type="bool" value="false"/>
     <property name="radius" type="float" value="150"/>
     <property name="speed" type="float" value="2"/>
-    <property name="start_angle" type="float" value="0"/>
    </properties>
   </object>
  </objectgroup>

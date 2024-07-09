@@ -1,4 +1,5 @@
 from random import choice, randint
+from math import atan2, degrees
 
 from settings import *
 from timerClass import Timer
@@ -62,8 +63,8 @@ class Dog(pygame.sprite.Sprite):
         self.attack_patterns = {
             "attack_delay": [{"timer_name":"attack_delay", "func": self.nothing}],
             "uppercut": [{"timer_name":"ready_uppercut", "func": self.ready_uppercut, "can_damage": False}, {"timer_name":"uppercut", "func": self.attack_uppercut, "can_damage": True}, {"timer_name":"attack_delay", "func": self.nothing, "can_damage": False}],
-            "advancing_slashes": [{"timer_name":"movement_duration", "func": self.advance_toward_player, "can_damage": False}, {"timer_name":"slash", "func": self.attack_slash, "can_damage": True}, {"timer_name":"movement_duration", "func": self.advance_toward_player, "can_damage": False}, {"timer_name":"slash", "func": self.attack_slash, "can_damage": True}, {"timer_name":"attack_delay", "func": self.nothing, "can_damage": False}],
-            "jump_attack": [{"timer_name":"air_time_before_attack", "func": self.jump, "can_damage": False}, {"timer_name":"slash", "func": self.attack_slash, "can_damage": True}, {"timer_name":"attack_delay", "func": self.nothing, "can_damage": False}]
+            "advancing_slashes": [{"timer_name":"ready_slash", "func": self.ready_slash, "can_damage": False}, {"timer_name":"advance_duration", "func": self.advance_toward_player, "can_damage": False}, {"timer_name":"slash", "func": self.attack_slash, "can_damage": True}, {"timer_name":"ready_slash", "func": self.ready_slash, "can_damage": False},{"timer_name":"advance_duration", "func": self.advance_toward_player, "can_damage": False}, {"timer_name":"slash", "func": self.attack_slash, "can_damage": True}, {"timer_name":"attack_delay", "func": self.nothing, "can_damage": False}],
+            "jump_attack": [{"timer_name":"air_time_before_attack", "func": self.jump_for_attack, "can_damage": False}, {"timer_name":"slash", "func": self.attack_slash, "can_damage": True}, {"timer_name":"attack_delay", "func": self.nothing, "can_damage": False}]
         }
         self.attack_seq, self.attack_seq_len, self.attack_index = self.attack_patterns["attack_delay"], 0, 0
         self.current_attack = None
@@ -77,14 +78,16 @@ class Dog(pygame.sprite.Sprite):
             "attack_delay": Timer(150),
             "ready_uppercut": Timer(250),
             "uppercut": Timer(600),
-            "slash": Timer(1000),
-            "air_time_before_attack": Timer(300)
+            "ready_slash": Timer(10),
+            "advance_duration": Timer(randint(250, 500)),
+            "slash": Timer(400),
+            "air_time_before_attack": Timer(250)
         }
 
         # modules
         self.movement = Movement(self)
 
-        #self.LEFT_KEY = True
+        self.LEFT_KEY = True
 
     def fill_collide_lists(self, tar_rect):
         # tiles
@@ -246,29 +249,48 @@ class Dog(pygame.sprite.Sprite):
         #if (self.type == ENEMY_OBJECTS):
         #    print(self.collision_side)
 
-    def ready_uppercut(self, can_damage):
+    def ready_uppercut(self):
         start_angle = 45 if self.facing_right else 135
 
-        self.weapon.swing(start_angle, start_angle, 0, True, 0, can_damage)
+        self.weapon.swing(start_angle, start_angle, 0, True, 0)
 
-    def attack_uppercut(self, can_damage):
-        print("hi")
+    def attack_uppercut(self):
         clockwise = not self.facing_right
         start_angle = 135 if clockwise else 45
         end_angle = 45 if clockwise else 135
 
         speed = 9
         direction_changes = 1
-        self.weapon.swing(start_angle, end_angle, speed, clockwise, direction_changes, can_damage)
+        self.weapon.swing(start_angle, end_angle, speed, clockwise, direction_changes)
 
-    def attack_slash(self, can_damage):
-        print('bye')
+    def ready_slash(self):
+        start_angle = 315 if (self.player_location.x >= self.hitbox_rect.centerx) else 225
 
-    def nothing(self, can_damage):
-        self.weapon.set_state("idle", can_damage)
+        self.weapon.swing(start_angle, start_angle, 0, True, 0)
+
+    def attack_slash(self):
+        """
+        """
+        player_angle = degrees(atan2(self.player_location.y - self.hitbox_rect.centery, self.player_location.x - self.rect.centerx))
+
+        clockwise = self.facing_right
+        start_angle = player_angle - 45 if clockwise else player_angle + 45
+        end_angle = player_angle + 45 if clockwise else player_angle - 45
+        print('print')
+        print(start_angle)
+        print(end_angle)
+        speed = 9
+        direction_changes = 1
+        self.weapon.swing(start_angle, end_angle, speed, clockwise, direction_changes)
+
+    def nothing(self):
+        pass
+
+    def jump_for_attack(self):
+        self.rand_jump = 1000
 
     def advance_toward_player(self):
-        if (self.player_location.x <= self.hitbox_rect.x):
+        if (self.player_location.x <= self.hitbox_rect.centerx):
             self.LEFT_KEY = True
             self.RIGHT_KEY = False
         else: 
@@ -280,11 +302,16 @@ class Dog(pygame.sprite.Sprite):
             if (self.attack_index < self.attack_seq_len):
                 if (((self.attack_index == 0) or (self.attack_index > 0 and not self.timers[self.attack_seq[self.attack_index - 1]["timer_name"]].active))
                         and not self.timers[self.attack_seq[self.attack_index]["timer_name"]].active):
-                    print(self.attack_index)
                     # Either:   1. if first move in list and timer has not started yet = start
                     #           2. if other moves, check if previous move timer is complete before starting.
+                    self.facing_right = True if (self.player_location.x >= self.hitbox_rect.centerx) else False
+
+                    if (self.attack_seq[self.attack_index]["timer_name"] == "advance_duration"):
+                        self.timers[self.attack_seq[self.attack_index]["timer_name"]] = Timer(randint(250, 500))
+
                     self.timers[self.attack_seq[self.attack_index]["timer_name"]].activate()
-                    self.attack_seq[self.attack_index]["func"](self.attack_seq[self.attack_index]["can_damage"])
+                    self.attack_seq[self.attack_index]["func"]()
+                    self.weapon.set_can_damage(self.attack_seq[self.attack_index]["can_damage"])
                     #print(self.timers[self.attack_seq[self.attack_index]["timer_name"]].start_time)
                     self.current_attack = self.attack_seq[self.attack_index]["timer_name"]
                     self.is_attacking = True
@@ -295,17 +322,23 @@ class Dog(pygame.sprite.Sprite):
                     # disable is_attacking after last timer is finished
                     self.is_attacking = False
                     self.current_attack = None
+                    self.weapon.set_can_damage(False)
                     #print(self.timers[self.attack_seq[self.attack_index - 1]["timer_name"]].ended_time)
                     print('fin')
 
         else:
-            if (self.player_location.y > self.hitbox_rect.y):
+            # select moves
+            if (self.player_location.y < self.hitbox_rect.top):
                 # if the player is generally above the enemy
-                self.is_attacking = True
-                self.attack_index = 0
                 self.attack_seq = self.attack_patterns["uppercut"]
-                self.attack_seq_len = len(self.attack_seq)
-         
+            else:
+                attack_choice = choice(["advancing_slashes", "jump_attack"])
+                self.attack_seq = self.attack_patterns[attack_choice]
+
+            self.is_attacking = True
+            self.attack_index = 0
+            self.attack_seq_len = len(self.attack_seq)
+
     def enemy_input(self):   
         # if player in detection, charge toward x
         if (self.player_proximity["detected"] or self.is_attacking):
@@ -313,7 +346,9 @@ class Dog(pygame.sprite.Sprite):
                 self.perform_attack()
             else:
                 # move toward player
-                self.advance_toward_player()
+                pass
+                ##
+                #self.advance_toward_player()
         else: 
             # if player not in detection
             if (not self.timers["movement_duration"].active):

@@ -80,12 +80,10 @@ class Stick(Weapon, Orbit):
             # reset
             self.start_angle = self.end_angle = self.angle = 0 if self.owner.facing_right else 180
 
-    def swing(self, start_angle, end_angle, speed, clockwise, direction_changes, can_damage):
-        self.can_damage = can_damage
+    def swing(self, start_angle, end_angle, speed, clockwise, direction_changes):
         self.orbit_to_angle(start_angle, end_angle, speed, clockwise, direction_changes)
 
-    def set_state(self, state, can_damage):
-        self.state = state
+    def set_can_damage(self, can_damage):
         self.can_damage = can_damage
 
     def get_state(self):
