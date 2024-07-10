@@ -40,7 +40,9 @@ class Game:
 			'cloud_small': import_folder('..', 'graphics','level', 'clouds', 'small'),
 			'cloud_large': import_image('..', 'graphics','level', 'clouds', 'large_cloud'),
             'dog': import_sub_folders('..', 'graphics','enemies', 'dog'),
-            'stick': import_sub_folders('..', 'graphics','weapons', 'stick')
+            'bird': import_sub_folders('..', 'graphics','enemies', 'bird'),
+            'stick': import_sub_folders('..', 'graphics','weapons', 'stick'),
+            'beak': import_sub_folders('..', 'graphics','weapons', 'beak')
         }
 
     def run(self):

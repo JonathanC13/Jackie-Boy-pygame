@@ -97,7 +97,7 @@ class MovingSprite(AnimatedSprite):
 class Orbit(AnimatedSprite):
 	def __init__(self, pos, frames, radius, speed, start_angle, end_angle, clockwise = True, groups = None, type = None,z = Z_LAYERS['main'], direction_changes = -1, rotate = False, image_orientation = IMAGE_RIGHT, **kwargs):
 		# note: Clockwise if want an end angle > 360. Do not offset, put the added degrees. I.e. 370, not 10
-		#	Counter Clockwise, if starting angle > end angle and >= 0. use base 360. I.e. 370, not 10
+		#	Counter Clockwise, if starting angle > end angle and start angle >= 0. use base 360. I.e. 370, not 10
 		self.center = pos
 		self.radius = radius
 		self.speed = speed
@@ -162,6 +162,12 @@ class Orbit(AnimatedSprite):
 		print('====')
 		print(self.start_angle)
 		print(self.end_angle)
+
+	def point_image(self, rect_src, location):
+		angle = degrees(atan2(location.y - rect_src.centery, location.x - rect_src.centerx))
+		new_end_angle = 360 - abs(angle) if (angle < 0) else angle
+		#self.move_to_angle(detected = self.owner.player_proximity["detected"], end_angle = new_end_angle, speed = 5, direction = 0, direction_changes = 1)
+		self.start_angle = self.end_angle = self.angle = new_end_angle
 
 	def update_angle(self, dt):
 		# if (self.detected):

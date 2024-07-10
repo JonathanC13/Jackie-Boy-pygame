@@ -4,8 +4,8 @@ from settings import *
 from sprites import Sprite, AnimatedSprite, MovingSprite, Orbit
 from player import Player
 from groups import AllSprites
-from enemies import Dog
-from weapons import Stick
+from enemies import Dog, Bird
+from weapons import Stick, Lance
 
 class Level:
 
@@ -29,6 +29,7 @@ class Level:
         # self.masked_sprites = pygame.sprite.Group()
         self.enemy_sprites = pygame.sprite.Group()
         self.dog_sprites = pygame.sprite.Group()
+        self.bird_sprites = pygame.sprite.Group()
         self.damage_sprites = pygame.sprite.Group()
 
         self.setup(level_frames)
@@ -214,9 +215,29 @@ class Level:
                     owner = dog_obj,
                     damage = 1,
                     damage_type = STICK,
-                    level = 1,
-                    attack_cooldown = 500,
-                    attack_speed = 1
+                    level = 1
+                )
+            elif (obj.name == "bird"):
+                bird_obj = Bird(
+                    pos = (obj.x, obj.y),
+                    frames = level_frames["bird"],
+                    groups = (self.all_sprites, self.enemy_sprites, self.bird_sprites),
+                    collision_sprites = self.collision_sprites,
+                    semi_collision_sprites = self.semi_collision_sprites,
+                    ramp_collision_sprites = self.ramp_collision_sprites,
+                    player_sprites = self.player_sprites,
+                    enemy_sprites = self.enemy_sprites,
+                    type = obj.name
+                    )
+                
+                bird_obj.weapon = Lance(
+                    pos = (obj.x, obj.y),
+                    groups = (self.all_sprites, self.damage_sprites),
+                    frames = level_frames["beak"],
+                    owner = bird_obj,
+                    damage = 1,
+                    damage_type = LANCE,
+                    level = 1
                 )
 
         # for spr in self.enemy_sprites:

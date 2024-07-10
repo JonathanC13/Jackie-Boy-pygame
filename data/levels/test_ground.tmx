@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.10" tiledversion="1.10.2" orientation="orthogonal" renderorder="right-down" width="120" height="11" tilewidth="70" tileheight="70" infinite="0" nextlayerid="19" nextobjectid="124">
+<map version="1.10" tiledversion="1.10.2" orientation="orthogonal" renderorder="right-down" width="120" height="11" tilewidth="70" tileheight="70" infinite="0" nextlayerid="19" nextobjectid="126">
  <tileset firstgid="1" source="../tilesets/objects_characters.tsx"/>
  <tileset firstgid="14" source="../tilesets/objects_env.tsx"/>
  <tileset firstgid="75" source="../tilesets/tiles_terrain.tsx"/>
@@ -146,7 +146,7 @@
   <object id="119" name="bats" gid="12" x="962" y="198.333" width="44" height="30">
    <properties>
     <property name="angle_end" type="float" value="225"/>
-    <property name="angle_start" type="float" value="400"/>
+    <property name="angle_start" type="float" value="405"/>
     <property name="clockwise" type="bool" value="false"/>
     <property name="platform" type="bool" value="false"/>
     <property name="radius" type="float" value="100"/>
@@ -173,12 +173,22 @@
     <property name="speed" type="float" value="2"/>
    </properties>
   </object>
+  <object id="125" name="platform" x="460.333" y="172" width="10" height="261.333">
+   <properties>
+    <property name="flip" type="bool" value="false"/>
+    <property name="full_collision" type="bool" value="false"/>
+    <property name="platform" type="bool" value="true"/>
+    <property name="speed" type="float" value="3"/>
+    <property name="start_end" type="bool" value="true"/>
+   </properties>
+  </object>
  </objectgroup>
  <objectgroup id="3" name="Player_objects">
   <object id="85" name="player" gid="5" x="1012" y="549.333" width="92" height="66"/>
  </objectgroup>
  <objectgroup id="13" name="Enemy_objects">
   <object id="120" name="dog" gid="3" x="603" y="415.333" width="51" height="51"/>
+  <object id="124" name="bird" gid="2" x="302.667" y="199.333" width="72" height="36"/>
  </objectgroup>
  <objectgroup id="18" name="Item_objects"/>
  <objectgroup id="17" name="Water_objects"/>

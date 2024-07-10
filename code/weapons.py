@@ -3,40 +3,29 @@ from sprites import Orbit
 from math import atan2, degrees
 
 class Weapon():
-    def __init__(self, damage, damage_type, level, attack_cooldown, attack_speed, **kwargs):
+    def __init__(self, owner, range, weapon_range_rect, damage, damage_type, level, **kwargs):
         self.damage = damage
         self.damage_type = damage_type
         self.level = level
-        self.attack_cooldown = attack_cooldown
-        self.attack_speed = attack_speed
+        self.can_damage = False
+
+        self.owner = owner
+        self.range = range
+        self.weapon_range_rect = weapon_range_rect
 
         super().__init__(**kwargs)
 
-class Stick(Weapon, Orbit):
-    def __init__(self, pos, groups, frames, owner, damage, damage_type, level, attack_cooldown, attack_speed):
+    def set_can_damage(self, can_damage):
+        self.can_damage = can_damage
 
-        self.frame_index = 0
-        self.state = "idle"
+    def check_within_rect(self, player_sprite):
+        self.owner.player_proximity["weapon_in_range"] = self.weapon_range_rect.colliderect(player_sprite.hitbox_rect)
+        pygame.draw.rect(pygame.display.get_surface(), "green", self.weapon_range_rect)
 
-        # owner sprite
-        self.owner = owner
-        self.sk_radius = self.owner.rect.width
-        self.target_angle = 0 if owner.facing_right else 180
-        self.range = self.sk_radius + frames[self.state][self.frame_index].get_width()/2 - 5 # -5 to ensure within range
-        self.weapon_range_rect = pygame.FRect(self.owner.hitbox_rect.center - pygame.Vector2(self.range, self.range), (self.range * 2, self.range * 2))
-
-        super().__init__(damage = damage, damage_type = damage_type, level = level, attack_cooldown = attack_cooldown, attack_speed = attack_speed,
-                         pos = pos, frames = frames[self.state], radius = self.sk_radius, speed = 0, start_angle = 0, end_angle = 0, clockwise = True, groups = groups, type = STICK, z = Z_LAYERS['main'], direction_changes = 0, rotate = True, image_orientation = IMAGE_RIGHT
-                         )
-        
-        # override class AnimatedSprite attr
-        self.frames = frames
-
-        self.can_damage = False
-        
-    def check_in_range(self, player_sprite):
-        # weapon range for enemy sprite
-        self.weapon_range_rect = pygame.FRect(self.owner.rect.center - pygame.Vector2(self.range, self.range), (self.range * 2, self.range * 2))
+    def check_within_circle(self, player_sprite):
+        """
+        if weapon hit area is circular around owner
+        """
         weapon_range_rect_center = self.weapon_range_rect.center
         pygame.draw.rect(pygame.display.get_surface(), "green", self.weapon_range_rect)
 
@@ -65,32 +54,104 @@ class Stick(Weapon, Orbit):
         else:
             self.owner.player_proximity["weapon_in_range"] = False
 
-    def point_weapon(self, location):
-        angle = degrees(atan2(location.y - self.owner.rect.centery, location.x - self.owner.rect.centerx))
-        new_end_angle = 360 - abs(angle) if (angle < 0) else angle
-        #self.move_to_angle(detected = self.owner.player_proximity["detected"], end_angle = new_end_angle, speed = 5, direction = 0, direction_changes = 1)
-        self.start_angle = self.end_angle = self.angle = new_end_angle
+    def get_state(self):
+        if (self.can_damage):
+            self.state = "attack_active"
+        else:
+            self.state = "idle"
 
-    def enemy_point_weapon(self, player_location):
+class Lance(Weapon, Orbit):
+    def __init__(self, pos, groups, frames, owner, damage, damage_type, level):
+        self.frame_index = 0
+        self.state = "idle"
+
+        # owner sprite
+        self.owner = owner
+        self.owner_stick_center = self.owner.rect.width
+        self.target_angle = 0 if owner.facing_right else 180
+
+        self.range = self.owner_stick_center + frames[self.state][self.frame_index].get_width()/2 - 5 # -5 to ensure within range (radius)
+        self.weapon_range_rect = pygame.FRect(self.owner.hitbox_rect.center - pygame.Vector2(self.range, self.range), (self.range * 2, self.range * 2)) # rect for the weapon
+
+        super().__init__(owner = owner, range = self.range, weapon_range_rect = self.weapon_range_rect, damage = damage, damage_type = damage_type, level = level,
+                         pos = pos, frames = frames[self.state], radius = self.owner_stick_center, speed = 0, start_angle = 0, end_angle = 0, clockwise = True, groups = groups, type = STICK, z = Z_LAYERS['main'], direction_changes = 0, rotate = True, image_orientation = IMAGE_RIGHT
+                         )
+        
+        # override class AnimatedSprite attr
+        self.frames = frames
+
+    def check_in_range(self, player_sprite):
+        # weapon range for enemy sprite
+        self.check_within_rect(player_sprite)
+
+    def update_weapon_zone(self, owner_rect):
+        self.center = owner_rect.center
+        self.weapon_range_rect = pygame.FRect(owner_rect.center - pygame.Vector2(self.range, self.range), (self.range * 2, self.range * 2))
+
+    def enemy_point_image(self, player_location, facing_right):
         # point weapon for enemy sprite
         if (self.owner.player_proximity["detected"]):
             # move to angle
-            self.point_weapon(player_location)
+            self.point_image(self.owner.hitbox_rect, player_location)
         else:
             # reset
-            self.start_angle = self.end_angle = self.angle = 0 if self.owner.facing_right else 180
+            self.start_angle = self.end_angle = self.angle = 0 if facing_right else 180
+
+    def animate(self, dt):
+        self.frame_index += ANIMATION_SPEED * dt/FPS_TARGET
+        
+        if (self.frame_index >= len(self.frames[self.state])):
+            self.frame_index = 0
+
+        self.image = self.frames[self.state][int(self.frame_index)]
+
+    def update(self, dt, event_list):
+        self.update_angle(dt)
+
+        self.get_state()
+        self.animate(dt)
+        self.rotate_image(self.image_orientation)
+
+class Stick(Weapon, Orbit):
+    def __init__(self, pos, groups, frames, owner, damage, damage_type, level):
+
+        self.frame_index = 0
+        self.state = "idle"
+
+        # owner sprite
+        self.owner = owner
+        self.owner_stick_center = self.owner.rect.width
+        self.target_angle = 0 if owner.facing_right else 180
+        
+        self.range = self.owner_stick_center + frames[self.state][self.frame_index].get_width()/2 - 5 # -5 to ensure within range (radius)
+        self.weapon_range_rect = pygame.FRect(self.owner.hitbox_rect.center - pygame.Vector2(self.range, self.range), (self.range * 2, self.range * 2)) # rect for the weapon
+
+        super().__init__(owner = owner, range = self.range, weapon_range_rect = self.weapon_range_rect, damage = damage, damage_type = damage_type, level = level,
+                         pos = pos, frames = frames[self.state], radius = self.owner_stick_center, speed = 0, start_angle = 0, end_angle = 0, clockwise = True, groups = groups, type = STICK, z = Z_LAYERS['main'], direction_changes = 0, rotate = True, image_orientation = IMAGE_RIGHT
+                         )
+        
+        # override class AnimatedSprite attr
+        self.frames = frames
+        
+    def check_in_range(self, player_sprite):
+        # weapon range for enemy sprite
+        self.check_within_circle(player_sprite)
+
+    def update_weapon_zone(self, owner_rect):
+        self.center = owner_rect.center
+        self.weapon_range_rect = pygame.FRect(owner_rect.center - pygame.Vector2(self.range, self.range), (self.range * 2, self.range * 2))
+
+    def enemy_point_image(self, player_location, facing_right):
+        # point weapon for enemy sprite
+        if (self.owner.player_proximity["detected"]):
+            # move to angle
+            self.point_image(self.owner.hitbox_rect, player_location)
+        else:
+            # reset
+            self.start_angle = self.end_angle = self.angle = 0 if facing_right else 180
 
     def swing(self, start_angle, end_angle, speed, clockwise, direction_changes):
         self.orbit_to_angle(start_angle, end_angle, speed, clockwise, direction_changes)
-
-    def set_can_damage(self, can_damage):
-        self.can_damage = can_damage
-
-    def get_state(self):
-        if (self.can_damage):
-            self.state = "attack"
-        else:
-            self.state = "idle"
 
     def animate(self, dt):
         self.frame_index += ANIMATION_SPEED * dt/FPS_TARGET

@@ -65,7 +65,7 @@ DOG_MAX_VEL_Y = 7
 ALL = "All"
 STICK = "Stick"
 BALL = "Ball"
-UMBRELLA = "Umbrella"
+LANCE = "Lance"
 
 # image_orientation offset
 IMAGE_RIGHT = 90
