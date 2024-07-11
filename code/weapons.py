@@ -20,7 +20,7 @@ class Weapon():
 
     def check_within_rect(self, player_sprite):
         self.owner.player_proximity["weapon_in_range"] = self.weapon_range_rect.colliderect(player_sprite.hitbox_rect)
-        pygame.draw.rect(pygame.display.get_surface(), "green", self.weapon_range_rect)
+        #pygame.draw.rect(pygame.display.get_surface(), "green", self.weapon_range_rect)
 
     def check_within_circle(self, player_sprite):
         """
@@ -47,7 +47,7 @@ class Weapon():
                 # create rect that slices the y at the x pos
                 #weapon_range_slice_rect = pygame.FRect((weapon_range_rect.x + self.range + rel_x - left_offset - slice_offset, weapon_range_rect_center[1] - rel_y), (1, rel_y * 2))
                 weapon_range_slice_rect = pygame.FRect((self.weapon_range_rect.x + self.range + rel_x + slice_offset, weapon_range_rect_center[1] - rel_y), (1, rel_y * 2))
-                pygame.draw.rect(pygame.display.get_surface(), "red", weapon_range_slice_rect)
+                #pygame.draw.rect(pygame.display.get_surface(), "red", weapon_range_slice_rect)
                 self.owner.player_proximity["weapon_in_range"] = weapon_range_slice_rect.colliderect(player_sprite.hitbox_rect)
             else:
                 self.owner.player_proximity["weapon_in_range"] = False

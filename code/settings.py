@@ -56,10 +56,13 @@ PLAYER_MAX_VEL_Y = 15
 GRAVITY_NORM = 0.33
 
 # Enemies
+# Dog
 DOG_ACCEL = 0.4
 DOG_MAX_VEL_X = 5
 DOG_VEL_Y = 6   # 4 tile jump gap
 DOG_MAX_VEL_Y = 7
+# Bird
+FLIGHT_VEL = 8
 
 # Weapon types
 ALL = "All"
