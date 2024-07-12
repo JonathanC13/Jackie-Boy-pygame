@@ -6,6 +6,7 @@ from player import Player
 from groups import AllSprites
 from enemies import Dog, Bird
 from weapons import Stick, Lance
+from pathfinder import Pathfinder
 
 class Level:
 
@@ -16,7 +17,7 @@ class Level:
         self.stage_main = level_data[0]
         self.stage_sub = level_data[1]
         self.tmx_map = level_data[2]
-
+        
         self.tmx_map_max_width = self.tmx_map.width
 
         # sprite groups
@@ -227,7 +228,8 @@ class Level:
                     ramp_collision_sprites = self.ramp_collision_sprites,
                     player_sprites = self.player_sprites,
                     enemy_sprites = self.enemy_sprites,
-                    type = obj.name
+                    type = obj.name,
+                    pathfinder = Pathfinder(self.tmx_map.width, self.tmx_map.height)
                     )
                 
                 bird_obj.weapon = Lance(

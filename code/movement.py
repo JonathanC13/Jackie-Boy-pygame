@@ -13,10 +13,8 @@ class Movement():
         if abs(vel_vec) < .01: 
             vel_vec = 0 
 
-    def flying_movement(self, dt, rect, velocity):
-            rect.x += velocity.x * dt
-            rect.y += velocity.y * dt
-            return rect
+    def flying_movement(self, dt, velocity):
+        self.obj.hitbox_rect.center += velocity * dt
 
     def horizontal_movement(self, dt):
         self.obj.acceleration.x = 0

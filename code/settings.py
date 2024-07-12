@@ -62,7 +62,7 @@ DOG_MAX_VEL_X = 5
 DOG_VEL_Y = 6   # 4 tile jump gap
 DOG_MAX_VEL_Y = 7
 # Bird
-FLIGHT_VEL = 8
+FLIGHT_VEL = 6
 
 # Weapon types
 ALL = "All"

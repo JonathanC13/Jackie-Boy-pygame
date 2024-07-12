@@ -6,7 +6,7 @@ from timerClass import Timer
 from movement import Movement
 
 class Enemy(pygame.sprite.Sprite):
-    def __init__(self, pos, frames, groups, collision_sprites = None, semi_collision_sprites = None, ramp_collision_sprites = None, player_sprites = None, enemy_sprites = None, type = ENEMY_OBJECTS, jump_height = -DOG_VEL_Y, accel_x = DOG_ACCEL, vel_max_x = DOG_MAX_VEL_X, vel_max_y = DOG_MAX_VEL_Y):
+    def __init__(self, pos, frames, groups, collision_sprites = None, semi_collision_sprites = None, ramp_collision_sprites = None, player_sprites = None, enemy_sprites = None, type = ENEMY_OBJECTS, jump_height = -DOG_VEL_Y, accel_x = DOG_ACCEL, vel_max_x = DOG_MAX_VEL_X, vel_max_y = DOG_MAX_VEL_Y, pathfinder = None):
         super().__init__(groups)
 
         self.display_surface = pygame.display.get_surface()
@@ -78,6 +78,7 @@ class Enemy(pygame.sprite.Sprite):
 
         # modules
         self.movement = Movement(self)
+        self.pathfinder = pathfinder
 
     def animate(self, dt):
         self.frame_index += ANIMATION_SPEED * dt/FPS_TARGET
@@ -251,8 +252,8 @@ class Enemy(pygame.sprite.Sprite):
         pass
 
 class Bird(Enemy):
-    def __init__(self, pos, frames, groups, collision_sprites = None, semi_collision_sprites = None, ramp_collision_sprites = None, player_sprites = None, enemy_sprites = None, type = ENEMY_OBJECTS):
-        super().__init__(pos = pos, frames = frames, groups = groups, collision_sprites = collision_sprites, semi_collision_sprites = semi_collision_sprites, ramp_collision_sprites = ramp_collision_sprites, player_sprites = player_sprites, enemy_sprites = enemy_sprites, type = type, jump_height = -DOG_VEL_Y, accel_x = DOG_ACCEL, vel_max_x = DOG_MAX_VEL_X, vel_max_y = DOG_MAX_VEL_Y)
+    def __init__(self, pos, frames, groups, collision_sprites = None, semi_collision_sprites = None, ramp_collision_sprites = None, player_sprites = None, enemy_sprites = None, type = ENEMY_OBJECTS, pathfinder = None):
+        super().__init__(pos = pos, frames = frames, groups = groups, collision_sprites = collision_sprites, semi_collision_sprites = semi_collision_sprites, ramp_collision_sprites = ramp_collision_sprites, player_sprites = player_sprites, enemy_sprites = enemy_sprites, type = type, jump_height = -DOG_VEL_Y, accel_x = DOG_ACCEL, vel_max_x = DOG_MAX_VEL_X, vel_max_y = DOG_MAX_VEL_Y, pathfinder = pathfinder)
 
         self.flight_base_velocity = FLIGHT_VEL
 
@@ -261,30 +262,38 @@ class Bird(Enemy):
         self.flight_velocity = pygame.math.Vector2(0, 0)
         self.flight_complete = True # for dive and return. Either this flag or timer
         self.pathing_rect = self.hitbox_rect.copy()
-        self.path_checkpoint = None
 
         self.dt = 1
+
+        # path checkpoints
+
 
         # attack patterns
         self.attack_patterns.update(
             {
                 #"ram": [{"timer_name":"attack_delay", "func": self.attack_delay, "can_damage": False}, {"timer_name":"locked_on", "func": self.locked_on, "can_damage": False}, {"timer_name":"ram", "func": self.ram, "can_damage": True}, {"timer_name":"return_to_dive_src", "func": self.fly_up, "can_damage": False}]
-                "ram": [{"timer_name":"locking_on", "func": self.locking_on, "can_damage": False}, {"timer_name":"locked_on", "func": self.locked_on, "can_damage": False}, {"timer_name":"ram", "func": self.ram, "can_damage": True}, {"timer_name":"attack_delay", "func": self.attack_delay, "can_damage": False}]
+                "ram": [{"timer_name":"locking_on", "func": self.locking_on, "can_damage": False}, {"timer_name":"locked_on", "func": self.locked_on, "can_damage": False}, {"timer_name":"move_along_path", "func": self.move_along_path, "can_damage": True}, {"timer_name":"attack_delay", "func": self.attack_delay, "can_damage": False}]
             }
         )
 
         # timer
         self.timers.update(
             {
-                "attack_delay": Timer(1500),
+                "attack_delay": Timer(250),
                 "locking_on": Timer(500),
-                "locked_on": Timer(500),
-                "ram": Timer(1500)
+                "locked_on": Timer(150),
+                "move_along_path": Timer(1500, None, True)
             }
         )
 
         self.LEFT_KEY = True
 
+        self.setup_pathfinder()
+        
+    def setup_pathfinder(self):
+        obstacles = (self.collision_sprites , self.semi_collision_sprites)
+        self.pathfinder.build_matrix(obstacles)
+        
     # TODO override vertical method since flying
 
     def check_for_player(self):
@@ -295,6 +304,9 @@ class Bird(Enemy):
 
         # for bird, entire detection_rect is the attack zone. override weapon_in_range
         self.player_proximity["weapon_in_range"] = self.player_proximity["detected"]
+
+    def get_rect_center(self):
+        return pygame.math.Vector2(self.hitbox_rect.center)
 
     # attacks
     def determine_flight_vector(self, flight_src, flight_dest):
@@ -358,6 +370,9 @@ class Bird(Enemy):
         self.old_rect = store_old_rect
         self.hitbox_rect = store_hitbox
 
+    def set_path(self, src, dest):
+        _, self.pathfinder.path = self.pathfinder.dijkstra(src, dest) # x, y
+
     def locking_on(self):
         self.weapon.enemy_point_image(self.player_location, self.facing_right)
 
@@ -368,20 +383,47 @@ class Bird(Enemy):
         keep image angle to same angle
         determine_flight_path
         """
-        self.flight_src = pygame.math.Vector2(self.hitbox_rect.center)
+        self.flight_src = self.get_rect_center()
         self.flight_dest = pygame.math.Vector2(self.player_location.x, self.player_location.y)
         self.weapon.enemy_point_image(self.player_location, self.facing_right)
-        self.path_checkpoint = pygame.FRect((self.flight_dest), (1, 1))
-        self.determine_flight_vector(self.flight_src, self.flight_dest)
+        #self.determine_flight_vector(self.flight_src, self.flight_dest)
+        # determine path
+        self.set_path(self.flight_src, self.flight_dest)
+        self.create_path_checkpoints()
 
-    def linear_path_vector(self, src, dest):
-        pass
+    def create_path_checkpoints(self):
+        if (len(self.pathfinder.path) > 0):
+            self.pathfinder.path_checkpoints = []
 
-    def ram(self):
+            for point in self.pathfinder.path:
+                x = point[0] * TILE_SIZE + (TILE_SIZE/2)
+                y = point[1] * TILE_SIZE + (TILE_SIZE/2)
+                self.pathfinder.path_checkpoints.append(pygame.FRect((x - (self.flight_base_velocity/2), y - (self.flight_base_velocity/2)), (self.flight_base_velocity, self.flight_base_velocity)))
+
+    def check_checkpoint_collision(self):
+        if (len(self.pathfinder.path_checkpoints) > 0):
+            #for rect in self.pathfinder.path_checkpoints:
+            if (self.pathfinder.path_checkpoints[0].collidepoint(self.hitbox_rect.center)):
+                del self.pathfinder.path_checkpoints[0]
+                self.get_velocity()
+        else:
+            self.pathfinder.empty_path()
+
+    def get_velocity(self):
+        if (len(self.pathfinder.path_checkpoints) > 0):
+            start = pygame.math.Vector2(self.hitbox_rect.center)
+            end = pygame.math.Vector2(self.pathfinder.path_checkpoints[0].center)
+            self.velocity = (end - start).normalize() * self.flight_base_velocity
+        else:
+            self.velocity = pygame.math.Vector2(0, 0)
+            self.pathfinder.empty_path()
+
+    def move_along_path(self):
         # re-evaluate flight_path. Currently giving me trouble
         # self.flight_src = pygame.math.Vector2(self.hitbox_rect.topleft)
         # self.determine_flight_vector(self.flight_src, self.flight_dest)
-        self.movement.flying_movement(self.dt, self.hitbox_rect, self.flight_velocity)
+        self.get_velocity()
+        self.check_checkpoint_collision()
         self.weapon.point_image(self.hitbox_rect, self.flight_dest)
 
     def fly_up(self):
@@ -392,17 +434,18 @@ class Bird(Enemy):
         if (self.is_attacking):
             if (self.attack_index < self.attack_seq_len):
                 
-                if (self.current_attack["timer_name"] == "ram" and self.timers[self.current_attack["timer_name"]].active):
-                    pygame.draw.rect(pygame.display.get_surface(), "red", self.path_checkpoint)
-                    pygame.draw.rect(pygame.display.get_surface(), "red", pygame.FRect((self.flight_dest), (5, 5)))
-                    # pygame.FRect((self.hitbox_rect.center), (1, 1))
-                    
-                    if (self.hitbox_rect.colliderect(self.path_checkpoint)):
-                        self.flight_velocity = pygame.math.Vector2(0, 0)
-                        self.movement.flying_movement(self.dt, self.hitbox_rect, self.flight_velocity)
-                        self.timers[self.current_attack["timer_name"]].deactivate()
-
-                    self.ram()
+                if (self.current_attack["timer_name"] == "move_along_path" and self.timers[self.current_attack["timer_name"]].active):
+                    if (len(self.pathfinder.path_checkpoints) == 0):
+                        # end
+                        print('fin_flight')
+                        self.pathfinder.empty_path()
+                        self.velocity = pygame.math.Vector2(0, 0)
+                        self.timers[self.current_attack["timer_name"]].kill()
+                    else:
+                        self.move_along_path()
+                    self.pathfinder.draw_path()
+                    for rect in self.pathfinder.path_checkpoints:
+                        pygame.draw.rect(pygame.display.get_surface(), "blue", rect)
                 elif (self.current_attack["timer_name"] == "locking_on" and self.timers[self.current_attack["timer_name"]].active):
                     self.weapon.enemy_point_image(self.player_location, self.facing_right)
 
@@ -413,6 +456,8 @@ class Bird(Enemy):
 
                     if (self.attack_seq[self.attack_index]["timer_name"] == "advance_duration"):
                         self.timers[self.attack_seq[self.attack_index]["timer_name"]] = Timer(randint(250, 500))
+                    elif (self.attack_seq[self.attack_index]["timer_name"] == "move_along_path"):
+                        self.timers[self.attack_seq[self.attack_index]["timer_name"]] = Timer(1500, None, True)
 
                     self.timers[self.attack_seq[self.attack_index]["timer_name"]].activate()
                     self.attack_seq[self.attack_index]["func"]()
@@ -458,14 +503,9 @@ class Bird(Enemy):
             self.weapon.enemy_point_image(self.player_location, self.facing_right)
         
         self.enemy_input()
-
-        # self.horizontal_flight(dt) 
-        # self.vertical_flight(dt)  # maybe combine with horizontal
+        self.movement.flying_movement(dt, self.velocity)
         # # recenter image rect with the hitbox rect
         self.rect.center = self.hitbox_rect.center
-        # self.check_contact()
-        # self.movement.collision_tweak()
-        # self.movement.platform_move(dt)
 
         self.get_state()
         #self.animate(dt)
