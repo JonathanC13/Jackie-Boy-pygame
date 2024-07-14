@@ -89,20 +89,21 @@ class Pathfinder:
 
         self.path = []
         curr = adj_end_coord
-
         # while inserting, flip the coordinates so it is adjusted for pygame system
 
         while (curr is not None):
             self.path.insert(0, curr)#[curr[1], curr[0]]
             curr = predecessors[curr[0]][curr[1]]
-            if (curr[0] == adj_start_coord[0] and curr[1] == adj_start_coord[1]):
+            if (curr is None):
+                break
+            elif (curr[0] == adj_start_coord[0] and curr[1] == adj_start_coord[1]):
                 self.path.insert(0, adj_start_coord)#[adj_start_coord[1], adj_start_coord[0]]
                 break
-
+        
         return self.path
     
     def draw_path(self):
-        if (len(self.path) > 0):
+        if (len(self.path) > 1):
             points = []
             for point in self.path:
                 # adjust points and let's put the point in the center
