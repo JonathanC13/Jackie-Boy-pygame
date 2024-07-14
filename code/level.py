@@ -192,7 +192,7 @@ class Level:
                                 enemy_sprites = self.enemy_sprites,
                                 frames = None,
                                 type = PLAYER_OBJECTS)
-                
+       
         # enemies
         for obj in self.tmx_map.get_layer_by_name(ENEMY_OBJECTS):
             if (obj.name == "dog"):
@@ -259,7 +259,8 @@ class Level:
 
         # update sprites
         self.all_sprites.update(dt, event_list)
-
+        
         # draw all sprites
         self.all_sprites.draw(self.display_surface)
         #self.all_sprites.draw(self.player.hitbox_rect.center, self.player.hitbox_rect.width, self.tmx_map_max_width)
+        

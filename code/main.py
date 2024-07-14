@@ -10,7 +10,7 @@ class Game:
     def __init__(self):
         pygame.init()
         self.clock = pygame.time.Clock()
-        self.previous_time = time.time()
+        self.previous_time = 0
         self.display_surface = pygame.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT))
         pygame.display.set_caption("Jackie Boy")
         self.import_assets()
@@ -47,6 +47,8 @@ class Game:
         }
 
     def run(self):
+        # moved previous time here due to remove the time it takes during initialization 
+        self.previous_time = time.time()
         while (True):
 
             dt = (time.time() - self.previous_time) * FPS_TARGET
