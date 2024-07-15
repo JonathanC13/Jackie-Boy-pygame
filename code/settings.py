@@ -1,4 +1,5 @@
 import math
+import random
 import os.path
 import pygame, sys, time
 from pygame.math import Vector2 as vector
@@ -57,12 +58,15 @@ GRAVITY_NORM = 0.33
 
 # Enemies
 # Dog
-DOG_ACCEL = 0.4
+DOG_ACCEL = 2
 DOG_MAX_VEL_X = 5
 DOG_VEL_Y = 6   # 4 tile jump gap
 DOG_MAX_VEL_Y = 7
 # Bird
-FLIGHT_VEL = 6
+FLIGHT_ATTACK_SPEED = 6
+FLIGHT_NORMAL_SPEED = 3
+# Squirrel
+SQ_PROJECTILE_SPEED = 12   # max x range = (v0^2 sin(2θ0))/g = 390
 
 # Weapon types
 ALL = "All"

@@ -163,12 +163,17 @@ class Orbit(AnimatedSprite):
 		print(self.start_angle)
 		print(self.end_angle)
 
-	def point_image(self, rect_src, location):
-		angle = degrees(atan2(location.y - rect_src.centery, location.x - rect_src.centerx))
+	def set_angle(self, angle):
 		new_end_angle = 360 - abs(angle) if (angle < 0) else angle
+		#print(new_end_angle)
 		#self.move_to_angle(detected = self.owner.player_proximity["detected"], end_angle = new_end_angle, speed = 5, direction = 0, direction_changes = 1)
 		self.start_angle = self.end_angle = self.angle = new_end_angle
+		#print(self.angle)
 
+	def point_image(self, rect_src, location):
+		angle = degrees(atan2(location.y - rect_src.centery, location.x - rect_src.centerx))
+		self.set_angle(angle)
+		
 	def update_angle(self, dt):
 		# if (self.detected):
 		# 	if (self.clockwise):

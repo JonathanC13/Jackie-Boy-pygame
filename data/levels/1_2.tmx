@@ -169,15 +169,15 @@
  </objectgroup>
  <objectgroup id="13" name="Enemy_objects">
   <object id="318" name="dog" gid="3" x="1470" y="560" width="51" height="51"/>
-  <object id="319" name="bird" gid="2" x="1680" y="70" width="72" height="36"/>
-  <object id="320" name="bird" gid="2" x="1960" y="70" width="72" height="36"/>
+  <object id="319" name="bird" gid="2" x="1680" y="194" width="72" height="36"/>
+  <object id="320" name="bird" gid="2" x="1968" y="200.667" width="72" height="36"/>
   <object id="321" name="squirrel" gid="8" x="2310" y="630" width="54" height="31"/>
   <object id="350" name="bird" gid="2" x="3009.33" y="132.667" width="72" height="36"/>
   <object id="351" name="dog" gid="3" x="3575" y="698" width="51" height="51"/>
   <object id="375" name="dog" gid="3" x="3360" y="490" width="51" height="51"/>
   <object id="376" name="wasp" gid="10" x="3850" y="70" width="66" height="42"/>
   <object id="377" name="wasp" gid="10" x="4410" y="140" width="66" height="42"/>
-  <object id="378" name="wasp" gid="10" x="4480" y="70" width="66" height="42"/>
+  <object id="378" name="wasp" gid="10" x="4785.33" y="338" width="66" height="42"/>
   <object id="379" name="dog" gid="3" x="4340" y="700" width="51" height="51"/>
   <object id="380" name="dog" gid="3" x="4550" y="420" width="51" height="51"/>
  </objectgroup>

@@ -1,11 +1,9 @@
-from random import uniform
-
 from settings import *
 from sprites import Sprite, AnimatedSprite, MovingSprite, Orbit
 from player import Player
 from groups import AllSprites
-from enemies import Dog, Bird
-from weapons import Stick, Lance
+from enemies import Dog, Bird, Squirrel
+from weapons import Stick, Lance, Ball
 from pathfinder import Pathfinder
 
 class Level:
@@ -199,7 +197,7 @@ class Level:
                 dog_obj = Dog(
                     pos = (obj.x, obj.y),
                     frames = level_frames["dog"],
-                    groups = (self.all_sprites, self.enemy_sprites, self.dog_sprites),
+                    groups = (self.all_sprites, self.enemy_sprites, self.dog_sprites, self.collision_sprites),
                     collision_sprites = self.collision_sprites,
                     semi_collision_sprites = self.semi_collision_sprites, 
                     ramp_collision_sprites = self.ramp_collision_sprites,
@@ -210,7 +208,7 @@ class Level:
                 
                 # each dog gets a stick as a weapon
                 dog_obj.weapon = Stick(
-                    pos = (obj.x, obj.y),
+                    pos = (dog_obj.hitbox_rect.centerx, dog_obj.hitbox_rect.centery),
                     groups = (self.all_sprites, self.damage_sprites),
                     frames = level_frames["stick"],
                     owner = dog_obj,
@@ -222,7 +220,7 @@ class Level:
                 bird_obj = Bird(
                     pos = (obj.x, obj.y),
                     frames = level_frames["bird"],
-                    groups = (self.all_sprites, self.enemy_sprites, self.bird_sprites),
+                    groups = (self.all_sprites, self.enemy_sprites, self.bird_sprites, self.collision_sprites),
                     collision_sprites = self.collision_sprites,
                     semi_collision_sprites = self.semi_collision_sprites,
                     ramp_collision_sprites = self.ramp_collision_sprites,
@@ -233,12 +231,34 @@ class Level:
                     )
                 
                 bird_obj.weapon = Lance(
-                    pos = (obj.x, obj.y),
+                    pos = (bird_obj.hitbox_rect.centerx, bird_obj.hitbox_rect.centery),
                     groups = (self.all_sprites, self.damage_sprites),
                     frames = level_frames["beak"],
                     owner = bird_obj,
                     damage = 1,
                     damage_type = LANCE,
+                    level = 1
+                )
+            elif (obj.name == "squirrel"):
+                squirrel_obj = Squirrel(
+                    pos = (obj.x, obj.y),
+                    frames = level_frames["squirrel"],
+                    groups = (self.all_sprites, self.enemy_sprites, self.bird_sprites, self.collision_sprites),
+                    collision_sprites = self.collision_sprites,
+                    semi_collision_sprites = self.semi_collision_sprites,
+                    ramp_collision_sprites = self.ramp_collision_sprites,
+                    player_sprites = self.player_sprites,
+                    enemy_sprites = self.enemy_sprites,
+                    type = obj.name,
+                    pathfinder = Pathfinder(self.tmx_map.width, self.tmx_map.height)
+                    )
+                squirrel_obj.weapon = Ball(
+                    pos = (squirrel_obj.hitbox_rect.centerx, squirrel_obj.hitbox_rect.centery),
+                    groups = (self.all_sprites, self.damage_sprites),
+                    frames = level_frames["acorn"],
+                    owner = squirrel_obj,
+                    damage = 1,
+                    damage_type = BALL,
                     level = 1
                 )
 

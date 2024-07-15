@@ -193,7 +193,7 @@ class Player(pygame.sprite.Sprite):
         self.list_collide_ramps = []
         self.list_semi_collide = []
 
-        for group in [self.collision_sprites, self.semi_collision_sprites, self.ramp_collision_sprites, self.enemy_sprites]:
+        for group in [self.collision_sprites, self.semi_collision_sprites, self.ramp_collision_sprites]:
             for sprite in group:
                 if sprite.rect.colliderect(tar_rect):
                     if (group in [self.collision_sprites, self.enemy_sprites]):
@@ -218,7 +218,7 @@ class Player(pygame.sprite.Sprite):
         right_rect = pygame.FRect(self.hitbox_rect.topright + vector(0,self.hitbox_rect.height / 4),(1,self.hitbox_rect.height / 4))
         #pygame.draw.rect(self.display_surface, "green", right_rect)
 
-        collide_sprites = self.collision_sprites.sprites() + self.enemy_sprites.sprites()
+        collide_sprites = self.collision_sprites.sprites()
         collide_rects = [sprite.rect for sprite in collide_sprites]
         #semi_collide_rects = [sprite.rect for sprite in self.semi_collision_sprites]
         collide_ramps = [sprite for sprite in self.ramp_collision_sprites]
