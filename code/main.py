@@ -45,7 +45,8 @@ class Game:
             'squirrel': import_sub_folders('..', 'graphics','enemies', 'squirrel'),
             'stick': import_sub_folders('..', 'graphics','weapons', 'stick'),
             'beak': import_sub_folders('..', 'graphics','weapons', 'beak'),
-            'acorn': import_sub_folders('..', 'graphics','weapons', 'acorn')
+            'acorn': import_sub_folders('..', 'graphics','weapons', 'acorn'),
+            'acorn_projectile': import_sub_folders('..', 'graphics','enemies', 'acorn')
         }
 
     def run(self):

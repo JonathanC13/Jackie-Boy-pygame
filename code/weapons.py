@@ -106,6 +106,20 @@ class Ball(Weapon):
         # override class AnimatedSprite attr
         self.frames = frames
 
+        self.original_center = self.center
+        self.original_radius = self.radius
+
+    def hide_ball(self, hide):
+        if (hide):
+            self.original_center = self.center
+            self.original_radius = self.radius
+
+            self.center = (0, 0)
+            self.radius = 0
+        else:
+            self.center = self.original_center
+            self.radius = self.original_radius
+
     def check_in_range(self, player_sprite):
         # weapon range for enemy sprite
         self.check_within_circle(player_sprite)

@@ -55,12 +55,14 @@ PLAYER_MAX_VEL_Y = 15
 # Environment
 # note for 1:1 ramp. gravity displacement (velocity) is 1/1 of horizontal velocity rounded up. Adjusted in player.py
 GRAVITY_NORM = 0.33
+FRICTION = -0.12    # more negative = less slide
+AIR_RESISTANCE = 0
 
 # Enemies
 # Dog
 DOG_ACCEL = 2
 DOG_MAX_VEL_X = 5
-DOG_VEL_Y = 6   # 4 tile jump gap
+DOG_VEL_Y = 6
 DOG_MAX_VEL_Y = 7
 # Bird
 FLIGHT_ATTACK_SPEED = 6

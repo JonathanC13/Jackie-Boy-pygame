@@ -10,6 +10,7 @@ class Sprite(pygame.sprite.Sprite):
 
 		self.image = surf
 		self.rect = self.image.get_frect(topleft = pos)
+		self.mask = pygame.mask.from_surface(self.image)
 
 		self.old_rect = self.rect.copy()
 		self.type = type
@@ -29,6 +30,7 @@ class AnimatedSprite(Sprite):
 		if (self.frame_index > self.len_frames):
 			self.frame_index = 0
 		self.image = self.frames[int(self.frame_index)]
+		self.mask = pygame.mask.from_surface(self.image)
 
 	def update(self, dt, event_list):
 		self.animate(dt)

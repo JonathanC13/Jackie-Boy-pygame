@@ -2,7 +2,7 @@ from settings import *
 from sprites import Sprite, AnimatedSprite, MovingSprite, Orbit
 from player import Player
 from groups import AllSprites
-from enemies import Dog, Bird, Squirrel
+from enemies import Dog, Bird, Squirrel, Acorn
 from weapons import Stick, Lance, Ball
 from pathfinder import Pathfinder
 
@@ -15,13 +15,14 @@ class Level:
         self.stage_main = level_data[0]
         self.stage_sub = level_data[1]
         self.tmx_map = level_data[2]
-        
         self.tmx_map_max_width = self.tmx_map.width
+
+        self.acorn_frames = level_frames["acorn_projectile"]
 
         # sprite groups
         self.all_sprites = pygame.sprite.Group()
         #self.all_sprites = AllSprites()
-        self.player_sprites = pygame.sprite.Group()
+        self.player_sprite = pygame.sprite.GroupSingle()
         self.collision_sprites = pygame.sprite.Group()
         self.ramp_collision_sprites = pygame.sprite.Group()
         self.semi_collision_sprites = pygame.sprite.Group()
@@ -29,6 +30,8 @@ class Level:
         self.enemy_sprites = pygame.sprite.Group()
         self.dog_sprites = pygame.sprite.Group()
         self.bird_sprites = pygame.sprite.Group()
+        self.squirrel_sprites = pygame.sprite.Group()
+        self.acorn_sprites = pygame.sprite.Group()
         self.damage_sprites = pygame.sprite.Group()
 
         self.setup(level_frames)
@@ -183,7 +186,7 @@ class Level:
                 self.player = Player(
                                 pos = (obj.x, obj.y), 
                                 surf = obj.image, 
-                                groups = (self.all_sprites, self.player_sprites), 
+                                groups = (self.all_sprites, self.player_sprite), 
                                 collision_sprites = self.collision_sprites, 
                                 semi_collision_sprites = self.semi_collision_sprites, 
                                 ramp_collision_sprites = self.ramp_collision_sprites,
@@ -201,7 +204,7 @@ class Level:
                     collision_sprites = self.collision_sprites,
                     semi_collision_sprites = self.semi_collision_sprites, 
                     ramp_collision_sprites = self.ramp_collision_sprites,
-                    player_sprites = self.player_sprites,
+                    player_sprite = self.player_sprite,
                     enemy_sprites = self.enemy_sprites,
                     type = obj.name
                     )
@@ -224,7 +227,7 @@ class Level:
                     collision_sprites = self.collision_sprites,
                     semi_collision_sprites = self.semi_collision_sprites,
                     ramp_collision_sprites = self.ramp_collision_sprites,
-                    player_sprites = self.player_sprites,
+                    player_sprite = self.player_sprite,
                     enemy_sprites = self.enemy_sprites,
                     type = obj.name,
                     pathfinder = Pathfinder(self.tmx_map.width, self.tmx_map.height)
@@ -243,18 +246,19 @@ class Level:
                 squirrel_obj = Squirrel(
                     pos = (obj.x, obj.y),
                     frames = level_frames["squirrel"],
-                    groups = (self.all_sprites, self.enemy_sprites, self.bird_sprites, self.collision_sprites),
+                    groups = (self.all_sprites, self.enemy_sprites, self.squirrel_sprites, self.collision_sprites),
                     collision_sprites = self.collision_sprites,
                     semi_collision_sprites = self.semi_collision_sprites,
                     ramp_collision_sprites = self.ramp_collision_sprites,
-                    player_sprites = self.player_sprites,
+                    player_sprite = self.player_sprite,
                     enemy_sprites = self.enemy_sprites,
                     type = obj.name,
-                    pathfinder = Pathfinder(self.tmx_map.width, self.tmx_map.height)
+                    pathfinder = Pathfinder(self.tmx_map.width, self.tmx_map.height),
+                    func_create_acorn = self.create_acorn
                     )
                 squirrel_obj.weapon = Ball(
                     pos = (squirrel_obj.hitbox_rect.centerx, squirrel_obj.hitbox_rect.centery),
-                    groups = (self.all_sprites, self.damage_sprites),
+                    groups = (self.all_sprites),
                     frames = level_frames["acorn"],
                     owner = squirrel_obj,
                     damage = 1,
@@ -271,7 +275,27 @@ class Level:
 
         # triggers
 
+    def create_acorn(self, pos, angle_fired):
+        Acorn(pos, self.acorn_frames, (self.all_sprites, self.damage_sprites, self.acorn_sprites), self.player_sprite, SQ_PROJECTILE_SPEED, angle_fired)
+
     # handle item, damage, end level collisions here
+    def acorn_collision(self):
+        sprites = [spr for spr in self.collision_sprites.sprites() if spr.type != "squirrel"] + self.ramp_collision_sprites.sprites()
+        for sprite in sprites:
+            #pygame.sprite.spritecollide(sprite, self.acorn_sprites, True, pygame.sprite.collide_mask)  # need to use mask if image surface is larger than the actual image
+            pygame.sprite.spritecollide(sprite, self.acorn_sprites, True)
+
+    def hit_collision(self):
+        for sprite in self.damage_sprites:
+            # better performance to check rect first and then mask, rather than always checking the mask
+            if (sprite.rect.colliderect(self.player.hitbox_rect)):
+                #print('collide with rect')
+                if (pygame.sprite.spritecollide(sprite, self.player_sprite, False, pygame.sprite.collide_mask)):
+                    # later will need to check if weapon is also active to inflict damage
+                    print('hit with mask')
+                    if (sprite.type == "acorn"):
+                        print('kill')
+                        sprite.kill()
 
     def run(self, dt, event_list):
         # game loop here for level. like checking collisions and updating screen
@@ -279,6 +303,8 @@ class Level:
 
         # update sprites
         self.all_sprites.update(dt, event_list)
+        self.acorn_collision()
+        self.hit_collision()
         
         # draw all sprites
         self.all_sprites.draw(self.display_surface)

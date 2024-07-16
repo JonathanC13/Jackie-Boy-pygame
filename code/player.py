@@ -42,7 +42,7 @@ class Player(pygame.sprite.Sprite):
         self.LEFT_KEY, self.RIGHT_KEY = False, False
         self.is_jumping = False
         self.jump_height = -PLAYER_VEL_Y
-        self.gravity, self.friction = GRAVITY_NORM, -0.12   # incr frict for less slide
+        self.gravity, self.friction = GRAVITY_NORM, FRICTION   # incr frict for less slide
         #self.position = pygame.math.Vector2(self.hitbox_rect.bottomleft)
         self.accel_x = PLAYER_ACCEL
         self.vel_max_x = PLAYER_MAX_VEL_X
