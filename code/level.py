@@ -1,6 +1,6 @@
 from settings import *
-from sprites import Sprite, AnimatedSprite, MovingSprite, Orbit
-from player import Player
+from sprites import Sprite, AnimatedSprite, MovingSprite, Orbit, Item, ParticleEffectSprite
+from player import Player, Ball
 from groups import AllSprites
 from enemies import Dog, Bird, Squirrel, Acorn
 from weapons import Stick, Lance, Ball
@@ -18,11 +18,13 @@ class Level:
         self.tmx_map_max_width = self.tmx_map.width
 
         self.acorn_frames = level_frames["acorn_projectile"]
+        self.particle_frames = level_frames["effect_particle"]
 
         # sprite groups
         self.all_sprites = pygame.sprite.Group()
         #self.all_sprites = AllSprites()
         self.player_sprite = pygame.sprite.GroupSingle()
+        self.player_weapon_sprites = pygame.sprite.Group()
         self.collision_sprites = pygame.sprite.Group()
         self.ramp_collision_sprites = pygame.sprite.Group()
         self.semi_collision_sprites = pygame.sprite.Group()
@@ -33,6 +35,7 @@ class Level:
         self.squirrel_sprites = pygame.sprite.Group()
         self.acorn_sprites = pygame.sprite.Group()
         self.damage_sprites = pygame.sprite.Group()
+        self.item_sprites = pygame.sprite.Group()
 
         self.setup(level_frames)
 
@@ -193,6 +196,39 @@ class Level:
                                 enemy_sprites = self.enemy_sprites,
                                 frames = None,
                                 type = PLAYER_OBJECTS)
+                
+                stick_weapon = Stick(
+                    pos = (self.player.hitbox_rect.centerx, self.player.hitbox_rect.centery),
+                    groups = (self.all_sprites, self.player_weapon_sprites),
+                    frames = level_frames["stick"],
+                    owner = self.player,
+                    damage = 1,
+                    damage_type = STICK,
+                    level = 1
+                )
+
+                lance_weapon = Lance(
+                    pos = (self.player.hitbox_rect.centerx, self.player.hitbox_rect.centery),
+                    groups = (self.all_sprites, self.player_weapon_sprites),
+                    frames = level_frames["beak"],
+                    owner = self.player,
+                    damage = 1,
+                    damage_type = LANCE,
+                    level = 1
+                )
+
+                ball_weapon = Ball(
+                    pos = (self.player.hitbox_rect.centerx, self.player.hitbox_rect.centery),
+                    groups = (self.all_sprites),
+                    frames = level_frames["acorn"],
+                    owner = self.player,
+                    damage = 1,
+                    damage_type = BALL,
+                    level = 1
+                )
+
+                weapon_list = [{"weapon": stick_weapon}, {"weapon": lance_weapon}, {"weapon": ball_weapon}]
+                self.player.weapon_setup(weapon_list)
        
         # enemies
         for obj in self.tmx_map.get_layer_by_name(ENEMY_OBJECTS):
@@ -270,32 +306,75 @@ class Level:
         #     print(spr.weapon.level)
                 
         # items
+        for obj in self.tmx_map.get_layer_by_name(ITEM_OBJECTS):
+            Item(
+                item_type = obj.name, 
+                 pos = (obj.x + TILE_SIZE/2, obj.y + TILE_SIZE/2), 
+                 frames = level_frames["items"][obj.name], 
+                 groups = (self.all_sprites, self.item_sprites)
+            )
         
         # water
 
         # triggers
+
+    def create_ball(self):
+        pass
 
     def create_acorn(self, pos, angle_fired):
         Acorn(pos, self.acorn_frames, (self.all_sprites, self.damage_sprites, self.acorn_sprites), self.player_sprite, SQ_PROJECTILE_SPEED, angle_fired)
 
     # handle item, damage, end level collisions here
     def acorn_collision(self):
+        # collision with terrain should remove the acorn from game
         sprites = [spr for spr in self.collision_sprites.sprites() if spr.type != "squirrel"] + self.ramp_collision_sprites.sprites()
         for sprite in sprites:
             #pygame.sprite.spritecollide(sprite, self.acorn_sprites, True, pygame.sprite.collide_mask)  # need to use mask if image surface is larger than the actual image
-            pygame.sprite.spritecollide(sprite, self.acorn_sprites, True)
+            sprite = pygame.sprite.spritecollide(sprite, self.acorn_sprites, True)
+            if (sprite):
+                ParticleEffectSprite(
+                    pos = sprite[0].rect.center, 
+                    frames = self.particle_frames, 
+                    groups = self.all_sprites
+                )
 
     def hit_collision(self):
-        for sprite in self.damage_sprites:
-            # better performance to check rect first and then mask, rather than always checking the mask
-            if (sprite.rect.colliderect(self.player.hitbox_rect)):
-                #print('collide with rect')
-                if (pygame.sprite.spritecollide(sprite, self.player_sprite, False, pygame.sprite.collide_mask)):
+        # better performance to check rect first and then mask, rather than always checking the mask
+        if (pygame.sprite.spritecollide(self.player_sprite.sprite, self.damage_sprites, False)):
+            #print('collide with rect')
+            hit_sprites = pygame.sprite.spritecollide(self.player_sprite.sprite, self.damage_sprites, False, pygame.sprite.collide_mask)
+
+            if(hit_sprites):
+                for sprite in hit_sprites:
                     # later will need to check if weapon is also active to inflict damage
                     print('hit with mask')
                     if (sprite.type == "acorn"):
-                        print('kill')
                         sprite.kill()
+                        ParticleEffectSprite(
+                            pos = sprite.rect.center, 
+                            frames = self.particle_frames, 
+                            groups = self.all_sprites
+                        )
+
+        # if performance is not impacted negatively enough to notice, then it would be less verbose
+        """
+        if (pygame.sprite.spritecollide(self.player_sprite, self.damage_sprites, True, pygame.sprite.collide_mask)):
+            do something
+        """
+
+    def item_collision(self):
+        if (self.item_sprites):
+            if (pygame.sprite.spritecollide(self.player_sprite.sprite, self.item_sprites, False)):
+                items_collected = pygame.sprite.spritecollide(self.player_sprite.sprite, self.item_sprites, True, pygame.sprite.collide_mask)
+                if (items_collected):
+                    print(items_collected)
+                    for sprite in items_collected:
+                        print(sprite.item_type)
+                        ParticleEffectSprite(
+                            pos = sprite.rect.center, 
+                            frames = self.particle_frames, 
+                            groups = self.all_sprites
+                        )
 
     def run(self, dt, event_list):
         # game loop here for level. like checking collisions and updating screen
@@ -305,6 +384,7 @@ class Level:
         self.all_sprites.update(dt, event_list)
         self.acorn_collision()
         self.hit_collision()
+        self.item_collision()
         
         # draw all sprites
         self.all_sprites.draw(self.display_surface)

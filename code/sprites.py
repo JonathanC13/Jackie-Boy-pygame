@@ -35,6 +35,26 @@ class AnimatedSprite(Sprite):
 	def update(self, dt, event_list):
 		self.animate(dt)
 
+class Item(AnimatedSprite):
+	def __init__(self, item_type, pos, frames, groups):
+		super().__init__(pos, frames, groups, item_type)
+		self.rect.center = pos
+		self.item_type = item_type
+
+class ParticleEffectSprite(AnimatedSprite):
+	def __init__(self, pos, frames, groups):
+		super().__init__(pos, frames, groups)
+		self.rect.center = pos
+		self.z = Z_LAYERS["fg"]
+
+	def animate(self, dt):
+		self.frame_index += self.animation_speed * dt/FPS_TARGET
+		
+		if self.frame_index < len(self.frames):
+			self.image = self.frames[int(self.frame_index)]
+		else:
+			self.kill()
+
 class MovingSprite(AnimatedSprite):
 	def __init__(self, frames, start_pos, end_pos, path_plane, start_end = False, speed = 0, full_collision = True, flip = False, groups = None, type = None, z = Z_LAYERS["main"]):
 
@@ -173,6 +193,7 @@ class Orbit(AnimatedSprite):
 		#print(self.angle)
 
 	def point_image(self, rect_src, location):
+		location = pygame.math.Vector2(location)
 		angle = degrees(atan2(location.y - rect_src.centery, location.x - rect_src.centerx))
 		self.set_angle(angle)
 		

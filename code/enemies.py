@@ -426,13 +426,13 @@ class Squirrel(Enemy):
                 self.throw()
                 self.has_thrown = True
                 # hide weapon temporarily
-                self.weapon.hide_ball(True)
+                self.weapon.hide_weapon(True)
             elif(self.frame_index >= len(self.frames[self.state])):
                 self.frame_index = 0
                 self.timers["throw"].deactivate()
 
                 self.has_thrown = False
-                self.weapon.hide_ball(False)
+                self.weapon.hide_weapon(False)
                 self.get_state()
 
         if (self.frame_index >= len(self.frames[self.state])):
@@ -1003,7 +1003,8 @@ class Dog(Enemy):
         elif (self.state in ["uppercut", "slash"] and self.frame_index >= len(self.frames[self.state])):
             # attack complete
             self.frame_index = 0
-            self.timers[self.state].deactivate()    # responsibility of user to match the duration of the attack rotation to the animation speed
+            self.timers[self.state].deactivate()    # responsibility of dev to match the duration of the attack rotation to the animation speed
+            self.weapon.set_can_damage(False)
             self.get_state()
 
         if (self.frame_index >= len(self.frames[self.state])):

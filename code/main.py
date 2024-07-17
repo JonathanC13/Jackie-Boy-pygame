@@ -38,15 +38,17 @@ class Game:
             'bats': import_folder('..', 'graphics','enemies', 'bats'),
             'water_top': import_folder('..', 'graphics', 'level', 'water', 'top'),
 			'water_body': import_image('..', 'graphics', 'level', 'water', 'body'),
-			'cloud_small': import_folder('..', 'graphics','level', 'clouds', 'small'),
-			'cloud_large': import_image('..', 'graphics','level', 'clouds', 'large_cloud'),
-            'dog': import_sub_folders('..', 'graphics','enemies', 'dog'),
-            'bird': import_sub_folders('..', 'graphics','enemies', 'bird'),
-            'squirrel': import_sub_folders('..', 'graphics','enemies', 'squirrel'),
-            'stick': import_sub_folders('..', 'graphics','weapons', 'stick'),
-            'beak': import_sub_folders('..', 'graphics','weapons', 'beak'),
-            'acorn': import_sub_folders('..', 'graphics','weapons', 'acorn'),
-            'acorn_projectile': import_sub_folders('..', 'graphics','enemies', 'acorn')
+			'cloud_small': import_folder('..', 'graphics', 'level', 'clouds', 'small'),
+			'cloud_large': import_image('..', 'graphics', 'level', 'clouds', 'large_cloud'),
+            'dog': import_sub_folders('..', 'graphics', 'enemies', 'dog'),
+            'bird': import_sub_folders('..', 'graphics', 'enemies', 'bird'),
+            'squirrel': import_sub_folders('..', 'graphics', 'enemies', 'squirrel'),
+            'stick': import_sub_folders('..', 'graphics', 'weapons', 'stick'),
+            'beak': import_sub_folders('..', 'graphics', 'weapons', 'beak'),
+            'acorn': import_sub_folders('..', 'graphics', 'weapons', 'acorn'),
+            'acorn_projectile': import_sub_folders('..', 'graphics', 'enemies', 'acorn'),
+            'items': import_sub_folders('..', 'graphics', 'items'),
+            'effect_particle': import_folder('..', 'graphics', 'effects', 'particle')
         }
 
     def run(self):

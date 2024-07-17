@@ -1,8 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.10" tiledversion="1.10.2" orientation="orthogonal" renderorder="right-down" width="73" height="11" tilewidth="70" tileheight="70" infinite="0" nextlayerid="19" nextobjectid="265">
+<map version="1.10" tiledversion="1.10.2" orientation="orthogonal" renderorder="right-down" width="73" height="11" tilewidth="70" tileheight="70" infinite="0" nextlayerid="19" nextobjectid="286">
  <tileset firstgid="1" source="../tilesets/objects_characters.tsx"/>
  <tileset firstgid="14" source="../tilesets/objects_env.tsx"/>
  <tileset firstgid="75" source="../tilesets/tiles_terrain.tsx"/>
+ <tileset firstgid="103" source="../tilesets/items.tsx"/>
  <layer id="4" name="BG" width="73" height="11">
   <data encoding="csv">
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
@@ -102,8 +103,29 @@
  </objectgroup>
  <objectgroup id="13" name="Enemy_objects">
   <object id="264" name="bird" gid="2" x="557.333" y="248.667" width="72" height="36"/>
+  <object id="285" name="squirrel" gid="8" x="14" y="482" width="54" height="31"/>
  </objectgroup>
- <objectgroup id="18" name="Item_objects"/>
+ <objectgroup id="18" name="Item_objects">
+  <object id="265" name="kibble" gid="104" x="560" y="630" width="64" height="64"/>
+  <object id="266" name="kibble" gid="104" x="910" y="560" width="64" height="64"/>
+  <object id="267" name="denta" gid="103" x="140" y="560" width="64" height="64"/>
+  <object id="268" name="kibble" gid="104" x="70" y="70" width="64" height="64"/>
+  <object id="269" name="kibble" gid="104" x="210" y="70" width="64" height="64"/>
+  <object id="270" name="kibble" gid="104" x="350" y="70" width="64" height="64"/>
+  <object id="271" name="kibble" gid="104" x="490" y="70" width="64" height="64"/>
+  <object id="272" name="kibble" gid="104" x="630" y="70" width="64" height="64"/>
+  <object id="273" name="kibble" gid="104" x="770" y="70" width="64" height="64"/>
+  <object id="274" name="kibble" gid="104" x="910" y="70" width="64" height="64"/>
+  <object id="275" name="kibble" gid="104" x="1050" y="70" width="64" height="64"/>
+  <object id="276" name="kibble" gid="104" x="1190" y="70" width="64" height="64"/>
+  <object id="277" name="kibble" gid="104" x="700" y="140" width="64" height="64"/>
+  <object id="278" name="kibble" gid="104" x="420" y="140" width="64" height="64"/>
+  <object id="279" name="denta" gid="103" x="1050" y="420" width="64" height="64"/>
+  <object id="280" name="denta" gid="103" x="1050" y="280" width="64" height="64"/>
+  <object id="281" name="denta" gid="103" x="1050" y="210" width="64" height="64"/>
+  <object id="282" name="denta" gid="103" x="1050" y="350" width="64" height="64"/>
+  <object id="284" name="skull" gid="105" x="700" y="630" width="64" height="64"/>
+ </objectgroup>
  <objectgroup id="17" name="Water_objects"/>
  <layer id="11" name="FG" width="73" height="11">
   <data encoding="csv">

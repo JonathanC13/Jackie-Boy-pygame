@@ -14,6 +14,9 @@ class Weapon(Orbit):
 
         super().__init__(**kwargs)
 
+        self.original_center = self.center
+        self.original_radius = self.radius
+
     def set_can_damage(self, can_damage):
         self.can_damage = can_damage
 
@@ -66,7 +69,25 @@ class Weapon(Orbit):
             self.point_image(self.owner.hitbox_rect, player_location)
         else:
             # reset
-            self.start_angle = self.end_angle = self.angle = 0 if facing_right else 180
+            self.start_angle = self.end_angle = self.angle = 0 if facing_right else 180      
+
+    def hide_weapon(self, hide):
+        if (hide):
+            self.original_center = self.center
+            self.original_radius = self.radius
+
+            self.center = (WINDOW_WIDTH + TILE_SIZE*2, WINDOW_HEIGHT + TILE_SIZE*2)
+            #self.radius = 0
+        else:
+            self.center = self.original_center
+            #self.radius = self.original_radius
+    
+    def print_weapon_info(self):
+        print(self.type)
+        print(f'original_center: {self.center}')
+        print(f'center: {self.center}')
+        print(f'original_radius: {self.original_radius}')
+        print(f'radius: {self.radius}')
 
     def get_state(self):
         if (self.can_damage):
@@ -100,25 +121,11 @@ class Ball(Weapon):
         self.weapon_range_rect = pygame.FRect(self.owner.hitbox_rect.center - pygame.Vector2(self.range, self.range), (self.range * 2, self.range * 2)) # rect for the weapon
 
         super().__init__(owner = owner, range = self.range, weapon_range_rect = self.weapon_range_rect, damage = damage, damage_type = damage_type, level = level,
-                         pos = pos, frames = frames[self.state], radius = self.owner_ball_offset, speed = 0, start_angle = 0, end_angle = 0, clockwise = True, groups = groups, type = STICK, z = Z_LAYERS['main'], direction_changes = 0, rotate = True, image_orientation = IMAGE_RIGHT
+                         pos = pos, frames = frames[self.state], radius = self.owner_ball_offset, speed = 0, start_angle = 0, end_angle = 0, clockwise = True, groups = groups, type = BALL, z = Z_LAYERS['main'], direction_changes = 0, rotate = True, image_orientation = IMAGE_RIGHT
                          )
         
         # override class AnimatedSprite attr
         self.frames = frames
-
-        self.original_center = self.center
-        self.original_radius = self.radius
-
-    def hide_ball(self, hide):
-        if (hide):
-            self.original_center = self.center
-            self.original_radius = self.radius
-
-            self.center = (0, 0)
-            self.radius = 0
-        else:
-            self.center = self.original_center
-            self.radius = self.original_radius
 
     def check_in_range(self, player_sprite):
         # weapon range for enemy sprite
@@ -138,14 +145,14 @@ class Lance(Weapon):
 
         # owner sprite
         self.owner = owner
-        self.owner_lance_offset = self.owner.rect.width
+        self.owner_lance_offset = self.owner.rect.width / 1.5
         self.target_angle = 0 if owner.facing_right else 180
 
         self.range = self.owner_lance_offset + frames[self.state][self.frame_index].get_width()/2 - 5 # -5 to ensure within range (radius)
         self.weapon_range_rect = pygame.FRect(self.owner.hitbox_rect.center - pygame.Vector2(self.range, self.range), (self.range * 2, self.range * 2)) # rect for the weapon
 
         super().__init__(owner = owner, range = self.range, weapon_range_rect = self.weapon_range_rect, damage = damage, damage_type = damage_type, level = level,
-                         pos = pos, frames = frames[self.state], radius = self.owner_lance_offset, speed = 0, start_angle = 0, end_angle = 0, clockwise = True, groups = groups, type = STICK, z = Z_LAYERS['main'], direction_changes = 0, rotate = True, image_orientation = IMAGE_RIGHT
+                         pos = pos, frames = frames[self.state], radius = self.owner_lance_offset, speed = 0, start_angle = 0, end_angle = 0, clockwise = True, groups = groups, type = LANCE, z = Z_LAYERS['main'], direction_changes = 0, rotate = True, image_orientation = IMAGE_RIGHT
                          )
         
         # override class AnimatedSprite attr
@@ -171,7 +178,7 @@ class Stick(Weapon):
 
         # owner sprite
         self.owner = owner
-        self.owner_stick_offset = self.owner.rect.width
+        self.owner_stick_offset = self.owner.rect.width / 1.5
         self.target_angle = 0 if owner.facing_right else 180
         
         self.range = self.owner_stick_offset + frames[self.state][self.frame_index].get_width()/2 - 5 # -5 to ensure within range (radius)
