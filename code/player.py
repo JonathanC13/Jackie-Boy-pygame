@@ -1,4 +1,5 @@
-from math import degrees, atan2
+from math import degrees, radians, atan2, sin, cos
+from random import choice
 
 from settings import *
 from timerClass import Timer
@@ -6,18 +7,23 @@ from movement import Movement
 
 class Player(pygame.sprite.Sprite):
 
-    def __init__(self, pos, surf = pygame.Surface((TILE_SIZE,TILE_SIZE)), groups = None, collision_sprites = None, semi_collision_sprites = None, ramp_collision_sprites = None, enemy_sprites = None, frames = None, type = PLAYER_OBJECTS):
+    def __init__(self, pos, surf = pygame.Surface((TILE_SIZE,TILE_SIZE)), groups = None, collision_sprites = None, semi_collision_sprites = None, ramp_collision_sprites = None, enemy_sprites = None, frames = None, type = PLAYER_OBJECTS, func_create_ball = None, id = 0):
         # general setup
         super().__init__(groups)
         self.z = Z_LAYERS["main"]
         self.type = type
+        self.id = id
+
+        self.func_create_ball = func_create_ball
+        self.has_thrown = False
 
         self.display_surface = pygame.display.get_surface()
         
         self.frames, self.frame_index = frames, 0
         self.state, self.facing_right = "idle", True
-        self.image = surf
-        #self.image = self.frames[self.state][self.frame_index]
+        #self.image = surf
+        self.image = self.frames[self.state][self.frame_index]
+        self.animation_speed = ANIMATION_SPEED
 
         # rects
         # rect to hold entire image
@@ -54,6 +60,10 @@ class Player(pygame.sprite.Sprite):
 
         # attacks
         self.is_attacking = False
+        self.current_attack = None
+        self.attack_pos = pygame.math.Vector2(0, 0)
+
+        self.angle_to_fire = 0
 
         self.weapon_list = []
         self.current_weapon_index = 0
@@ -63,11 +73,8 @@ class Player(pygame.sprite.Sprite):
             "wall_jump_move_block": Timer(200), # blocks the use of LEFT and RIGHT right after wall jump
             "unlock_semi_drop_down": Timer(100), # disables the floor collision for semi collision platforms so that the player can drop down through them
             "Stick_attack_cooldown": Timer(1000),
-            "Stick_damage_active": Timer(1000),
             "Lance_attack_cooldown": Timer(750),
-            "Lance_damage_active": Timer(750),
-            "Ball_attack_cooldown": Timer(500),
-            "Ball_damage_active": Timer(0)
+            "Ball_attack_cooldown": Timer(500)
         }
 
         # modules
@@ -78,12 +85,22 @@ class Player(pygame.sprite.Sprite):
 
         # key down
         if (keys[pygame.K_1]):
-            self.current_weapon_index = 0
+            new_weapon_index = 0
         elif (keys[pygame.K_2]):
-            self.current_weapon_index = 1
+            new_weapon_index = 1
         elif (keys[pygame.K_3]):
-            self.current_weapon_index = 2
+            new_weapon_index = 2
+        else:
+            new_weapon_index = self.current_weapon_index
 
+        if (self.current_weapon_index != new_weapon_index):
+            # clear prev weapon statues
+            self.is_attacking = False
+            self.current_attack = None
+            self.weapon_list[self.current_weapon_index]["weapon"].set_can_damage(False)
+            self.timers[self.weapon_list[self.current_weapon_index]["timer_cooldown"]].deactivate()
+            self.current_weapon_index = new_weapon_index
+            
         if (keys[pygame.K_SPACE]):
             self.jump()
 
@@ -112,10 +129,19 @@ class Player(pygame.sprite.Sprite):
     def weapon_setup(self, weapon_list):
         self.weapon_list = weapon_list
         for weapon in self.weapon_list:
+            weapon_attacks = []
+            if (weapon["weapon"].type == STICK):
+                weapon_attacks.append(self.weapon_slash)
+            elif (weapon["weapon"].type == LANCE):
+                weapon_attacks.append(self.weapon_thrust)
+            elif (weapon["weapon"].type == BALL):
+                weapon_attacks.append(self.weapon_throw)
+
             weapon.update(
                 {
+                    "original_radius": weapon["weapon"].radius,
                     "timer_cooldown": str(weapon["weapon"].type) + "_attack_cooldown",
-                    "timer_damage": str(weapon["weapon"].type) + "_damage_active"
+                    "weapon_attacks": weapon_attacks
                 }
             )
         print(self.weapon_list)
@@ -130,36 +156,65 @@ class Player(pygame.sprite.Sprite):
                     self.weapon_list[i]["weapon"].hide_weapon(False)
                 else:
                     self.weapon_list[i]["weapon"].hide_weapon(True)
-                    self.timers[self.weapon_list[self.current_weapon_index]["timer_cooldown"]].deactivate()
 
-            if (not self.timers[self.weapon_list[self.current_weapon_index]["timer_damage"]].active):
-                # point weapon to the mouse position if not currently attacking
+            if (not self.is_attacking):
+                # point current weapon to the mouse position if not currently attacking
                 self.weapon_list[self.current_weapon_index]["weapon"].point_image(self.hitbox_rect, pygame.math.Vector2(pygame.mouse.get_pos()))
                 # here and in method animation if the animation if faster than the timer
                 self.weapon_list[self.current_weapon_index]["weapon"].set_can_damage(False)
                 self.is_attacking = False
+                self.current_attack = None
+
+                if (self.weapon_list[self.current_weapon_index]["weapon"].type == LANCE):
+                    self.weapon_list[self.current_weapon_index]["weapon"].set_radius(self.weapon_list[self.current_weapon_index]["original_radius"])
+            elif (self.is_attacking):
+                if (self.current_attack == "thrust"):
+                    # adjust thrust "reach" depending on the current thrust frame animation.
+                    self.weapon_thrust()
+
             # update weapon position to stay with owner
             self.weapon_list[self.current_weapon_index]["weapon"].update_weapon_zone(self.hitbox_rect)
 
     def weapon_attack(self, mouse_pos):
         if (len(self.weapon_list) > 0 and self.current_weapon_index < len(self.weapon_list)):
             if (not self.is_attacking and not self.timers[self.weapon_list[self.current_weapon_index]["timer_cooldown"]].active):
+                self.attack_pos = pygame.math.Vector2(mouse_pos)
                 self.is_attacking = True
                 self.frame_index = 0
                 self.timers[self.weapon_list[self.current_weapon_index]["timer_cooldown"]].activate()
-                self.timers[self.weapon_list[self.current_weapon_index]["timer_damage"]].activate()
 
-                if (self.weapon_list[self.current_weapon_index]["weapon"].type == STICK):
-                    self.frame_index = 0
-                    player_angle = degrees(atan2(mouse_pos[1] - self.hitbox_rect.centery, mouse_pos[0] - self.hitbox_rect.centerx))
+                # choose an attack
+                attack_choice = choice(self.weapon_list[self.current_weapon_index]["weapon_attacks"])
+                attack_choice()
 
-                    clockwise = self.facing_right
-                    start_angle = player_angle - 45 if clockwise else player_angle + 45
-                    end_angle = player_angle + 45 if clockwise else player_angle - 45
-                    speed = 9
-                    direction_changes = 1
-                    self.weapon_list[self.current_weapon_index]["weapon"].swing(start_angle, end_angle, speed, clockwise, direction_changes)
-                    self.weapon_list[self.current_weapon_index]["weapon"].set_can_damage(True)
+    def weapon_slash(self):
+        self.current_attack = "slash"
+        self.frame_index = 0
+        player_angle = degrees(atan2(self.attack_pos[1] - self.hitbox_rect.centery, self.attack_pos[0] - self.hitbox_rect.centerx))
+
+        if (self.attack_pos.x >= self.hitbox_rect.x):
+            # keep player looking at x direction of attack
+            self.facing_right = True
+        else:
+            self.facing_right = False
+
+        clockwise = self.facing_right
+        start_angle = player_angle - 45 if clockwise else player_angle + 45
+        end_angle = player_angle + 45 if clockwise else player_angle - 45
+        speed = 9
+        direction_changes = 1
+        self.weapon_list[self.current_weapon_index]["weapon"].swing(start_angle, end_angle, speed, clockwise, direction_changes)
+        self.weapon_list[self.current_weapon_index]["weapon"].set_can_damage(True)
+
+    def weapon_thrust(self):
+        self.current_attack = "thrust"
+        self.weapon_list[self.current_weapon_index]["weapon"].thrust(self.frame_index)
+
+    def weapon_throw(self):
+        self.current_attack = "throw"
+        #getting angle of attack
+        self.angle_to_fire = self.weapon_list[self.current_weapon_index]["weapon"].angle
+        # ball then thrown on certain frame in method animation
 
     def horizontal_movement(self, dt):
         """
@@ -529,12 +584,26 @@ class Player(pygame.sprite.Sprite):
             timer.update()
             
     def animate(self, dt):
-        self.frame_index += ANIMATION_SPEED * dt/FPS_TARGET
+        self.frame_index += self.animation_speed * dt/FPS_TARGET
 
-        if (self.is_attacking and self.state in ["slash", "jab"] and self.frame_index >= len(self.frames[self.state])):
+        if (self.is_attacking and self.state == "throw"):
+            if (int(self.frame_index) == 1 and not self.has_thrown):
+                # frame that should throw projectile
+                self.func_create_ball(self.weapon_list[self.current_weapon_index]["weapon"].rect.center, self.angle_to_fire, self.id)
+                self.has_thrown = True
+                # hide weapon temporarily
+                self.weapon_list[self.current_weapon_index]["weapon"].hide_weapon(True)
+            elif(self.frame_index >= len(self.frames[self.state])):
+                self.frame_index = 0
+                self.is_attacking = False
+                self.has_thrown = False
+                self.weapon_list[self.current_weapon_index]["weapon"].hide_weapon(False)
+                self.get_state()
+
+        if (self.is_attacking and self.state in ["slash", "thrust"] and self.frame_index >= len(self.frames[self.state])):
             # attack complete
-            self.frame_index = 0
-            self.timers[self.weapon_list[self.current_weapon_index]["timer_damage"]].deactivate()    # responsibility of dev to match the duration of the attack rotation to the animation speed
+            # responsibility of dev to match the duration of the attack rotation to the animation speed
+            self.frame_index = 0    
             self.weapon_list[self.current_weapon_index]["weapon"].set_can_damage(False)
             self.is_attacking = False
             self.get_state()
@@ -546,19 +615,25 @@ class Player(pygame.sprite.Sprite):
         self.image = self.image if self.facing_right else pygame.transform.flip(self.image, True, False)
 
     def get_state(self):
-        if (self.collision_side["bot"]):
-            if (self.is_attacking):
-                self.state = "attack"
+        self.animation_speed = ANIMATION_SPEED
+        if (self.is_attacking and self.current_attack is not None):
+            self.state = self.current_attack
+
+            if (self.attack_pos.x >= self.hitbox_rect.x):
+                # keep player looking at x direction of attack
+                self.facing_right = True
             else:
-                self.state = "idle" if self.velocity.x == 0 else "run"
+                self.facing_right = False
+
+            if (self.current_attack == "thrust"):
+                self.animation_speed = ANIMATION_SPEED * 2
+        elif (self.collision_side["bot"]):
+            self.state = "idle" if self.velocity.x == 0 else "run"
         else:
-            if (self.is_attacking):
-                self.state = "air_attack"
+            if (any((self.collision_side["left"], self.collision_side["right"]))):
+                self.state = "wall"
             else:
-                if (any((self.collision_side["left"], self.collision_side["right"]))):
-                    self.state = "wall"
-                else:
-                    self.state = "jump" if self.velocity.y < 0 else "fall"
+                self.state = "jump" if self.velocity.y < 0 else "fall"
 
     def update(self, dt, event_list):
         for event in event_list:
@@ -590,8 +665,8 @@ class Player(pygame.sprite.Sprite):
         self.movement.collision_tweak()
         self.movement.platform_move(dt)
 
-        #self.get_state()
-        #self.animate(dt)
+        self.get_state()
+        self.animate(dt)
 
         #pygame.draw.rect(self.display_surface, "green", self.hitbox_rect)
         
@@ -599,6 +674,3 @@ class Player(pygame.sprite.Sprite):
         if (self.velocity.x > -0.01 and self.velocity.x < 0.01):
             self.velocity.x = 0
 
-class Ball():
-    def __init__(self):
-        pass

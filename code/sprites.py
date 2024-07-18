@@ -185,6 +185,9 @@ class Orbit(AnimatedSprite):
 		print(self.start_angle)
 		print(self.end_angle)
 
+	def set_radius(self, radius):
+		self.radius = radius
+
 	def set_angle(self, angle):
 		new_end_angle = 360 - abs(angle) if (angle < 0) else angle
 		#print(new_end_angle)

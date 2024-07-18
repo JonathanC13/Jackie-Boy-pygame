@@ -51,6 +51,7 @@ PLAYER_ACCEL = 0.85
 PLAYER_MAX_VEL_X = 15
 PLAYER_VEL_Y = 10   # 4 tile jump gap
 PLAYER_MAX_VEL_Y = 15
+PLAYER_THROW_SPEED = 15
 
 # Environment
 # note for 1:1 ramp. gravity displacement (velocity) is 1/1 of horizontal velocity rounded up. Adjusted in player.py
@@ -59,6 +60,9 @@ FRICTION = -0.12    # more negative = less slide
 AIR_RESISTANCE = 0
 
 # Enemies
+ENEMY_DOG = "Enemy_dog"
+ENEMY_BIRD = "Enemy_bird"
+ENEMY_SQUIRREL = "Enemy_squirrel"
 # Dog
 DOG_ACCEL = 2
 DOG_MAX_VEL_X = 5

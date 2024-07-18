@@ -30,7 +30,8 @@ class Game:
 
     def import_assets(self):
         self.level_frames = {
-            'items': import_sub_folders('..', 'graphics', 'item s'),
+            'player': import_sub_folders('..', 'graphics', 'player'),
+            'items': import_sub_folders('..', 'graphics', 'items'),
             'platform': import_folder('..', 'graphics', 'level', 'platform'),
 			'boat': import_folder('..',  'graphics', 'objects', 'boat'),
             'floor_spikes': import_folder('..', 'graphics','enemies', 'floor_spikes'),
@@ -46,7 +47,9 @@ class Game:
             'stick': import_sub_folders('..', 'graphics', 'weapons', 'stick'),
             'beak': import_sub_folders('..', 'graphics', 'weapons', 'beak'),
             'acorn': import_sub_folders('..', 'graphics', 'weapons', 'acorn'),
-            'acorn_projectile': import_sub_folders('..', 'graphics', 'enemies', 'acorn'),
+            'acorn_projectile': import_sub_folders('..', 'graphics', 'projectile', 'acorn'),
+            'ball': import_sub_folders('..', 'graphics', 'weapons', 'ball'),
+            'ball_projectile': import_sub_folders('..', 'graphics', 'projectile', 'ball'),
             'items': import_sub_folders('..', 'graphics', 'items'),
             'effect_particle': import_folder('..', 'graphics', 'effects', 'particle')
         }

@@ -148,6 +148,8 @@ class Lance(Weapon):
         self.owner_lance_offset = self.owner.rect.width / 1.5
         self.target_angle = 0 if owner.facing_right else 180
 
+        self.thrust_offset = [-10, 0, 15]
+
         self.range = self.owner_lance_offset + frames[self.state][self.frame_index].get_width()/2 - 5 # -5 to ensure within range (radius)
         self.weapon_range_rect = pygame.FRect(self.owner.hitbox_rect.center - pygame.Vector2(self.range, self.range), (self.range * 2, self.range * 2)) # rect for the weapon
 
@@ -158,9 +160,22 @@ class Lance(Weapon):
         # override class AnimatedSprite attr
         self.frames = frames
 
+        self.original_radius = self.radius
+
     def check_in_range(self, player_sprite):
         # weapon range for enemy sprite
         self.check_within_circle(player_sprite)
+
+    def thrust(self, current_animation_frame):
+        if (current_animation_frame < len(self.thrust_offset)):
+            if (int(current_animation_frame) == 0):
+                self.can_damage = False
+            else:
+                self.can_damage = True
+            self.radius = self.original_radius + self.thrust_offset[int(current_animation_frame)]
+        else:
+            self.can_damage = True
+            self.radius = self.original_radius + self.thrust_offset[len(self.thrust_offset) - 1]
 
     def update(self, dt, event_list):
         self.update_angle(dt)

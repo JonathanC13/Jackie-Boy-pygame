@@ -1,9 +1,10 @@
 from settings import *
 from sprites import Sprite, AnimatedSprite, MovingSprite, Orbit, Item, ParticleEffectSprite
-from player import Player, Ball
+from player import Player
 from groups import AllSprites
-from enemies import Dog, Bird, Squirrel, Acorn
+from enemies import Dog, Bird, Squirrel
 from weapons import Stick, Lance, Ball
+from projectiles import AcornProjectile, BallProjectile
 from pathfinder import Pathfinder
 
 class Level:
@@ -19,12 +20,14 @@ class Level:
 
         self.acorn_frames = level_frames["acorn_projectile"]
         self.particle_frames = level_frames["effect_particle"]
+        self.ball_frames = level_frames["ball_projectile"]
 
         # sprite groups
         self.all_sprites = pygame.sprite.Group()
         #self.all_sprites = AllSprites()
         self.player_sprite = pygame.sprite.GroupSingle()
         self.player_weapon_sprites = pygame.sprite.Group()
+        self.ball_sprites = pygame.sprite.Group()
         self.collision_sprites = pygame.sprite.Group()
         self.ramp_collision_sprites = pygame.sprite.Group()
         self.semi_collision_sprites = pygame.sprite.Group()
@@ -194,8 +197,10 @@ class Level:
                                 semi_collision_sprites = self.semi_collision_sprites, 
                                 ramp_collision_sprites = self.ramp_collision_sprites,
                                 enemy_sprites = self.enemy_sprites,
-                                frames = None,
-                                type = PLAYER_OBJECTS)
+                                frames = level_frames["player"],
+                                type = PLAYER_OBJECTS,
+                                func_create_ball = self.create_ball,
+                                id = "player_0")
                 
                 stick_weapon = Stick(
                     pos = (self.player.hitbox_rect.centerx, self.player.hitbox_rect.centery),
@@ -220,7 +225,7 @@ class Level:
                 ball_weapon = Ball(
                     pos = (self.player.hitbox_rect.centerx, self.player.hitbox_rect.centery),
                     groups = (self.all_sprites),
-                    frames = level_frames["acorn"],
+                    frames = level_frames["ball"],
                     owner = self.player,
                     damage = 1,
                     damage_type = BALL,
@@ -230,6 +235,9 @@ class Level:
                 weapon_list = [{"weapon": stick_weapon}, {"weapon": lance_weapon}, {"weapon": ball_weapon}]
                 self.player.weapon_setup(weapon_list)
        
+        dog_idx = 0
+        bird_idx = 0
+        squirrel_idx = 0
         # enemies
         for obj in self.tmx_map.get_layer_by_name(ENEMY_OBJECTS):
             if (obj.name == "dog"):
@@ -242,7 +250,8 @@ class Level:
                     ramp_collision_sprites = self.ramp_collision_sprites,
                     player_sprite = self.player_sprite,
                     enemy_sprites = self.enemy_sprites,
-                    type = obj.name
+                    type = ENEMY_DOG,
+                    id = "dog_" + str(dog_idx)
                     )
                 
                 # each dog gets a stick as a weapon
@@ -255,6 +264,7 @@ class Level:
                     damage_type = STICK,
                     level = 1
                 )
+                dog_idx += 1
             elif (obj.name == "bird"):
                 bird_obj = Bird(
                     pos = (obj.x, obj.y),
@@ -265,8 +275,9 @@ class Level:
                     ramp_collision_sprites = self.ramp_collision_sprites,
                     player_sprite = self.player_sprite,
                     enemy_sprites = self.enemy_sprites,
-                    type = obj.name,
-                    pathfinder = Pathfinder(self.tmx_map.width, self.tmx_map.height)
+                    type = ENEMY_BIRD,
+                    pathfinder = Pathfinder(self.tmx_map.width, self.tmx_map.height),
+                    id = "bird_" + str(bird_idx)
                     )
                 
                 bird_obj.weapon = Lance(
@@ -278,6 +289,7 @@ class Level:
                     damage_type = LANCE,
                     level = 1
                 )
+                bird_idx += 1
             elif (obj.name == "squirrel"):
                 squirrel_obj = Squirrel(
                     pos = (obj.x, obj.y),
@@ -288,9 +300,10 @@ class Level:
                     ramp_collision_sprites = self.ramp_collision_sprites,
                     player_sprite = self.player_sprite,
                     enemy_sprites = self.enemy_sprites,
-                    type = obj.name,
+                    type = ENEMY_SQUIRREL,
                     pathfinder = Pathfinder(self.tmx_map.width, self.tmx_map.height),
-                    func_create_acorn = self.create_acorn
+                    func_create_acorn = self.create_acorn,
+                    id = "squirrel_" + str(squirrel_idx)
                     )
                 squirrel_obj.weapon = Ball(
                     pos = (squirrel_obj.hitbox_rect.centerx, squirrel_obj.hitbox_rect.centery),
@@ -301,6 +314,7 @@ class Level:
                     damage_type = BALL,
                     level = 1
                 )
+                squirrel_idx += 1
 
         # for spr in self.enemy_sprites:
         #     print(spr.weapon.level)
@@ -318,25 +332,58 @@ class Level:
 
         # triggers
 
-    def create_ball(self):
-        pass
+    def create_ball(self, pos, angle_fired, owner_id):
+        BallProjectile(pos, self.ball_frames, (self.all_sprites, self.ball_sprites), PLAYER_THROW_SPEED, angle_fired, owner_id)
 
-    def create_acorn(self, pos, angle_fired):
-        Acorn(pos, self.acorn_frames, (self.all_sprites, self.damage_sprites, self.acorn_sprites), self.player_sprite, SQ_PROJECTILE_SPEED, angle_fired)
+    def create_acorn(self, pos, angle_fired, owner_id):
+        AcornProjectile(pos, self.acorn_frames, (self.all_sprites, self.damage_sprites, self.acorn_sprites), SQ_PROJECTILE_SPEED, angle_fired, owner_id)
+
+    def check_projectile_owner(self, sprite, group_sprite):
+        """
+        Ignore the collision between the projectile and the owner to resolve the case when the collision happens right after creation since the initial position is within collision detection rect.
+        With attr "id" the projectile can still collide with other sprites of the same class object.
+        """
+        if sprite.rect.colliderect(group_sprite):
+            # true = collided and can be included in list
+            if (hasattr(sprite, "id") and hasattr(group_sprite, "owner_id")):
+                if (sprite.id == group_sprite.owner_id):
+                    print(getattr(sprite, "id"))
+                    print(getattr(group_sprite, "owner_id"))
+                    return False
+                
+            return True
+        else: 
+            return False
 
     # handle item, damage, end level collisions here
-    def acorn_collision(self):
-        # collision with terrain should remove the acorn from game
-        sprites = [spr for spr in self.collision_sprites.sprites() if spr.type != "squirrel"] + self.ramp_collision_sprites.sprites()
+    def projectile_collision(self):
+        projectile_sprite_groups = [self.acorn_sprites, self.ball_sprites]
+        # collision with full terrain should remove the projectile from game
+        sprites = [spr for spr in self.collision_sprites.sprites()] + self.ramp_collision_sprites.sprites()
         for sprite in sprites:
             #pygame.sprite.spritecollide(sprite, self.acorn_sprites, True, pygame.sprite.collide_mask)  # need to use mask if image surface is larger than the actual image
-            sprite = pygame.sprite.spritecollide(sprite, self.acorn_sprites, True)
-            if (sprite):
-                ParticleEffectSprite(
-                    pos = sprite[0].rect.center, 
-                    frames = self.particle_frames, 
-                    groups = self.all_sprites
-                )
+            for projectile_grp in projectile_sprite_groups:
+                sprite_list = pygame.sprite.spritecollide(sprite, projectile_grp, True, collided=self.check_projectile_owner) 
+                if (sprite):
+                    for collided_sprite in sprite_list:
+                        ParticleEffectSprite(
+                            pos = collided_sprite.rect.center, 
+                            frames = self.particle_frames, 
+                            groups = self.all_sprites
+                        )
+
+    # def acorn_collision(self):
+    #     # collision with terrain should remove the acorn from game
+    #     sprites = [spr for spr in self.collision_sprites.sprites() if spr.type != "squirrel"] + self.ramp_collision_sprites.sprites()
+    #     for sprite in sprites:
+    #         sprite_list = pygame.sprite.spritecollide(sprite, self.acorn_sprites, True, pygame.sprite.collide_mask)
+    #         if (sprite):
+    #             for collided_sprite in sprite_list:
+    #                 ParticleEffectSprite(
+    #                     pos = collided_sprite.rect.center, 
+    #                     frames = self.particle_frames, 
+    #                     groups = self.all_sprites
+    #                 )
 
     def hit_collision(self):
         # better performance to check rect first and then mask, rather than always checking the mask
@@ -347,8 +394,8 @@ class Level:
             if(hit_sprites):
                 for sprite in hit_sprites:
                     # later will need to check if weapon is also active to inflict damage
-                    print('hit with mask')
-                    if (sprite.type == "acorn"):
+                    #print('hit with mask')
+                    if (sprite.type == "acorn_projectile"):
                         sprite.kill()
                         ParticleEffectSprite(
                             pos = sprite.rect.center, 
@@ -382,11 +429,10 @@ class Level:
 
         # update sprites
         self.all_sprites.update(dt, event_list)
-        self.acorn_collision()
+        self.projectile_collision()
         self.hit_collision()
         self.item_collision()
         
         # draw all sprites
         self.all_sprites.draw(self.display_surface)
         #self.all_sprites.draw(self.player.hitbox_rect.center, self.player.hitbox_rect.width, self.tmx_map_max_width)
-        

@@ -6,8 +6,10 @@ from timerClass import Timer
 from movement import Movement
 
 class Enemy(pygame.sprite.Sprite):
-    def __init__(self, pos, frames, groups, collision_sprites = None, semi_collision_sprites = None, ramp_collision_sprites = None, player_sprite = None, enemy_sprites = None, type = ENEMY_OBJECTS, jump_height = -DOG_VEL_Y, accel_x = DOG_ACCEL, vel_max_x = DOG_MAX_VEL_X, vel_max_y = DOG_MAX_VEL_Y, pathfinder = None):
+    def __init__(self, pos, frames, groups, collision_sprites = None, semi_collision_sprites = None, ramp_collision_sprites = None, player_sprite = None, enemy_sprites = None, type = ENEMY_OBJECTS, jump_height = -DOG_VEL_Y, accel_x = DOG_ACCEL, vel_max_x = DOG_MAX_VEL_X, vel_max_y = DOG_MAX_VEL_Y, pathfinder = None, id = id):
         super().__init__(groups)
+
+        self.id = id
 
         self.display_surface = pygame.display.get_surface()
 
@@ -251,52 +253,52 @@ class Enemy(pygame.sprite.Sprite):
     def update(self, dt, event_list):
         pass
 
-class Acorn(Enemy):
-    def __init__(self, pos, frames, groups, player_sprite, project_tile_speed, angle_fired):
+# class AcornProjectile(Enemy):
+#     def __init__(self, pos, frames, groups, project_tile_speed, angle_fired):
 
-        super().__init__(pos = pos, frames = frames, groups = groups, collision_sprites = None, semi_collision_sprites = None, ramp_collision_sprites = None, player_sprite = player_sprite, enemy_sprites = None, type = "acorn", jump_height = 0, accel_x = project_tile_speed, vel_max_x = project_tile_speed, vel_max_y = project_tile_speed, pathfinder = None)
+#         super().__init__(pos = pos, frames = frames, groups = groups, collision_sprites = None, semi_collision_sprites = None, ramp_collision_sprites = None, player_sprite = None, enemy_sprites = None, type = "acorn_projectile", jump_height = 0, accel_x = project_tile_speed, vel_max_x = project_tile_speed, vel_max_y = project_tile_speed, pathfinder = None)
 
-        self.rect = self.image.get_frect(center = pos)
-        self.hitbox_rect = self.rect.inflate(0, 0)
-        self.old_rect = self.hitbox_rect.copy()
-        self.mask = pygame.mask.from_surface(self.image)
+#         self.rect = self.image.get_frect(center = pos)
+#         self.hitbox_rect = self.rect.inflate(0, 0)
+#         self.old_rect = self.hitbox_rect.copy()
+#         self.mask = pygame.mask.from_surface(self.image)
 
-        self.project_tile_speed = project_tile_speed
-        self.friction = AIR_RESISTANCE
-        self.velocity.x = cos(radians(angle_fired)) * project_tile_speed
-        self.velocity.y = sin(radians(angle_fired)) * project_tile_speed
+#         self.project_tile_speed = project_tile_speed
+#         self.friction = AIR_RESISTANCE
+#         self.velocity.x = cos(radians(angle_fired)) * project_tile_speed
+#         self.velocity.y = sin(radians(angle_fired)) * project_tile_speed
 
-        # timer
-        self.timers.update(
-            {
-                "active": Timer(5000)
-            }
-        )
+#         # timer
+#         self.timers.update(
+#             {
+#                 "active": Timer(5000)
+#             }
+#         )
 
-        self.timers["active"].activate()
+#         self.timers["active"].activate()
 
-    def manage_state(self):
-        if (not self.timers["active"].active):
-            # remove from group
-            self.kill()
-            #for group in self.groups():
-                #group.remove(self)
+#     def manage_state(self):
+#         if (not self.timers["active"].active):
+#             # remove from group
+#             self.kill()
+#             #for group in self.groups():
+#                 #group.remove(self)
 
-    def update(self, dt, event_list):
-        self.old_rect = self.hitbox_rect.copy()
-        self.update_timers()   # timer for active
+#     def update(self, dt, event_list):
+#         self.old_rect = self.hitbox_rect.copy()
+#         self.update_timers()   # timer for active
         
-        self.movement.horizontal_movement(dt)
-        self.movement.vertical_movement(dt)
-        # # recenter image rect with the hitbox rect
-        self.rect.center = self.hitbox_rect.center
+#         self.movement.horizontal_movement(dt)
+#         self.movement.vertical_movement(dt)
+#         # # recenter image rect with the hitbox rect
+#         self.rect.center = self.hitbox_rect.center
 
-        self.manage_state()
-        #self.animate(dt)
+#         self.manage_state()
+#         #self.animate(dt)
 
 class Squirrel(Enemy):
-    def __init__(self, pos, frames, groups, collision_sprites = None, semi_collision_sprites = None, ramp_collision_sprites = None, player_sprite = None, enemy_sprites = None, type = ENEMY_OBJECTS, pathfinder = None, func_create_acorn = None):
-        super().__init__(pos = pos, frames = frames, groups = groups, collision_sprites = collision_sprites, semi_collision_sprites = semi_collision_sprites, ramp_collision_sprites = ramp_collision_sprites, player_sprite = player_sprite, enemy_sprites = enemy_sprites, type = type, jump_height = 0, accel_x = 0, vel_max_x = 0, vel_max_y = DOG_MAX_VEL_Y, pathfinder = pathfinder)
+    def __init__(self, pos, frames, groups, collision_sprites = None, semi_collision_sprites = None, ramp_collision_sprites = None, player_sprite = None, enemy_sprites = None, type = ENEMY_SQUIRREL, pathfinder = None, func_create_acorn = None, id = 0):
+        super().__init__(pos = pos, frames = frames, groups = groups, collision_sprites = collision_sprites, semi_collision_sprites = semi_collision_sprites, ramp_collision_sprites = ramp_collision_sprites, player_sprite = player_sprite, enemy_sprites = enemy_sprites, type = type, jump_height = 0, accel_x = 0, vel_max_x = 0, vel_max_y = DOG_MAX_VEL_Y, pathfinder = pathfinder, id = id)
 
         self.func_create_acorn = func_create_acorn
 
@@ -365,7 +367,7 @@ class Squirrel(Enemy):
 
     def throw(self):
         # triggered in method animation since want to create the projectile at a certain frame in the animation
-        self.func_create_acorn(self.weapon.rect.center, self.angle_to_fire)
+        self.func_create_acorn(self.weapon.rect.center, self.angle_to_fire, self.id)
 
     def perform_attack(self):
         if (self.is_attacking):
@@ -467,8 +469,8 @@ class Squirrel(Enemy):
         #self.animate(dt)
 
 class Bird(Enemy):
-    def __init__(self, pos, frames, groups, collision_sprites = None, semi_collision_sprites = None, ramp_collision_sprites = None, player_sprite = None, enemy_sprites = None, type = ENEMY_OBJECTS, pathfinder = None):
-        super().__init__(pos = pos, frames = frames, groups = groups, collision_sprites = collision_sprites, semi_collision_sprites = semi_collision_sprites, ramp_collision_sprites = ramp_collision_sprites, player_sprite = player_sprite, enemy_sprites = enemy_sprites, type = type, jump_height = -DOG_VEL_Y, accel_x = DOG_ACCEL, vel_max_x = DOG_MAX_VEL_X, vel_max_y = DOG_MAX_VEL_Y, pathfinder = pathfinder)
+    def __init__(self, pos, frames, groups, collision_sprites = None, semi_collision_sprites = None, ramp_collision_sprites = None, player_sprite = None, enemy_sprites = None, type = ENEMY_BIRD, pathfinder = None, id = 0):
+        super().__init__(pos = pos, frames = frames, groups = groups, collision_sprites = collision_sprites, semi_collision_sprites = semi_collision_sprites, ramp_collision_sprites = ramp_collision_sprites, player_sprite = player_sprite, enemy_sprites = enemy_sprites, type = type, jump_height = -DOG_VEL_Y, accel_x = DOG_ACCEL, vel_max_x = DOG_MAX_VEL_X, vel_max_y = DOG_MAX_VEL_Y, pathfinder = pathfinder, id = id)
 
         self.flight_base_speed = FLIGHT_ATTACK_SPEED
         self.flight_speed = self.flight_base_speed 
@@ -782,9 +784,9 @@ class Bird(Enemy):
 
 class Dog(Enemy):
 
-    def __init__(self, pos, frames, groups, collision_sprites = None, semi_collision_sprites = None, ramp_collision_sprites = None, player_sprite = None, enemy_sprites = None, type = ENEMY_OBJECTS):
+    def __init__(self, pos, frames, groups, collision_sprites = None, semi_collision_sprites = None, ramp_collision_sprites = None, player_sprite = None, enemy_sprites = None, type = ENEMY_DOG, id = 0):
 
-        super().__init__(pos = pos, frames = frames, groups = groups, collision_sprites = collision_sprites, semi_collision_sprites = semi_collision_sprites, ramp_collision_sprites = ramp_collision_sprites, player_sprite = player_sprite, enemy_sprites = enemy_sprites, type = type, jump_height = -DOG_VEL_Y, accel_x = DOG_ACCEL, vel_max_x = DOG_MAX_VEL_X, vel_max_y = DOG_MAX_VEL_Y)
+        super().__init__(pos = pos, frames = frames, groups = groups, collision_sprites = collision_sprites, semi_collision_sprites = semi_collision_sprites, ramp_collision_sprites = ramp_collision_sprites, player_sprite = player_sprite, enemy_sprites = enemy_sprites, type = type, jump_height = -DOG_VEL_Y, accel_x = DOG_ACCEL, vel_max_x = DOG_MAX_VEL_X, vel_max_y = DOG_MAX_VEL_Y, id = id)
 
         self.animation_speed = ANIMATION_SPEED
         
