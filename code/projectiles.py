@@ -1,22 +1,36 @@
 from math import radians, sin, cos
 
 from settings import *
-from sprites import AnimatedSprite
+from sprites import AnimatedSprite, ParticleEffectSprite
 from movement import Movement
 from timerClass import Timer
 
 class Projectiles(AnimatedSprite):
 
-    def __init__(self, pos, frames, groups, type = "projectile", projectile_speed = 0, angle_fired = 0, owner_id = None):
+    def __init__(self, pos, frames, groups, type = BALL, projectile_speed = 0, angle_fired = 0, owner_id = None, particle_frames = None, particle_group = None, damage = 1, level = 1):
 
         self.owner_id = owner_id
 
+        self.damage = damage
+        self.level = level
+        
+        self.particle_frames = particle_frames
+        self.particle_group = particle_group
+
         self.frames, self.frame_index = frames, 0
-        self.state, self.facing_right = "idle", True
-        self.image = self.frames[self.state][self.frame_index]
+        self.facing_right = True
+        self.level = level if level is not None else 1
+        self.level_pre = "level" + str(level) + "_"
+
+        self.states = {
+            "attack_active": self.level_pre + "attack_active"
+            }
+        
+        self.state = self.states["attack_active"]
 
         super().__init__(pos, frames = frames[self.state], groups = groups, type = type, z = Z_LAYERS["main"])
 
+        # override to center
         self.rect = self.image.get_frect(center = pos)
         self.hitbox_rect = self.rect.inflate(0, 0)
         self.old_rect = self.hitbox_rect.copy()
@@ -49,11 +63,24 @@ class Projectiles(AnimatedSprite):
 
         # timer
         self.timers = {
-                "active": Timer(5000)
+                "active": Timer(5000),
+                "take_damage_cd": Timer(1000)
             }
         
         # modules
         self.movement = Movement(self)
+
+    def get_damage(self):
+        return self.damage
+
+    def get_type(self):
+        return self.type
+
+    def set_owner_id(self, owner_id):
+        self.owner_id = owner_id
+
+    def get_owner_id(self):
+        return self.owner_id
 
     def update_timers(self):
         for timer in self.timers.values():
@@ -65,6 +92,8 @@ class Projectiles(AnimatedSprite):
             self.kill()
             #for group in self.groups():
                 #group.remove(self)
+            if self.particle_frames is not None and self.particle_group is not None:
+                ParticleEffectSprite(self.rect.center, self.particle_frames, self.particle_group)
 
     def update(self, dt, event_list):
         self.old_rect = self.hitbox_rect.copy()
@@ -79,21 +108,23 @@ class Projectiles(AnimatedSprite):
         #self.animate(dt)
 
 class BallProjectile(Projectiles):
-    def __init__(self, pos, frames, groups, projectile_speed, angle_fired, owner_id):
+    def __init__(self, pos, frames, groups, projectile_speed, angle_fired, owner_id, particle_frames, particle_group, damage = 1, level = 1):
 
-        super().__init__(pos = pos, frames = frames, groups = groups, type = "ball_projectile", projectile_speed = projectile_speed, angle_fired = angle_fired, owner_id = owner_id)
+        super().__init__(pos = pos, frames = frames, groups = groups, type = BALL_PROJECTILE, projectile_speed = projectile_speed, angle_fired = angle_fired, owner_id = owner_id, particle_frames = particle_frames, particle_group = particle_group, damage = damage, level = level)
 
         # timer
-        self.timers = {
+        self.timers.update(
+            {
                 "active": Timer(6000)
             }
+        )
         
         self.timers["active"].activate()
 
 class AcornProjectile(Projectiles):
-    def __init__(self, pos, frames, groups, projectile_speed, angle_fired, owner_id):
+    def __init__(self, pos, frames, groups, projectile_speed, angle_fired, owner_id, particle_frames, particle_group, damage = 1, level = 1):
 
-        super().__init__(pos = pos, frames = frames, groups = groups, type = "acorn_projectile", projectile_speed = projectile_speed, angle_fired = angle_fired, owner_id = owner_id)
+        super().__init__(pos = pos, frames = frames, groups = groups, type = ENEMY_ACORN_PROJECTILE, projectile_speed = projectile_speed, angle_fired = angle_fired, owner_id = owner_id, particle_frames = particle_frames, particle_group = particle_group, damage = damage, level = level)
 
         # timer
         self.timers.update(
@@ -103,3 +134,11 @@ class AcornProjectile(Projectiles):
         )
 
         self.timers["active"].activate()
+
+    def reverse(self, speed, angle):
+        if not self.timers["take_damage_cd"].active:
+            self.projectile_speed = speed
+            self.velocity.x = cos(radians(angle)) * speed
+            self.velocity.y = sin(radians(angle)) * speed
+
+            self.timers["take_damage_cd"].activate()

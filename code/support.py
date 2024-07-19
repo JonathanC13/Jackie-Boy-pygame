@@ -18,6 +18,10 @@ def import_folder(*path):
 	return frames 
 
 def import_folder_dict(*path):
+	"""
+	topdown 
+	get all the images into a dictionary
+	"""
 	frame_dict = {}
 	for folder_path, _, image_names in walk(join(*path)):
 		for image_name in image_names:
@@ -28,7 +32,8 @@ def import_folder_dict(*path):
 
 def import_sub_folders(*path):
 	"""
-	returns a dict with the folder name as the 'key' and a list of the associated surfaces as the 'value'
+	returns a dict with the folder names as the 'key' and a list of the associated surfaces as the 'value'
+	only 1 layer
 	"""
 	frame_dict = {}
 	for _, sub_folders, __ in walk(join(*path)): 

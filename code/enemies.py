@@ -9,6 +9,8 @@ class Enemy(pygame.sprite.Sprite):
     def __init__(self, pos, frames, groups, collision_sprites = None, semi_collision_sprites = None, ramp_collision_sprites = None, player_sprite = None, enemy_sprites = None, type = ENEMY_OBJECTS, jump_height = -DOG_VEL_Y, accel_x = DOG_ACCEL, vel_max_x = DOG_MAX_VEL_X, vel_max_y = DOG_MAX_VEL_Y, pathfinder = None, id = id):
         super().__init__(groups)
 
+        self.animation_speed = ANIMATION_SPEED
+        self.enemy = True
         self.id = id
 
         self.display_surface = pygame.display.get_surface()
@@ -43,6 +45,8 @@ class Enemy(pygame.sprite.Sprite):
         self.list_collide_basic, self.list_collide_ramps, self.list_semi_collide = [], [], []
         self.platform = None
 
+        self.is_hit = False
+
         # player detection
         self.detection_rect = None
         self.player_sprite_detected = None
@@ -73,6 +77,7 @@ class Enemy(pygame.sprite.Sprite):
         
         # timer
         self.timers = {
+            "take_damage_cd": Timer(1000),
             "wall_jump_move_block": Timer(200), # blocks the use of LEFT and RIGHT right after wall jump. // for player
             "unlock_semi_drop_down": Timer(100), # disables the floor collision for semi collision platforms so that the player can drop down through them // for player
             "movement_duration": Timer(randint(1000, 2000)),
@@ -82,6 +87,15 @@ class Enemy(pygame.sprite.Sprite):
         # modules
         self.movement = Movement(self)
         self.pathfinder = pathfinder
+
+    def set_id(self, id):
+        self.id = id
+    
+    def get_id(self):
+        return self.id
+
+    def kill_weapon(self):
+        self.weapon.kill_weapon()
 
     def get_rect_center(self):
         return pygame.math.Vector2(self.hitbox_rect.center)
@@ -246,6 +260,17 @@ class Enemy(pygame.sprite.Sprite):
         self.movement.vertical_movement(dt)
         self.movement.collision("vertical", dt)
 
+    def evaluate_damage(self, damage, damage_type):
+        # later check if match damage type
+        if (not self.timers["take_damage_cd"].active):
+            self.is_hit = True
+            print('hit with ' + str(damage_type))
+
+            # if defeated, kill weapon sprite
+            #self.kill_weapon()
+
+            self.timers["take_damage_cd"].activate()
+
     # attacks
     def idle(self):
         pass
@@ -320,7 +345,7 @@ class Squirrel(Enemy):
                 "idle": Timer(1500),
                 "locking_on": Timer(100),
                 "locked_on": Timer(0),
-                "throw": Timer(100)
+                "throw": Timer(1000)
             }
         )
 
@@ -384,7 +409,9 @@ class Squirrel(Enemy):
                     self.facing_right = True if (self.player_location.x >= self.hitbox_rect.centerx) else False
 
                     self.timers[self.attack_seq[self.attack_index]["timer_name"]].activate()
-                    self.attack_seq[self.attack_index]["func"]()
+                    if (self.attack_seq[self.attack_index]["timer_name"] not in ["throw"]):
+                        # not in "throw" because it will be called in method animate so the projectile is created at a certain frame
+                        self.attack_seq[self.attack_index]["func"]()
                     self.weapon.set_can_damage(self.attack_seq[self.attack_index]["can_damage"])
                     #print(self.timers[self.attack_seq[self.attack_index]["timer_name"]].start_time)
                     self.current_attack = self.attack_seq[self.attack_index]
@@ -399,7 +426,7 @@ class Squirrel(Enemy):
                     self.weapon.set_can_damage(False)
                     self.current_attack = None
                     #print(self.timers[self.attack_seq[self.attack_index - 1]["timer_name"]].ended_time)
-                    print('fin')
+                    #print('fin')
         else:
             # select moves
             # if the player is generally above the enemy
@@ -413,28 +440,45 @@ class Squirrel(Enemy):
             self.current_attack = self.attack_seq[self.attack_index]
 
     def enemy_input(self):
-        # if player in detection, charge toward x
-        if (self.player_proximity["weapon_in_range"] or self.is_attacking):
-            self.perform_attack()
+        if (self.state == "hit"): 
+            self.is_attacking = False
         else:
-            pass
+            # if not hit, can perform actions
+            if (self.player_proximity["weapon_in_range"] or self.is_attacking):
+                self.perform_attack()
+            else:
+                pass
 
     def animate(self, dt):
         self.frame_index += ANIMATION_SPEED * dt/FPS_TARGET
 
         if (self.state == "throw"):
+            print(self.frame_index)
             if (int(self.frame_index) == 2 and not self.has_thrown):
                 # frame that should throw projectile
                 self.throw()
                 self.has_thrown = True
                 # hide weapon temporarily
                 self.weapon.hide_weapon(True)
+                print('hide')
             elif(self.frame_index >= len(self.frames[self.state])):
                 self.frame_index = 0
                 self.timers["throw"].deactivate()
 
                 self.has_thrown = False
                 self.weapon.hide_weapon(False)
+                print('show')
+                self.get_state()
+        elif (self.state == "hit"):
+            # when timer is finished then toggle off is_hit
+            if (self.timers["take_damage_cd"].active):
+                if (self.frame_index >= len(self.frames[self.state])):
+                    # first frame is the initial knockback
+                    # flip between 2nd and last frame for flashing effect
+                    self.frame_index = len(self.frames[self.state]) - 2
+            else:
+                self.frame_index = 0
+                self.is_hit = False
                 self.get_state()
 
         if (self.frame_index >= len(self.frames[self.state])):
@@ -445,8 +489,13 @@ class Squirrel(Enemy):
         self.mask = pygame.mask.from_surface(self.image)
 
     def get_state(self):
-        if (self.current_attack == "throw" and self.timers["throw"].active):
-            self.state = self.current_attack
+        if (self.is_hit):
+            self.state = "hit"
+        elif (self.current_attack is not None):
+            if (self.current_attack["timer_name"] == "throw" and self.timers["throw"].active):
+                self.state = self.current_attack["timer_name"]
+            else:
+                self.state = "idle"
         else:
             self.state = "idle"
 
@@ -466,7 +515,7 @@ class Squirrel(Enemy):
         self.rect.center = self.hitbox_rect.center
 
         self.get_state()
-        #self.animate(dt)
+        self.animate(dt)
 
 class Bird(Enemy):
     def __init__(self, pos, frames, groups, collision_sprites = None, semi_collision_sprites = None, ramp_collision_sprites = None, player_sprite = None, enemy_sprites = None, type = ENEMY_BIRD, pathfinder = None, id = 0):
@@ -537,7 +586,7 @@ class Bird(Enemy):
     # attacks
     def determine_flight_vector(self, flight_src, flight_dest):
         # determines the velocity vector toward the destination that avoids going toward a collision inbetween
-        print('--')
+        #print('--')
         try:
             diff_vect = pygame.math.Vector2(flight_dest - flight_src).normalize()   # get direction
         except:
@@ -550,7 +599,7 @@ class Bird(Enemy):
         pygame.draw.rect(pygame.display.get_surface(), "red", p1)
         pygame.draw.rect(pygame.display.get_surface(), "red", p2)
         pygame.draw.line(pygame.display.get_surface(), "green", flight_src, flight_dest)
-        print(line_velocity)
+        #print(line_velocity)
         # apply vector to test rect. check for collision and adjust if there is
         store_old_rect = self.old_rect.copy()
         store_hitbox = self.hitbox_rect.copy() # hold original hit_box
@@ -663,7 +712,7 @@ class Bird(Enemy):
         self.check_checkpoint_collision()
         self.weapon.point_image(self.hitbox_rect, self.flight_dest)
 
-    # TODO enemy patrol and attack commands
+    # enemy patrol and attack commands
     def perform_attack(self):
         if (self.is_attacking):
 
@@ -671,7 +720,7 @@ class Bird(Enemy):
                     # specific attack
                     if (len(self.pathfinder.path_checkpoints) == 0):
                         # end
-                        print('fin_flight')
+                        #print('fin_flight')
                         self.pathfinder.empty_path()
                         self.velocity = pygame.math.Vector2(0, 0)
                         self.timers[self.current_attack["timer_name"]].kill()
@@ -714,7 +763,7 @@ class Bird(Enemy):
                     self.weapon.set_can_damage(False)
                     self.current_attack = None
                     #print(self.timers[self.attack_seq[self.attack_index - 1]["timer_name"]].ended_time)
-                    print('fin')
+                    #print('fin')
         else:
             # select moves
             # if the player is generally above the enemy
@@ -728,35 +777,65 @@ class Bird(Enemy):
             self.current_attack = self.attack_seq[self.attack_index]
 
     def enemy_input(self):
-        # if player in detection, charge toward x
-        if (self.player_proximity["weapon_in_range"] or self.is_attacking):
-            self.flight_speed = FLIGHT_ATTACK_SPEED
-            self.perform_attack()
+        if (self.is_hit):
+            self.is_attacking = False
+            self.velocity = pygame.math.Vector2(0, 0)
         else:
-            self.flight_speed = FLIGHT_NORMAL_SPEED
-            if (len(self.pathfinder.path) == 0):
-                if (not self.is_home):
-                    # check if home, if not return
-                    self.set_path_points(self.get_rect_center(), self.spawn_pos)
-                    self.determine_path()
-                    if (len(self.pathfinder.path_checkpoints) > 0):
-                        self.home_rect = self.pathfinder.path_checkpoints[-1]
-                    self.set_if_home()
-                elif (self.is_home):
-                    # patrol
-                    if (self.patrol_right):
-                        self.set_path_points(self.get_rect_center(), self.patrol_right_bound)
-                    else:
-                        self.set_path_points(self.get_rect_center(), self.patrol_left_bound)
-                        
-                    self.patrol_right = not self.patrol_right
-                    self.determine_path()
+            if (self.player_proximity["weapon_in_range"] or self.is_attacking):
+                self.flight_speed = FLIGHT_ATTACK_SPEED
+                self.perform_attack()
+            else:
+                self.flight_speed = FLIGHT_NORMAL_SPEED
+                if (len(self.pathfinder.path) == 0):
+                    if (not self.is_home):
+                        # check if home, if not return
+                        self.set_path_points(self.get_rect_center(), self.spawn_pos)
+                        self.determine_path()
+                        if (len(self.pathfinder.path_checkpoints) > 0):
+                            self.home_rect = self.pathfinder.path_checkpoints[-1]
+                        self.set_if_home()
+                    elif (self.is_home):
+                        # patrol
+                        if (self.patrol_right):
+                            self.set_path_points(self.get_rect_center(), self.patrol_right_bound)
+                        else:
+                            self.set_path_points(self.get_rect_center(), self.patrol_left_bound)
+                            
+                        self.patrol_right = not self.patrol_right
+                        self.determine_path()
 
-            self.assess_path()
+                self.assess_path()
+
+    def animate(self, dt):
+        self.frame_index += self.animation_speed * dt/FPS_TARGET
+
+        if (self.state == "hit"):
+            # when timer is finished then toggle off is_hit
+            if (self.timers["take_damage_cd"].active):
+                if (self.frame_index >= len(self.frames[self.state])):
+                    # first frame is the initial knockback
+                    # flip between 2nd and last frame for flashing effect
+                    self.frame_index = len(self.frames[self.state]) - 2
+            else:
+                self.frame_index = 0
+                self.is_hit = False
+                self.get_state()
+
+        if (self.frame_index >= len(self.frames[self.state])):
+            self.frame_index = 0
+
+        self.image = self.frames[self.state][int(self.frame_index)]
+        self.image = self.image if self.facing_right else pygame.transform.flip(self.image, True, False)
+        self.mask = pygame.mask.from_surface(self.image)
 
     def get_state(self):
-        if (self.current_attack == "ram"):
-            self.state = "ram"
+        if (self.is_hit):
+            self.state = "hit"
+        elif (self.current_attack is not None):
+            if (self.current_attack["timer_name"] == "ram"):
+                self.state = "ram"
+            else:
+                self.state = "idle"
         else:
             self.state = "idle"
 
@@ -777,7 +856,7 @@ class Bird(Enemy):
         self.facing_right = False if (self.velocity.x < 0) else True
 
         self.get_state()
-        #self.animate(dt)
+        self.animate(dt)
 
         # update weapon position to stay with owner
         self.weapon.update_weapon_zone(self.hitbox_rect)
@@ -788,8 +867,6 @@ class Dog(Enemy):
 
         super().__init__(pos = pos, frames = frames, groups = groups, collision_sprites = collision_sprites, semi_collision_sprites = semi_collision_sprites, ramp_collision_sprites = ramp_collision_sprites, player_sprite = player_sprite, enemy_sprites = enemy_sprites, type = type, jump_height = -DOG_VEL_Y, accel_x = DOG_ACCEL, vel_max_x = DOG_MAX_VEL_X, vel_max_y = DOG_MAX_VEL_Y, id = id)
 
-        self.animation_speed = ANIMATION_SPEED
-        
         # attack patterns
         self.attack_patterns.update(
             {
@@ -853,9 +930,9 @@ class Dog(Enemy):
         clockwise = self.facing_right
         start_angle = player_angle - 45 if clockwise else player_angle + 45
         end_angle = player_angle + 45 if clockwise else player_angle - 45
-        print('print')
-        print(start_angle)
-        print(end_angle)
+        #print('print')
+        #print(start_angle)
+        #print(end_angle)
         speed = 9
         direction_changes = 1
         self.weapon.swing(start_angle, end_angle, speed, clockwise, direction_changes)
@@ -894,7 +971,7 @@ class Dog(Enemy):
                     self.is_attacking = False
                     self.weapon.set_can_damage(False)
                     #print(self.timers[self.attack_seq[self.attack_index - 1]["timer_name"]].ended_time)
-                    print('fin')
+                    #print('fin')
         else:
             # select moves
             if (self.player_location.y < self.hitbox_rect.top):
@@ -952,55 +1029,67 @@ class Dog(Enemy):
             self.attack_seq_len = len(self.attack_seq)
         """
 
-    def enemy_input(self):   
-        # if player in detection, charge toward x
-        if (self.player_proximity["detected"] or self.is_attacking):
-            if (self.player_proximity["weapon_in_range"] or self.is_attacking):
-                self.perform_attack()
-            else:
-                # move toward player
-                self.advance_toward_player()
-        else: 
-            # if player not in detection
-            if (not self.timers["movement_duration"].active):
-                # set new time and pick direction
-                self.rand_jump = randint(0, 100)
+    def enemy_input(self):
 
-                self.LEFT_KEY = choice([False, True])
-                self.RIGHT_KEY = choice([False, True])
-                self.facing_right = self.facing_right if (self.LEFT_KEY != self.RIGHT_KEY) else self.RIGHT_KEY
+        if (self.state == "hit"): 
+            # flinch
+            # stop moving
+            self.LEFT_KEY = False
+            self.RIGHT_KEY = False
+            
+            if (self.is_attacking):
+                # stop attack
+                self.is_attacking = False
+                self.weapon.set_can_damage(False)
+        else:
+            # if not hit, can perform actions
+            if (self.player_proximity["detected"] or self.is_attacking):
+                if (self.player_proximity["weapon_in_range"] or self.is_attacking):
+                    self.perform_attack()
+                else:
+                    # move toward player
+                    self.advance_toward_player()
+            else: 
+                # if player not in detection
+                if (not self.timers["movement_duration"].active):
+                    # set new time and pick direction
+                    self.rand_jump = randint(0, 100)
 
-                self.timers["movement_duration"] = Timer(randint(1000, 2000))
-                self.timers["movement_duration"].activate()
-        
-        if (self.rand_jump >= 90):
-            self.is_jumping = True
-            self.rand_jump = 0
-            self.jump()
+                    self.LEFT_KEY = choice([False, True])
+                    self.RIGHT_KEY = choice([False, True])
+                    self.facing_right = self.facing_right if (self.LEFT_KEY != self.RIGHT_KEY) else self.RIGHT_KEY
 
-        # check if detect ledge that can fall off of
-        if (self.collision_side["left"] or not self.collision_side["bot_left"]):
-            if (self.player_proximity["detected"]):
-                self.LEFT_KEY = False
-                self.RIGHT_KEY = False
-            else:
-                self.LEFT_KEY = False
-                self.RIGHT_KEY = True
-        elif (self.collision_side["right"] or not self.collision_side["bot_right"]):
-            if (self.player_proximity["detected"]):
-                self.LEFT_KEY = False
-                self.RIGHT_KEY = False
-            else:
-                self.LEFT_KEY = True
-                self.RIGHT_KEY = False
+                    self.timers["movement_duration"] = Timer(randint(1000, 2000))
+                    self.timers["movement_duration"].activate()
+            
+            if (self.rand_jump >= 90):
+                self.is_jumping = True
+                self.rand_jump = 0
+                self.jump()
 
-        self.facing_right = self.RIGHT_KEY
+            # check if detect ledge that can fall off of
+            if (self.collision_side["left"] or not self.collision_side["bot_left"]):
+                if (self.player_proximity["detected"]):
+                    self.LEFT_KEY = False
+                    self.RIGHT_KEY = False
+                else:
+                    self.LEFT_KEY = False
+                    self.RIGHT_KEY = True
+            elif (self.collision_side["right"] or not self.collision_side["bot_right"]):
+                if (self.player_proximity["detected"]):
+                    self.LEFT_KEY = False
+                    self.RIGHT_KEY = False
+                else:
+                    self.LEFT_KEY = True
+                    self.RIGHT_KEY = False
+
+            self.facing_right = self.RIGHT_KEY
 
     def animate(self, dt):
         self.frame_index += self.animation_speed * dt/FPS_TARGET
 
         if (self.state in ["ready_uppercut", "ready_slash"] and self.frame_index >= len(self.frames[self.state])):
-            # hold at last frame
+            # hold at last frame, until state change (timer runs out)
             self.frame_index = len(self.frames[self.state]) - 1
         elif (self.state in ["uppercut", "slash"] and self.frame_index >= len(self.frames[self.state])):
             # attack complete
@@ -1008,6 +1097,17 @@ class Dog(Enemy):
             self.timers[self.state].deactivate()    # responsibility of dev to match the duration of the attack rotation to the animation speed
             self.weapon.set_can_damage(False)
             self.get_state()
+        elif (self.state == "hit"):
+            # when timer is finished then toggle off is_hit
+            if (self.timers["take_damage_cd"].active):
+                if (self.frame_index >= len(self.frames[self.state])):
+                    # first frame is the initial knockback
+                    # flip between 2nd and last frame for flashing effect
+                    self.frame_index = len(self.frames[self.state]) - 2
+            else:
+                self.frame_index = 0
+                self.is_hit = False
+                self.get_state()
 
         if (self.frame_index >= len(self.frames[self.state])):
             self.frame_index = 0
@@ -1017,9 +1117,15 @@ class Dog(Enemy):
         self.mask = pygame.mask.from_surface(self.image)
 
     def get_state(self):
-        if (self.current_attack in ["ready_uppercut", "ready_slash", "uppercut", "slash"] and self.timers[self.current_attack].active):
-            self.state = self.current_attack
-        elif (self.is_jumping):
+        if (self.is_hit):
+            self.state = "hit"
+            return
+        elif (self.current_attack is not None):
+            if (self.current_attack["timer_name"] in ["ready_uppercut", "ready_slash", "uppercut", "slash"] and self.timers[self.current_attack["timer_name"]].active):
+                self.state = self.current_attack["timer_name"]
+                return
+
+        if (self.is_jumping):
             self.state = "jump" if self.velocity.y < 0 else "fall" 
         elif (self.LEFT_KEY or self.RIGHT_KEY):
             self.state = "run"
@@ -1044,7 +1150,7 @@ class Dog(Enemy):
         self.movement.platform_move(dt)
 
         self.get_state()
-        #self.animate(dt)
+        self.animate(dt)
 
         # update weapon 
         self.weapon.update_weapon_zone(self.hitbox_rect)

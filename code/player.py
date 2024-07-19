@@ -63,6 +63,8 @@ class Player(pygame.sprite.Sprite):
         self.current_attack = None
         self.attack_pos = pygame.math.Vector2(0, 0)
 
+        self.thrust_offset = [-10, 0, 15]
+
         self.angle_to_fire = 0
 
         self.weapon_list = []
@@ -79,6 +81,9 @@ class Player(pygame.sprite.Sprite):
 
         # modules
         self.movement = Movement(self)
+
+    def get_id(self):
+        return self.id
 
     def player_input(self):
         keys = pygame.key.get_pressed()
@@ -126,6 +131,12 @@ class Player(pygame.sprite.Sprite):
         if (not keys[pygame.K_d]):
             self.RIGHT_KEY = False
 
+    def get_current_weapon(self):
+        if (len(self.weapon_list) > 0 and self.current_weapon_index < len(self.weapon_list)):
+            return self.weapon_list[self.current_weapon_index]["weapon"]
+        else:
+            return None
+
     def weapon_setup(self, weapon_list):
         self.weapon_list = weapon_list
         for weapon in self.weapon_list:
@@ -144,7 +155,7 @@ class Player(pygame.sprite.Sprite):
                     "weapon_attacks": weapon_attacks
                 }
             )
-        print(self.weapon_list)
+        #print(self.weapon_list)
 
     def weapon_management(self):
         if (len(self.weapon_list) > 0 and self.current_weapon_index < len(self.weapon_list)):
@@ -208,7 +219,18 @@ class Player(pygame.sprite.Sprite):
 
     def weapon_thrust(self):
         self.current_attack = "thrust"
-        self.weapon_list[self.current_weapon_index]["weapon"].thrust(self.frame_index)
+        new_radius = 0
+        if (self.frame_index < len(self.thrust_offset)):
+            if (int(self.frame_index) == 0):
+                self.weapon_list[self.current_weapon_index]["weapon"].set_can_damage(False)
+            else:
+                self.weapon_list[self.current_weapon_index]["weapon"].set_can_damage(True)
+            new_radius = self.weapon_list[self.current_weapon_index]["original_radius"] + self.thrust_offset[int(self.frame_index)]
+        else:
+            self.weapon_list[self.current_weapon_index]["weapon"].set_can_damage(True)
+            new_radius = self.weapon_list[self.current_weapon_index]["original_radius"] + self.thrust_offset[len(self.thrust_offset) - 1]
+
+        self.weapon_list[self.current_weapon_index]["weapon"].set_radius(new_radius)
 
     def weapon_throw(self):
         self.current_attack = "throw"
@@ -600,13 +622,17 @@ class Player(pygame.sprite.Sprite):
                 self.weapon_list[self.current_weapon_index]["weapon"].hide_weapon(False)
                 self.get_state()
 
-        if (self.is_attacking and self.state in ["slash", "thrust"] and self.frame_index >= len(self.frames[self.state])):
-            # attack complete
-            # responsibility of dev to match the duration of the attack rotation to the animation speed
-            self.frame_index = 0    
-            self.weapon_list[self.current_weapon_index]["weapon"].set_can_damage(False)
-            self.is_attacking = False
-            self.get_state()
+        if (self.is_attacking and self.state in ["slash", "thrust"]):
+            if (int(self.frame_index) == len(self.frames[self.state]) - 1):
+                # last frame is resting place at end. set that it does no damage.
+                self.weapon_list[self.current_weapon_index]["weapon"].set_can_damage(False)
+            elif (self.frame_index >= len(self.frames[self.state])):
+                # attack complete
+                # responsibility of dev to match the duration of the attack rotation to the animation speed
+                self.frame_index = 0    
+                self.weapon_list[self.current_weapon_index]["weapon"].set_can_damage(False)
+                self.is_attacking = False
+                self.get_state()
 
         if (self.frame_index >= len(self.frames[self.state])):
             self.frame_index = 0
@@ -641,7 +667,7 @@ class Player(pygame.sprite.Sprite):
             if (event.type == pygame.MOUSEBUTTONDOWN):
                 if (event.button == 1):
                     self.weapon_attack(event.pos)
-                    print(event.pos)
+                    #print(event.pos)
 
             # later ball attack is a charge attack and only shoots when left button released
             # if (event.type == pygame.MOUSEBUTTONUP):

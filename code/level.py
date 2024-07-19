@@ -207,8 +207,6 @@ class Level:
                     groups = (self.all_sprites, self.player_weapon_sprites),
                     frames = level_frames["stick"],
                     owner = self.player,
-                    damage = 1,
-                    damage_type = STICK,
                     level = 1
                 )
 
@@ -217,8 +215,6 @@ class Level:
                     groups = (self.all_sprites, self.player_weapon_sprites),
                     frames = level_frames["beak"],
                     owner = self.player,
-                    damage = 1,
-                    damage_type = LANCE,
                     level = 1
                 )
 
@@ -227,8 +223,6 @@ class Level:
                     groups = (self.all_sprites),
                     frames = level_frames["ball"],
                     owner = self.player,
-                    damage = 1,
-                    damage_type = BALL,
                     level = 1
                 )
 
@@ -260,8 +254,6 @@ class Level:
                     groups = (self.all_sprites, self.damage_sprites),
                     frames = level_frames["stick"],
                     owner = dog_obj,
-                    damage = 1,
-                    damage_type = STICK,
                     level = 1
                 )
                 dog_idx += 1
@@ -285,8 +277,6 @@ class Level:
                     groups = (self.all_sprites, self.damage_sprites),
                     frames = level_frames["beak"],
                     owner = bird_obj,
-                    damage = 1,
-                    damage_type = LANCE,
                     level = 1
                 )
                 bird_idx += 1
@@ -310,8 +300,6 @@ class Level:
                     groups = (self.all_sprites),
                     frames = level_frames["acorn"],
                     owner = squirrel_obj,
-                    damage = 1,
-                    damage_type = BALL,
                     level = 1
                 )
                 squirrel_idx += 1
@@ -333,44 +321,56 @@ class Level:
         # triggers
 
     def create_ball(self, pos, angle_fired, owner_id):
-        BallProjectile(pos, self.ball_frames, (self.all_sprites, self.ball_sprites), PLAYER_THROW_SPEED, angle_fired, owner_id)
+        BallProjectile(pos, self.ball_frames, (self.all_sprites, self.ball_sprites), PLAYER_THROW_SPEED, angle_fired, owner_id, self.particle_frames, self.all_sprites)
 
     def create_acorn(self, pos, angle_fired, owner_id):
-        AcornProjectile(pos, self.acorn_frames, (self.all_sprites, self.damage_sprites, self.acorn_sprites), SQ_PROJECTILE_SPEED, angle_fired, owner_id)
+        AcornProjectile(pos, self.acorn_frames, (self.all_sprites, self.damage_sprites, self.acorn_sprites), SQ_PROJECTILE_SPEED, angle_fired, owner_id, self.particle_frames, self.all_sprites)
 
     def check_projectile_owner(self, sprite, group_sprite):
         """
         Ignore the collision between the projectile and the owner to resolve the case when the collision happens right after creation since the initial position is within collision detection rect.
         With attr "id" the projectile can still collide with other sprites of the same class object.
+        Also check if the 'sprite' and 'group_sprite' is not the same sprite since I am checking sprites with sprites in its own group
         """
         if sprite.rect.colliderect(group_sprite):
             # true = collided and can be included in list
             if (hasattr(sprite, "id") and hasattr(group_sprite, "owner_id")):
-                if (sprite.id == group_sprite.owner_id):
-                    print(getattr(sprite, "id"))
-                    print(getattr(group_sprite, "owner_id"))
+                if (sprite.get_id() == group_sprite.get_owner_id()):
+                    # projectile hit its owner
+                    #print(getattr(sprite, "id"))
+                    #print(getattr(group_sprite, "owner_id"))
                     return False
-                
+            elif (sprite == group_sprite):
+                # projectile collided with itself.
+                return False
             return True
         else: 
             return False
 
     # handle item, damage, end level collisions here
     def projectile_collision(self):
+        """
+        collision should remove the projectile from game, excluding collision with the owner of the projectile
+        projectiles hitting eachother should also remove from game
+        """
         projectile_sprite_groups = [self.acorn_sprites, self.ball_sprites]
-        # collision with full terrain should remove the projectile from game
-        sprites = [spr for spr in self.collision_sprites.sprites()] + self.ramp_collision_sprites.sprites()
+        sprites = self.collision_sprites.sprites() + self.ramp_collision_sprites.sprites() + self.acorn_sprites.sprites() + self.ball_sprites.sprites()
         for sprite in sprites:
             #pygame.sprite.spritecollide(sprite, self.acorn_sprites, True, pygame.sprite.collide_mask)  # need to use mask if image surface is larger than the actual image
             for projectile_grp in projectile_sprite_groups:
-                sprite_list = pygame.sprite.spritecollide(sprite, projectile_grp, True, collided=self.check_projectile_owner) 
-                if (sprite):
-                    for collided_sprite in sprite_list:
+                collided_list = pygame.sprite.spritecollide(sprite, projectile_grp, True, collided=self.check_projectile_owner) 
+                if (collided_list):
+                    for collided_sprite in collided_list:
                         ParticleEffectSprite(
                             pos = collided_sprite.rect.center, 
                             frames = self.particle_frames, 
                             groups = self.all_sprites
                         )
+
+                        if (hasattr(collided_sprite, "owner_id") and hasattr(sprite, "enemy")):
+                            if (collided_sprite.get_owner_id() == self.player.get_id()):
+                                # if the owner of the projectile is the player, then it can damage the enemy
+                                sprite.evaluate_damage(collided_sprite.get_damage(), collided_sprite.get_type())
 
     # def acorn_collision(self):
     #     # collision with terrain should remove the acorn from game
@@ -386,6 +386,9 @@ class Level:
     #                 )
 
     def hit_collision(self):
+        """
+        If player collides with sprites that will do damage to the player
+        """
         # better performance to check rect first and then mask, rather than always checking the mask
         if (pygame.sprite.spritecollide(self.player_sprite.sprite, self.damage_sprites, False)):
             #print('collide with rect')
@@ -393,15 +396,28 @@ class Level:
 
             if(hit_sprites):
                 for sprite in hit_sprites:
-                    # later will need to check if weapon is also active to inflict damage
+                    # later will need to check if enemy weapon is also active to inflict damage
                     #print('hit with mask')
-                    if (sprite.type == "acorn_projectile"):
+                    if (sprite.type == ENEMY_ACORN_PROJECTILE):
                         sprite.kill()
                         ParticleEffectSprite(
                             pos = sprite.rect.center, 
                             frames = self.particle_frames, 
                             groups = self.all_sprites
                         )
+                    
+                        if (hasattr(sprite, "owner_id")):
+                            if (sprite.get_owner_id() != self.player.get_id()):
+                                # if the owner of the projectile is NOT the player, then damage
+                                # todo
+                                pass
+                    else:
+                        # other damage sprite
+                        pass
+                            
+                    
+
+                    
 
         # if performance is not impacted negatively enough to notice, then it would be less verbose
         """
@@ -410,6 +426,9 @@ class Level:
         """
 
     def item_collision(self):
+        """
+        player collide with items
+        """
         if (self.item_sprites):
             if (pygame.sprite.spritecollide(self.player_sprite.sprite, self.item_sprites, False)):
                 items_collected = pygame.sprite.spritecollide(self.player_sprite.sprite, self.item_sprites, True, pygame.sprite.collide_mask)
@@ -423,6 +442,30 @@ class Level:
                             groups = self.all_sprites
                         )
 
+    def attack_collision(self):
+        """
+        player attack interaction with enemy entities
+        """
+        target_sprite_grps = [self.acorn_sprites, self.enemy_sprites]
+        player_current_weapon = self.player.get_current_weapon()
+        if (target_sprite_grps and player_current_weapon.get_can_damage()):
+            for grp in target_sprite_grps:
+                if (pygame.sprite.spritecollide(player_current_weapon, grp, False)):
+                    targets_hit = pygame.sprite.spritecollide(player_current_weapon, grp, False, pygame.sprite.collide_mask)
+                    if (targets_hit):
+                        for hit in targets_hit:
+                            if (hit.type in [ENEMY_DOG, ENEMY_BIRD, ENEMY_SQUIRREL]):
+                                # damage to enemey
+                                # since there can be multiple collisions within one attack, within enemy sprites have internal timer for cooldown to receive damage so only one instance of damage
+                                hit.evaluate_damage(player_current_weapon.get_damage(), player_current_weapon.type)
+                            elif (hit.type in [ENEMY_ACORN_PROJECTILE]):
+                                # reflect projectile
+                                hit.reverse(PLAYER_THROW_SPEED, player_current_weapon.angle)
+                                # change owner
+                                hit.set_owner_id(self.player.get_id())
+                            else:
+                                print(f"User error, missing type in attack_collision: {hit.type}")
+
     def run(self, dt, event_list):
         # game loop here for level. like checking collisions and updating screen
         self.display_surface.fill("black")
@@ -432,6 +475,7 @@ class Level:
         self.projectile_collision()
         self.hit_collision()
         self.item_collision()
+        self.attack_collision()
         
         # draw all sprites
         self.all_sprites.draw(self.display_surface)

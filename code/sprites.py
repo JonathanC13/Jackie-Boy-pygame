@@ -25,6 +25,11 @@ class AnimatedSprite(Sprite):
 
 		self.animation_speed = animation_speed
 
+	def set_frames(self, frames):
+		self.frame_index = 0
+		self.frames = frames
+		self.len_frames = len(frames)
+
 	def animate(self, dt):
 		self.frame_index += self.animation_speed * dt/FPS_TARGET
 		if (self.frame_index > self.len_frames):
@@ -181,9 +186,9 @@ class Orbit(AnimatedSprite):
 		elif (not self.clockwise and self.start_angle < end_angle):
 			self.start_angle = self.angle = 360 + self.angle
 
-		print('====')
-		print(self.start_angle)
-		print(self.end_angle)
+		#print('====')
+		#print(self.start_angle)
+		#print(self.end_angle)
 
 	def set_radius(self, radius):
 		self.radius = radius

@@ -5,7 +5,7 @@ class Weapon(Orbit):
     def __init__(self, owner, range, weapon_range_rect, damage, damage_type, level, **kwargs):
         self.damage = damage
         self.damage_type = damage_type
-        self.level = level
+        self.level = level if level is not None else 1
         self.can_damage = False
 
         self.owner = owner
@@ -16,9 +16,25 @@ class Weapon(Orbit):
 
         self.original_center = self.center
         self.original_radius = self.radius
+        
+        self.level_pre = "level" + str(level) + "_"
+
+        self.states = {
+            "idle": self.level_pre + "idle",
+            "attack_active": self.level_pre + "attack_active"
+            }
+        
+    def get_damage(self):
+        return self.damage
+
+    def kill_weapon(self):
+        self.kill()
 
     def set_can_damage(self, can_damage):
         self.can_damage = can_damage
+
+    def get_can_damage(self):
+        return self.can_damage
 
     def check_within_rect(self, player_sprite):
         self.owner.player_proximity["weapon_in_range"] = self.weapon_range_rect.colliderect(player_sprite.hitbox_rect)
@@ -91,9 +107,9 @@ class Weapon(Orbit):
 
     def get_state(self):
         if (self.can_damage):
-            self.state = "attack_active"
+            self.state = self.states["attack_active"]
         else:
-            self.state = "idle"
+            self.state = self.states["idle"]
 
     def animate(self, dt):
         self.frame_index += ANIMATION_SPEED * dt/FPS_TARGET
@@ -105,24 +121,26 @@ class Weapon(Orbit):
 
 # types of weapons
 class Ball(Weapon):
-    def __init__(self, pos, groups, frames, owner, damage, damage_type, level):
+    def __init__(self, pos, groups, frames, owner, level):
         self.frame_index = 0
-        self.state = "idle"
+        self.state = "level1_idle"
 
         # owner sprite
         self.owner = owner
         self.owner_ball_offset = self.owner.rect.width / 2
         self.target_angle = 0 if owner.facing_right else 180
 
-        self.image_temp = frames[self.state][self.frame_index]
-        self.rect_temp = self.image_temp.get_frect(topleft = pos)
-
-        self.range = self.owner_ball_offset + frames[self.state][self.frame_index].get_width()/2 - 5 # -5 to ensure within range (radius)
-        self.weapon_range_rect = pygame.FRect(self.owner.hitbox_rect.center - pygame.Vector2(self.range, self.range), (self.range * 2, self.range * 2)) # rect for the weapon
-
-        super().__init__(owner = owner, range = self.range, weapon_range_rect = self.weapon_range_rect, damage = damage, damage_type = damage_type, level = level,
+        super().__init__(owner = owner, range = 0, weapon_range_rect = 0, damage = 1, damage_type = BALL, level = level,
                          pos = pos, frames = frames[self.state], radius = self.owner_ball_offset, speed = 0, start_angle = 0, end_angle = 0, clockwise = True, groups = groups, type = BALL, z = Z_LAYERS['main'], direction_changes = 0, rotate = True, image_orientation = IMAGE_RIGHT
                          )
+        
+        self.state = self.states["idle"]
+
+        self.image_temp = frames[self.state][self.frame_index]
+        self.rect_temp = self.image_temp.get_frect(topleft = pos)
+        
+        self.range = self.owner_ball_offset + frames[self.state][self.frame_index].get_width()/2 - 5 # -5 to ensure within range (radius)
+        self.weapon_range_rect = pygame.FRect(self.owner.hitbox_rect.center - pygame.Vector2(self.range, self.range), (self.range * 2, self.range * 2)) # rect for the weapon
         
         # override class AnimatedSprite attr
         self.frames = frames
@@ -139,23 +157,23 @@ class Ball(Weapon):
         self.rotate_image(self.image_orientation)
 
 class Lance(Weapon):
-    def __init__(self, pos, groups, frames, owner, damage, damage_type, level):
+    def __init__(self, pos, groups, frames, owner, level):
         self.frame_index = 0
-        self.state = "idle"
+        self.state = "level1_idle"
 
         # owner sprite
         self.owner = owner
         self.owner_lance_offset = self.owner.rect.width / 1.5
         self.target_angle = 0 if owner.facing_right else 180
 
-        self.thrust_offset = [-10, 0, 15]
+        super().__init__(owner = owner, range = 0, weapon_range_rect = 0, damage = 1, damage_type = LANCE, level = level,
+                         pos = pos, frames = frames[self.state], radius = self.owner_lance_offset, speed = 0, start_angle = 0, end_angle = 0, clockwise = True, groups = groups, type = LANCE, z = Z_LAYERS['main'], direction_changes = 0, rotate = True, image_orientation = IMAGE_RIGHT
+                         )
+        
+        self.state = self.states["idle"]
 
         self.range = self.owner_lance_offset + frames[self.state][self.frame_index].get_width()/2 - 5 # -5 to ensure within range (radius)
         self.weapon_range_rect = pygame.FRect(self.owner.hitbox_rect.center - pygame.Vector2(self.range, self.range), (self.range * 2, self.range * 2)) # rect for the weapon
-
-        super().__init__(owner = owner, range = self.range, weapon_range_rect = self.weapon_range_rect, damage = damage, damage_type = damage_type, level = level,
-                         pos = pos, frames = frames[self.state], radius = self.owner_lance_offset, speed = 0, start_angle = 0, end_angle = 0, clockwise = True, groups = groups, type = LANCE, z = Z_LAYERS['main'], direction_changes = 0, rotate = True, image_orientation = IMAGE_RIGHT
-                         )
         
         # override class AnimatedSprite attr
         self.frames = frames
@@ -166,17 +184,6 @@ class Lance(Weapon):
         # weapon range for enemy sprite
         self.check_within_circle(player_sprite)
 
-    def thrust(self, current_animation_frame):
-        if (current_animation_frame < len(self.thrust_offset)):
-            if (int(current_animation_frame) == 0):
-                self.can_damage = False
-            else:
-                self.can_damage = True
-            self.radius = self.original_radius + self.thrust_offset[int(current_animation_frame)]
-        else:
-            self.can_damage = True
-            self.radius = self.original_radius + self.thrust_offset[len(self.thrust_offset) - 1]
-
     def update(self, dt, event_list):
         self.update_angle(dt)
 
@@ -186,22 +193,24 @@ class Lance(Weapon):
 
 # class Stick(Weapon, Orbit):
 class Stick(Weapon):
-    def __init__(self, pos, groups, frames, owner, damage, damage_type, level):
+    def __init__(self, pos, groups, frames, owner, level):
 
         self.frame_index = 0
-        self.state = "idle"
+        self.state = "level1_idle"
 
         # owner sprite
         self.owner = owner
         self.owner_stick_offset = self.owner.rect.width / 1.5
         self.target_angle = 0 if owner.facing_right else 180
-        
-        self.range = self.owner_stick_offset + frames[self.state][self.frame_index].get_width()/2 - 5 # -5 to ensure within range (radius)
-        self.weapon_range_rect = pygame.FRect(self.owner.hitbox_rect.center - pygame.Vector2(self.range, self.range), (self.range * 2, self.range * 2)) # rect for the weapon
 
-        super().__init__(owner = owner, range = self.range, weapon_range_rect = self.weapon_range_rect, damage = damage, damage_type = damage_type, level = level,
+        super().__init__(owner = owner, range = 0, weapon_range_rect = 0, damage = 1, damage_type = STICK, level = level,
                          pos = pos, frames = frames[self.state], radius = self.owner_stick_offset, speed = 0, start_angle = 0, end_angle = 0, clockwise = True, groups = groups, type = STICK, z = Z_LAYERS['main'], direction_changes = 0, rotate = True, image_orientation = IMAGE_RIGHT
                          )
+        
+        self.state = self.states["idle"]
+
+        self.range = self.owner_stick_offset + frames[self.state][self.frame_index].get_width()/2 - 5 # -5 to ensure within range (radius)
+        self.weapon_range_rect = pygame.FRect(self.owner.hitbox_rect.center - pygame.Vector2(self.range, self.range), (self.range * 2, self.range * 2)) # rect for the weapon
         
         # override class AnimatedSprite attr
         self.frames = frames
