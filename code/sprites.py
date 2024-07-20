@@ -32,7 +32,7 @@ class AnimatedSprite(Sprite):
 
 	def animate(self, dt):
 		self.frame_index += self.animation_speed * dt/FPS_TARGET
-		if (self.frame_index > self.len_frames):
+		if (self.frame_index >= self.len_frames):
 			self.frame_index = 0
 		self.image = self.frames[int(self.frame_index)]
 		self.mask = pygame.mask.from_surface(self.image)
@@ -41,10 +41,22 @@ class AnimatedSprite(Sprite):
 		self.animate(dt)
 
 class Item(AnimatedSprite):
-	def __init__(self, item_type, pos, frames, groups):
+	def __init__(self, item_type, pos, frames, groups, data):
 		super().__init__(pos, frames, groups, item_type)
 		self.rect.center = pos
 		self.item_type = item_type
+		self.data = data
+
+	def get_item_type(self):
+		return self.item_type
+
+	def activate(self):
+		if self.item_type == "kibble":
+			self.data.kibble = self.data.kibble + 1
+		elif (self.item_type == "denta"):
+			self.data.denta = self.data.denta + 1
+
+		self.data.print_data()
 
 class ParticleEffectSprite(AnimatedSprite):
 	def __init__(self, pos, frames, groups):

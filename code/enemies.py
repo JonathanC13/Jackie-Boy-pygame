@@ -6,7 +6,7 @@ from timerClass import Timer
 from movement import Movement
 
 class Enemy(pygame.sprite.Sprite):
-    def __init__(self, pos, frames, groups, collision_sprites = None, semi_collision_sprites = None, ramp_collision_sprites = None, player_sprite = None, enemy_sprites = None, type = ENEMY_OBJECTS, jump_height = -DOG_VEL_Y, accel_x = DOG_ACCEL, vel_max_x = DOG_MAX_VEL_X, vel_max_y = DOG_MAX_VEL_Y, pathfinder = None, id = id):
+    def __init__(self, pos, frames, groups, collision_sprites, semi_collision_sprites, ramp_collision_sprites, player_sprite, enemy_sprites, type = ENEMY_OBJECTS, jump_height = -DOG_VEL_Y, accel_x = DOG_ACCEL, vel_max_x = DOG_MAX_VEL_X, vel_max_y = DOG_MAX_VEL_Y, pathfinder = None, id = id):
         super().__init__(groups)
 
         self.animation_speed = ANIMATION_SPEED
@@ -99,6 +99,14 @@ class Enemy(pygame.sprite.Sprite):
 
     def get_rect_center(self):
         return pygame.math.Vector2(self.hitbox_rect.center)
+    
+    def flicker(self):
+        if (self.timers["take_damage_cd"].active and sin(pygame.time.get_ticks() / 50) >= 0):
+        #if (self.timers["take_damage_cd"].active and int(self.frame_index) % 2 == 0):
+            white_mask = pygame.mask.from_surface(self.image)
+            white_surface = white_mask.to_surface()
+            white_surface.set_colorkey('black')
+            self.image = white_surface
 
     def animate(self, dt):
         self.frame_index += ANIMATION_SPEED * dt/FPS_TARGET
@@ -263,6 +271,7 @@ class Enemy(pygame.sprite.Sprite):
     def evaluate_damage(self, damage, damage_type):
         # later check if match damage type
         if (not self.timers["take_damage_cd"].active):
+            self.frame_index = 0
             self.is_hit = True
             print('hit with ' + str(damage_type))
 
@@ -322,7 +331,7 @@ class Enemy(pygame.sprite.Sprite):
 #         #self.animate(dt)
 
 class Squirrel(Enemy):
-    def __init__(self, pos, frames, groups, collision_sprites = None, semi_collision_sprites = None, ramp_collision_sprites = None, player_sprite = None, enemy_sprites = None, type = ENEMY_SQUIRREL, pathfinder = None, func_create_acorn = None, id = 0):
+    def __init__(self, pos, frames, groups, collision_sprites, semi_collision_sprites, ramp_collision_sprites, player_sprite, enemy_sprites, type = ENEMY_SQUIRREL, pathfinder = None, func_create_acorn = None, id = "squirrel_0"):
         super().__init__(pos = pos, frames = frames, groups = groups, collision_sprites = collision_sprites, semi_collision_sprites = semi_collision_sprites, ramp_collision_sprites = ramp_collision_sprites, player_sprite = player_sprite, enemy_sprites = enemy_sprites, type = type, jump_height = 0, accel_x = 0, vel_max_x = 0, vel_max_y = DOG_MAX_VEL_Y, pathfinder = pathfinder, id = id)
 
         self.func_create_acorn = func_create_acorn
@@ -350,7 +359,7 @@ class Squirrel(Enemy):
         )
 
     def check_for_player(self):
-        pygame.draw.circle(pygame.display.get_surface(), "yellow", self.hitbox_rect.center, self.throw_max_x)
+        #pygame.draw.circle(pygame.display.get_surface(), "yellow", self.hitbox_rect.center, self.throw_max_x)
         self.player_proximity["detected"] = self.player_proximity["weapon_in_range"] = False
         #for spr in self.player_sprites:
         if (vector(self.hitbox_rect.center).distance_to(vector(self.player_sprite.sprite.hitbox_rect.center)) <= self.throw_max_x and abs(self.hitbox_rect.centery - self.player_sprite.sprite.hitbox_rect.centery) <= TILE_SIZE):
@@ -453,29 +462,25 @@ class Squirrel(Enemy):
         self.frame_index += ANIMATION_SPEED * dt/FPS_TARGET
 
         if (self.state == "throw"):
-            print(self.frame_index)
             if (int(self.frame_index) == 2 and not self.has_thrown):
                 # frame that should throw projectile
                 self.throw()
                 self.has_thrown = True
                 # hide weapon temporarily
                 self.weapon.hide_weapon(True)
-                print('hide')
             elif(self.frame_index >= len(self.frames[self.state])):
                 self.frame_index = 0
                 self.timers["throw"].deactivate()
 
                 self.has_thrown = False
                 self.weapon.hide_weapon(False)
-                print('show')
                 self.get_state()
         elif (self.state == "hit"):
             # when timer is finished then toggle off is_hit
             if (self.timers["take_damage_cd"].active):
                 if (self.frame_index >= len(self.frames[self.state])):
                     # first frame is the initial knockback
-                    # flip between 2nd and last frame for flashing effect
-                    self.frame_index = len(self.frames[self.state]) - 2
+                    self.frame_index = len(self.frames[self.state]) - 1
             else:
                 self.frame_index = 0
                 self.is_hit = False
@@ -516,9 +521,10 @@ class Squirrel(Enemy):
 
         self.get_state()
         self.animate(dt)
+        self.flicker()
 
 class Bird(Enemy):
-    def __init__(self, pos, frames, groups, collision_sprites = None, semi_collision_sprites = None, ramp_collision_sprites = None, player_sprite = None, enemy_sprites = None, type = ENEMY_BIRD, pathfinder = None, id = 0):
+    def __init__(self, pos, frames, groups, collision_sprites, semi_collision_sprites, ramp_collision_sprites, player_sprite, enemy_sprites, type = ENEMY_BIRD, pathfinder = None, id = "bird_0"):
         super().__init__(pos = pos, frames = frames, groups = groups, collision_sprites = collision_sprites, semi_collision_sprites = semi_collision_sprites, ramp_collision_sprites = ramp_collision_sprites, player_sprite = player_sprite, enemy_sprites = enemy_sprites, type = type, jump_height = -DOG_VEL_Y, accel_x = DOG_ACCEL, vel_max_x = DOG_MAX_VEL_X, vel_max_y = DOG_MAX_VEL_Y, pathfinder = pathfinder, id = id)
 
         self.flight_base_speed = FLIGHT_ATTACK_SPEED
@@ -543,17 +549,17 @@ class Bird(Enemy):
         # attack patterns
         self.attack_patterns.update(
             {
-                "ram": [{"timer_name":"locking_on", "func": self.locking_on, "can_damage": False}, {"timer_name":"locked_on", "func": self.locked_on, "can_damage": False}, {"timer_name":"assess_path", "func": self.assess_path, "can_damage": True}]
+                "ram": [{"timer_name":"locking_on", "func": self.locking_on, "can_damage": False}, {"timer_name":"locked_on", "func": self.locked_on, "can_damage": False}, {"timer_name":"assess_path", "func": self.assess_path, "can_damage": True}, {"timer_name":"idle", "func": self.idle, "can_damage": False}]
             }
         )
 
         # timer
         self.timers.update(
             {
-                "idle": Timer(250),
+                "idle": Timer(600),
                 "locking_on": Timer(500),
                 "locked_on": Timer(150),
-                "assess_path": Timer(1500, None, True)
+                "assess_path": Timer(1500, None, True)  # repeat on incase bird did not get to destination yet.
             }
         )
 
@@ -596,9 +602,9 @@ class Bird(Enemy):
 
         p1 = pygame.FRect((flight_src), (25, 25))
         p2 = pygame.FRect((flight_dest), (5, 5))
-        pygame.draw.rect(pygame.display.get_surface(), "red", p1)
-        pygame.draw.rect(pygame.display.get_surface(), "red", p2)
-        pygame.draw.line(pygame.display.get_surface(), "green", flight_src, flight_dest)
+        #pygame.draw.rect(pygame.display.get_surface(), "red", p1)
+        #pygame.draw.rect(pygame.display.get_surface(), "red", p2)
+        #pygame.draw.line(pygame.display.get_surface(), "green", flight_src, flight_dest)
         #print(line_velocity)
         # apply vector to test rect. check for collision and adjust if there is
         store_old_rect = self.old_rect.copy()
@@ -726,9 +732,9 @@ class Bird(Enemy):
                         self.timers[self.current_attack["timer_name"]].kill()
                     else:
                         self.assess_path()
-                    self.pathfinder.draw_path()
-                    for rect in self.pathfinder.path_checkpoints:
-                        pygame.draw.rect(pygame.display.get_surface(), "blue", rect)
+                    #self.pathfinder.draw_path()
+                    #for rect in self.pathfinder.path_checkpoints:
+                        #pygame.draw.rect(pygame.display.get_surface(), "blue", rect)
 
             elif (self.current_attack["timer_name"] == "locking_on" and self.timers[self.current_attack["timer_name"]].active):
                 # specific attack
@@ -814,8 +820,7 @@ class Bird(Enemy):
             if (self.timers["take_damage_cd"].active):
                 if (self.frame_index >= len(self.frames[self.state])):
                     # first frame is the initial knockback
-                    # flip between 2nd and last frame for flashing effect
-                    self.frame_index = len(self.frames[self.state]) - 2
+                    self.frame_index = len(self.frames[self.state]) - 1
             else:
                 self.frame_index = 0
                 self.is_hit = False
@@ -857,13 +862,14 @@ class Bird(Enemy):
 
         self.get_state()
         self.animate(dt)
+        self.flicker()
 
         # update weapon position to stay with owner
         self.weapon.update_weapon_zone(self.hitbox_rect)
 
 class Dog(Enemy):
 
-    def __init__(self, pos, frames, groups, collision_sprites = None, semi_collision_sprites = None, ramp_collision_sprites = None, player_sprite = None, enemy_sprites = None, type = ENEMY_DOG, id = 0):
+    def __init__(self, pos, frames, groups, collision_sprites, semi_collision_sprites, ramp_collision_sprites, player_sprite, enemy_sprites, type = ENEMY_DOG, id = "dog_0"):
 
         super().__init__(pos = pos, frames = frames, groups = groups, collision_sprites = collision_sprites, semi_collision_sprites = semi_collision_sprites, ramp_collision_sprites = ramp_collision_sprites, player_sprite = player_sprite, enemy_sprites = enemy_sprites, type = type, jump_height = -DOG_VEL_Y, accel_x = DOG_ACCEL, vel_max_x = DOG_MAX_VEL_X, vel_max_y = DOG_MAX_VEL_Y, id = id)
 
@@ -894,7 +900,7 @@ class Dog(Enemy):
     def check_for_player(self):
         # detection zone
         self.detection_rect = self.hitbox_rect.inflate(300, self.weapon.range * 2)
-        pygame.draw.rect(self.display_surface, "yellow", self.detection_rect)
+        #pygame.draw.rect(self.display_surface, "yellow", self.detection_rect)
 
         self.check_for_player_gen(self.detection_rect)
 
@@ -1102,8 +1108,7 @@ class Dog(Enemy):
             if (self.timers["take_damage_cd"].active):
                 if (self.frame_index >= len(self.frames[self.state])):
                     # first frame is the initial knockback
-                    # flip between 2nd and last frame for flashing effect
-                    self.frame_index = len(self.frames[self.state]) - 2
+                    self.frame_index = len(self.frames[self.state]) - 1
             else:
                 self.frame_index = 0
                 self.is_hit = False
@@ -1151,6 +1156,7 @@ class Dog(Enemy):
 
         self.get_state()
         self.animate(dt)
+        self.flicker()
 
         # update weapon 
         self.weapon.update_weapon_zone(self.hitbox_rect)

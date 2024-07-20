@@ -9,7 +9,7 @@ from pathfinder import Pathfinder
 
 class Level:
 
-    def __init__(self, level_data, level_frames):
+    def __init__(self, level_data, level_frames, data):
 
         self.display_surface = pygame.display.get_surface()
 
@@ -22,9 +22,11 @@ class Level:
         self.particle_frames = level_frames["effect_particle"]
         self.ball_frames = level_frames["ball_projectile"]
 
+        self.data = data
+
         # sprite groups
-        self.all_sprites = pygame.sprite.Group()
-        #self.all_sprites = AllSprites()
+        #self.all_sprites = pygame.sprite.Group()
+        self.all_sprites = AllSprites()
         self.player_sprite = pygame.sprite.GroupSingle()
         self.player_weapon_sprites = pygame.sprite.Group()
         self.ball_sprites = pygame.sprite.Group()
@@ -191,8 +193,8 @@ class Level:
                 #self.player = Player((obj.x, obj.y), (obj.width, obj.height), self.all_sprites, self.collision_sprites, self.semi_collision_sprites, self.ramp_collision_sprites, None)
                 self.player = Player(
                                 pos = (obj.x, obj.y), 
-                                surf = obj.image, 
                                 groups = (self.all_sprites, self.player_sprite), 
+                                data = self.data,
                                 collision_sprites = self.collision_sprites, 
                                 semi_collision_sprites = self.semi_collision_sprites, 
                                 ramp_collision_sprites = self.ramp_collision_sprites,
@@ -311,9 +313,10 @@ class Level:
         for obj in self.tmx_map.get_layer_by_name(ITEM_OBJECTS):
             Item(
                 item_type = obj.name, 
-                 pos = (obj.x + TILE_SIZE/2, obj.y + TILE_SIZE/2), 
-                 frames = level_frames["items"][obj.name], 
-                 groups = (self.all_sprites, self.item_sprites)
+                pos = (obj.x + TILE_SIZE/2, obj.y + TILE_SIZE/2), 
+                frames = level_frames["items"][obj.name], 
+                groups = (self.all_sprites, self.item_sprites),
+                data = self.data
             )
         
         # water
@@ -410,10 +413,12 @@ class Level:
                             if (sprite.get_owner_id() != self.player.get_id()):
                                 # if the owner of the projectile is NOT the player, then damage
                                 # todo
-                                pass
+                                self.player.evaluate_damage(sprite.get_damage(), sprite.get_type())
                     else:
                         # other damage sprite
-                        pass
+                        if (hasattr(sprite, "can_damage")):
+                            if (sprite.get_can_damage()):
+                                self.player.evaluate_damage(sprite.get_damage(), sprite.get_type())
                             
                     
 
@@ -433,14 +438,17 @@ class Level:
             if (pygame.sprite.spritecollide(self.player_sprite.sprite, self.item_sprites, False)):
                 items_collected = pygame.sprite.spritecollide(self.player_sprite.sprite, self.item_sprites, True, pygame.sprite.collide_mask)
                 if (items_collected):
-                    print(items_collected)
                     for sprite in items_collected:
-                        print(sprite.item_type)
                         ParticleEffectSprite(
                             pos = sprite.rect.center, 
                             frames = self.particle_frames, 
                             groups = self.all_sprites
                         )
+                        if (sprite.get_item_type() == "skull"):
+                            # todo. trigger the levels boss, and lock the camera to the arena
+                            pass
+                        else:
+                            sprite.activate()
 
     def attack_collision(self):
         """
@@ -478,5 +486,5 @@ class Level:
         self.attack_collision()
         
         # draw all sprites
-        self.all_sprites.draw(self.display_surface)
-        #self.all_sprites.draw(self.player.hitbox_rect.center, self.player.hitbox_rect.width, self.tmx_map_max_width)
+        #self.all_sprites.draw(self.display_surface)
+        self.all_sprites.draw(self.player.hitbox_rect.center, self.player.hitbox_rect.width, self.tmx_map_max_width)

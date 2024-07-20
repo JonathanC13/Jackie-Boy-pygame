@@ -4,6 +4,8 @@ from debug import debug
 from settings import *
 from level import Level
 from support import *
+from data import Data
+from ui import UI
 
 class Game:
     
@@ -15,6 +17,8 @@ class Game:
         pygame.display.set_caption("Jackie Boy")
         self.import_assets()
         
+        self.ui = UI(self.font, self.ui_frames)
+        self.data = Data(self.ui)
         self.curr_level = 1
 
         self.level_maps = [
@@ -26,7 +30,7 @@ class Game:
             [1, 4, load_pygame(os.path.join("..", "data", "levels", "1_4.tmx"))]
         ]
 
-        self.run_level = Level(self.level_maps[self.curr_level], self.level_frames)
+        self.run_level = Level(self.level_maps[self.curr_level], self.level_frames, self.data)
 
     def import_assets(self):
         self.level_frames = {
@@ -40,7 +44,7 @@ class Game:
             'water_top': import_folder('..', 'graphics', 'level', 'water', 'top'),
 			'water_body': import_image('..', 'graphics', 'level', 'water', 'body'),
 			'caloud_small': import_folder('..', 'graphics', 'level', 'clouds', 'small'),
-			'cloud_large': import_image('..', 'graphics', 'level', 'clouds', 'large_cloud'),
+			'cldoud_large': import_image('..', 'graphics', 'level', 'clouds', 'large_cloud'),
             'dog': import_sub_folders('..', 'graphics', 'enemies', 'dog'),
             'bird': import_sub_folders('..', 'graphics', 'enemies', 'bird'),
             'squirrel': import_sub_folders('..', 'graphics', 'enemies', 'squirrel'),
@@ -52,6 +56,13 @@ class Game:
             'ball_projectile': import_sub_folders('..', 'graphics', 'projectile', 'ball'),
             'items': import_sub_folders('..', 'graphics', 'items'),
             'effect_particle': import_folder('..', 'graphics', 'effects', 'particle')
+        }
+
+        self.font = pygame.font.Font(join('..', 'graphics', 'ui', 'font', 'runescape_uf.ttf'), 25)
+        self.ui_frames = {
+            'heart': import_folder('..', 'graphics', 'ui', 'heart'),
+            'kibble': import_folder('..', 'graphics', 'ui', 'kibble'),
+            'denta': import_folder('..', 'graphics', 'ui', 'denta')
         }
 
     def run(self):
@@ -69,6 +80,7 @@ class Game:
                     sys.exit()
 
             self.run_level.run(dt, event_list)
+            self.ui.update(dt, event_list)
             pygame.display.update()
 
             self.clock.tick(FPS_MAX)

@@ -64,7 +64,7 @@ class Projectiles(AnimatedSprite):
         # timer
         self.timers = {
                 "active": Timer(5000),
-                "take_damage_cd": Timer(1000)
+                "reverse": Timer(1000)
             }
         
         # modules
@@ -136,9 +136,9 @@ class AcornProjectile(Projectiles):
         self.timers["active"].activate()
 
     def reverse(self, speed, angle):
-        if not self.timers["take_damage_cd"].active:
+        if not self.timers["reverse"].active:
             self.projectile_speed = speed
             self.velocity.x = cos(radians(angle)) * speed
             self.velocity.y = sin(radians(angle)) * speed
 
-            self.timers["take_damage_cd"].activate()
+            self.timers["reverse"].activate()

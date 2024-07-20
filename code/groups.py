@@ -8,6 +8,9 @@ class AllSprites(pygame.sprite.Group):
         self.display_surface = pygame.display.get_surface()
         self.offset = vector(0, 0)
 
+    def get_offset(self):
+        return self.offset
+
     def draw(self, target_pos, player_width, tmx_map_width):
         self.offset.x = -(target_pos[0] - (WINDOW_WIDTH / 2) + player_width)
 

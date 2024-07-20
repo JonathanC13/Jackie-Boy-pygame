@@ -7,12 +7,14 @@ from movement import Movement
 
 class Player(pygame.sprite.Sprite):
 
-    def __init__(self, pos, surf = pygame.Surface((TILE_SIZE,TILE_SIZE)), groups = None, collision_sprites = None, semi_collision_sprites = None, ramp_collision_sprites = None, enemy_sprites = None, frames = None, type = PLAYER_OBJECTS, func_create_ball = None, id = 0):
+    def __init__(self, pos, groups, data, collision_sprites, semi_collision_sprites, ramp_collision_sprites, enemy_sprites, frames, type = PLAYER_OBJECTS, func_create_ball = None, id = "player_0"):
         # general setup
         super().__init__(groups)
         self.z = Z_LAYERS["main"]
         self.type = type
         self.id = id
+
+        self.data = data
 
         self.func_create_ball = func_create_ball
         self.has_thrown = False
@@ -23,6 +25,7 @@ class Player(pygame.sprite.Sprite):
         self.state, self.facing_right = "idle", True
         #self.image = surf
         self.image = self.frames[self.state][self.frame_index]
+        self.mask = pygame.mask.from_surface(self.image)
         self.animation_speed = ANIMATION_SPEED
 
         # rects
@@ -70,13 +73,16 @@ class Player(pygame.sprite.Sprite):
         self.weapon_list = []
         self.current_weapon_index = 0
 
+        self.is_hit = False
+
         # timer
         self.timers = {
             "wall_jump_move_block": Timer(200), # blocks the use of LEFT and RIGHT right after wall jump
             "unlock_semi_drop_down": Timer(100), # disables the floor collision for semi collision platforms so that the player can drop down through them
             "Stick_attack_cooldown": Timer(1000),
             "Lance_attack_cooldown": Timer(750),
-            "Ball_attack_cooldown": Timer(500)
+            "Ball_attack_cooldown": Timer(500),
+            "take_damage_cd": Timer(1000)
         }
 
         # modules
@@ -187,7 +193,8 @@ class Player(pygame.sprite.Sprite):
             self.weapon_list[self.current_weapon_index]["weapon"].update_weapon_zone(self.hitbox_rect)
 
     def weapon_attack(self, mouse_pos):
-        if (len(self.weapon_list) > 0 and self.current_weapon_index < len(self.weapon_list)):
+        if (len(self.weapon_list) > 0 and self.current_weapon_index < len(self.weapon_list) and self.is_hit == False):
+            # only allow attack if valid weapon and is not currently in "hit" state
             if (not self.is_attacking and not self.timers[self.weapon_list[self.current_weapon_index]["timer_cooldown"]].active):
                 self.attack_pos = pygame.math.Vector2(mouse_pos)
                 self.is_attacking = True
@@ -600,6 +607,27 @@ class Player(pygame.sprite.Sprite):
             self.old_rect.center = temp   
 
             self.velocity.x = 0
+
+    def evaluate_damage(self, damage, damage_type):
+        # later check if match damage type
+        if (not self.timers["take_damage_cd"].active):
+            
+            self.frame_index = 0
+            self.is_hit = True
+            self.timers["take_damage_cd"].activate()
+
+            self.data.player_health = self.data.player_health - damage
+
+            # stop current attack
+            self.is_attacking = False
+
+    def flicker(self):
+        if (self.timers["take_damage_cd"].active and sin(pygame.time.get_ticks() / 50) >= 0):
+        #if (self.timers["take_damage_cd"].active and int(self.frame_index) % 2 == 0): # if using last 2 frames the same.
+            white_mask = pygame.mask.from_surface(self.image)
+            white_surface = white_mask.to_surface()
+            white_surface.set_colorkey('black')
+            self.image = white_surface
     
     def update_timers(self):
         for timer in self.timers.values():
@@ -608,41 +636,57 @@ class Player(pygame.sprite.Sprite):
     def animate(self, dt):
         self.frame_index += self.animation_speed * dt/FPS_TARGET
 
-        if (self.is_attacking and self.state == "throw"):
-            if (int(self.frame_index) == 1 and not self.has_thrown):
-                # frame that should throw projectile
-                self.func_create_ball(self.weapon_list[self.current_weapon_index]["weapon"].rect.center, self.angle_to_fire, self.id)
-                self.has_thrown = True
-                # hide weapon temporarily
-                self.weapon_list[self.current_weapon_index]["weapon"].hide_weapon(True)
-            elif(self.frame_index >= len(self.frames[self.state])):
+        if (self.state == "hit"):
+            #when timer is finished then toggle off is_hit
+            if (self.timers["take_damage_cd"].active):
+                if (self.frame_index >= len(self.frames[self.state])):
+                    # first frame is the initial knockback
+                    # stay on last frame until timer is finished
+                    self.frame_index = len(self.frames[self.state]) - 1
+            else:
                 self.frame_index = 0
-                self.is_attacking = False
-                self.has_thrown = False
-                self.weapon_list[self.current_weapon_index]["weapon"].hide_weapon(False)
+                self.is_hit = False
                 self.get_state()
+        elif (self.is_attacking):
+            if (self.state == "throw"):
+                if (int(self.frame_index) == 1 and not self.has_thrown):
+                    # frame that should throw projectile
+                    if (self.func_create_ball is not None):
+                        self.func_create_ball(self.weapon_list[self.current_weapon_index]["weapon"].rect.center, self.angle_to_fire, self.id)
+                    self.has_thrown = True
+                    # hide weapon temporarily
+                    self.weapon_list[self.current_weapon_index]["weapon"].hide_weapon(True)
+                elif(self.frame_index >= len(self.frames[self.state])):
+                    self.frame_index = 0
+                    self.is_attacking = False
+                    self.has_thrown = False
+                    self.weapon_list[self.current_weapon_index]["weapon"].hide_weapon(False)
+                    self.get_state()
 
-        if (self.is_attacking and self.state in ["slash", "thrust"]):
-            if (int(self.frame_index) == len(self.frames[self.state]) - 1):
-                # last frame is resting place at end. set that it does no damage.
-                self.weapon_list[self.current_weapon_index]["weapon"].set_can_damage(False)
-            elif (self.frame_index >= len(self.frames[self.state])):
-                # attack complete
-                # responsibility of dev to match the duration of the attack rotation to the animation speed
-                self.frame_index = 0    
-                self.weapon_list[self.current_weapon_index]["weapon"].set_can_damage(False)
-                self.is_attacking = False
-                self.get_state()
+            elif (self.state in ["slash", "thrust"]):
+                if (int(self.frame_index) == len(self.frames[self.state]) - 1):
+                    # last frame is resting place at end. set that it does no damage.
+                    self.weapon_list[self.current_weapon_index]["weapon"].set_can_damage(False)
+                elif (self.frame_index >= len(self.frames[self.state])):
+                    # attack complete
+                    # responsibility of dev to match the duration of the attack rotation to the animation speed
+                    self.frame_index = 0    
+                    self.weapon_list[self.current_weapon_index]["weapon"].set_can_damage(False)
+                    self.is_attacking = False
+                    self.get_state()
 
         if (self.frame_index >= len(self.frames[self.state])):
             self.frame_index = 0
 
         self.image = self.frames[self.state][int(self.frame_index)]
         self.image = self.image if self.facing_right else pygame.transform.flip(self.image, True, False)
+        self.mask = pygame.mask.from_surface(self.image)
 
     def get_state(self):
         self.animation_speed = ANIMATION_SPEED
-        if (self.is_attacking and self.current_attack is not None):
+        if (self.is_hit):
+            self.state = "hit"
+        elif (self.is_attacking and self.current_attack is not None):
             self.state = self.current_attack
 
             if (self.attack_pos.x >= self.hitbox_rect.x):
@@ -693,6 +737,7 @@ class Player(pygame.sprite.Sprite):
 
         self.get_state()
         self.animate(dt)
+        self.flicker()
 
         #pygame.draw.rect(self.display_surface, "green", self.hitbox_rect)
         

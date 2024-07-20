@@ -26,6 +26,9 @@ class Weapon(Orbit):
         
     def get_damage(self):
         return self.damage
+    
+    def get_type(self):
+        return self.type
 
     def kill_weapon(self):
         self.kill()
