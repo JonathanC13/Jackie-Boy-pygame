@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.10" tiledversion="1.10.2" orientation="orthogonal" renderorder="right-down" width="73" height="11" tilewidth="70" tileheight="70" infinite="0" nextlayerid="19" nextobjectid="430">
+<map version="1.10" tiledversion="1.10.2" orientation="orthogonal" renderorder="right-down" width="73" height="11" tilewidth="70" tileheight="70" infinite="0" nextlayerid="19" nextobjectid="433">
  <tileset firstgid="1" source="../tilesets/objects_characters.tsx"/>
  <tileset firstgid="14" source="../tilesets/objects_env.tsx"/>
  <tileset firstgid="75" source="../tilesets/tiles_terrain.tsx"/>
@@ -146,11 +146,22 @@
   <object id="370" name="rockAlt" gid="42" x="4270" y="280" width="70" height="70"/>
   <object id="381" name="dirtCaveRockLarge" gid="25" x="4480" y="700" width="70" height="70"/>
   <object id="387" name="invis_wall" x="5038.67" y="-6.66667" width="61.3333" height="778.667"/>
-  <object id="389" name="thorn_bush" gid="9" x="1540" y="630" width="51" height="26"/>
-  <object id="390" name="thorn_bush" gid="9" x="2100" y="630" width="51" height="26"/>
-  <object id="391" name="thorn_bush" gid="9" x="3150" y="490" width="51" height="26"/>
-  <object id="393" name="thorn_bush" gid="9" x="4200" y="280" width="51" height="26"/>
   <object id="421" name="invis_wall" x="1.33335" y="-2.66683" width="61.3333" height="688"/>
+  <object id="430" name="floor_spikes" gid="4" x="1540" y="630" width="64" height="64">
+   <properties>
+    <property name="inverted" type="bool" value="false"/>
+   </properties>
+  </object>
+  <object id="431" name="floor_spikes" gid="4" x="3150" y="490" width="64" height="64">
+   <properties>
+    <property name="inverted" type="bool" value="false"/>
+   </properties>
+  </object>
+  <object id="432" name="floor_spikes" gid="4" x="4200" y="280" width="64" height="64">
+   <properties>
+    <property name="inverted" type="bool" value="false"/>
+   </properties>
+  </object>
  </objectgroup>
  <objectgroup id="9" name="Moving_objects">
   <object id="312" name="bats" gid="12" x="1834" y="468.333" width="44" height="30">
@@ -169,17 +180,37 @@
  </objectgroup>
  <objectgroup id="13" name="Enemy_objects">
   <object id="318" name="dog" gid="3" x="1470" y="560" width="51" height="51"/>
-  <object id="319" name="bird" gid="2" x="1680" y="194" width="72" height="36"/>
-  <object id="320" name="bird" gid="2" x="2185.33" y="300.667" width="72" height="36"/>
+  <object id="319" name="bird" gid="2" x="1680" y="194" width="72" height="36">
+   <properties>
+    <property name="white" type="bool" value="false"/>
+   </properties>
+  </object>
+  <object id="320" name="bird" gid="2" x="2185.33" y="300.667" width="72" height="36">
+   <properties>
+    <property name="white" type="bool" value="false"/>
+   </properties>
+  </object>
   <object id="321" name="squirrel" gid="8" x="2310" y="630" width="54" height="31"/>
-  <object id="350" name="bird" gid="2" x="3009.33" y="132.667" width="72" height="36"/>
+  <object id="350" name="bird" gid="2" x="3009.33" y="132.667" width="72" height="36">
+   <properties>
+    <property name="white" type="bool" value="false"/>
+   </properties>
+  </object>
   <object id="351" name="dog" gid="3" x="3575" y="698" width="51" height="51"/>
   <object id="375" name="dog" gid="3" x="3360" y="490" width="51" height="51"/>
   <object id="379" name="dog" gid="3" x="4340" y="700" width="51" height="51"/>
   <object id="380" name="dog" gid="3" x="4550" y="420" width="51" height="51"/>
   <object id="427" name="dog" gid="3" x="3997.67" y="132.667" width="51" height="51"/>
-  <object id="428" name="bird" gid="2" x="4418.67" y="136.667" width="72" height="36"/>
-  <object id="429" name="bird" gid="2" x="3640" y="140" width="72" height="36"/>
+  <object id="428" name="bird" gid="2" x="4418.67" y="136.667" width="72" height="36">
+   <properties>
+    <property name="white" type="bool" value="false"/>
+   </properties>
+  </object>
+  <object id="429" name="bird" gid="2" x="3640" y="140" width="72" height="36">
+   <properties>
+    <property name="white" type="bool" value="false"/>
+   </properties>
+  </object>
  </objectgroup>
  <objectgroup id="18" name="Item_objects">
   <object id="399" name="kibble" gid="104" x="1260" y="420" width="64" height="64"/>

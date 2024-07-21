@@ -22,6 +22,8 @@ class Level:
         self.particle_frames = level_frames["effect_particle"]
         self.ball_frames = level_frames["ball_projectile"]
 
+        self.current_window_offset_x = 0
+
         self.data = data
 
         # sprite groups
@@ -166,14 +168,14 @@ class Level:
             else:
                 # animated
                 # frames 
-                # thorns and floor spikes
+                #floor spikes
                 frames = level_frames[obj.name]
                 if obj.name == "floor_spikes" and obj.properties["inverted"]:
                     frames = [pygame.transform.flip(frame, False, True) for frame in frames]
 
                 # groups 
                 groups = [self.all_sprites]
-                if obj.name in ("thorn_bush", "floor_spike"): 
+                if obj.name in ("floor_spike"): 
                     groups.append(self.damage_sprites)
 
                 # z index
@@ -209,15 +211,15 @@ class Level:
                     groups = (self.all_sprites, self.player_weapon_sprites),
                     frames = level_frames["stick"],
                     owner = self.player,
-                    level = 1
+                    level = self.data.stick_level
                 )
 
                 lance_weapon = Lance(
                     pos = (self.player.hitbox_rect.centerx, self.player.hitbox_rect.centery),
                     groups = (self.all_sprites, self.player_weapon_sprites),
-                    frames = level_frames["beak"],
+                    frames = level_frames["umbrella"],
                     owner = self.player,
-                    level = 1
+                    level = self.data.lance_level
                 )
 
                 ball_weapon = Ball(
@@ -225,7 +227,7 @@ class Level:
                     groups = (self.all_sprites),
                     frames = level_frames["ball"],
                     owner = self.player,
-                    level = 1
+                    level = self.data.ball_level
                 )
 
                 weapon_list = [{"weapon": stick_weapon}, {"weapon": lance_weapon}, {"weapon": ball_weapon}]
@@ -260,9 +262,13 @@ class Level:
                 )
                 dog_idx += 1
             elif (obj.name == "bird"):
+                frames = level_frames["bird_brown"]
+                if (obj.properties["white"]):
+                    frames = level_frames["bird_white"]
+
                 bird_obj = Bird(
                     pos = (obj.x, obj.y),
-                    frames = level_frames["bird"],
+                    frames = frames,
                     groups = (self.all_sprites, self.enemy_sprites, self.bird_sprites, self.collision_sprites),
                     collision_sprites = self.collision_sprites,
                     semi_collision_sprites = self.semi_collision_sprites,
@@ -324,7 +330,8 @@ class Level:
         # triggers
 
     def create_ball(self, pos, angle_fired, owner_id):
-        BallProjectile(pos, self.ball_frames, (self.all_sprites, self.ball_sprites), PLAYER_THROW_SPEED, angle_fired, owner_id, self.particle_frames, self.all_sprites)
+        print(self.data.ball_level)
+        BallProjectile(pos, self.ball_frames, (self.all_sprites, self.ball_sprites), PLAYER_THROW_SPEED, angle_fired, owner_id, self.particle_frames, self.all_sprites, 1, self.data.ball_level)
 
     def create_acorn(self, pos, angle_fired, owner_id):
         AcornProjectile(pos, self.acorn_frames, (self.all_sprites, self.damage_sprites, self.acorn_sprites), SQ_PROJECTILE_SPEED, angle_fired, owner_id, self.particle_frames, self.all_sprites)
@@ -488,3 +495,7 @@ class Level:
         # draw all sprites
         #self.all_sprites.draw(self.display_surface)
         self.all_sprites.draw(self.player.hitbox_rect.center, self.player.hitbox_rect.width, self.tmx_map_max_width)
+
+        # give player the window offset
+        self.current_window_offset_x = self.all_sprites.get_offset()
+        self.player.set_current_window_offset((self.current_window_offset_x, 0))

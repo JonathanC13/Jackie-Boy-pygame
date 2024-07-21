@@ -155,9 +155,9 @@ class Enemy(pygame.sprite.Sprite):
         #pygame.draw.rect(self.display_surface, "red", left_rect)
         right_rect = pygame.FRect(rect.topright + vector(0, 0),(1, rect.height * 0.8))
         #pygame.draw.rect(self.display_surface, "red", right_rect)
-        bot_left_rect = pygame.FRect(rect.bottomleft + vector(-1, 0), (1, TILE_SIZE + 5))
+        bot_left_rect = pygame.FRect(rect.bottomleft + vector(-1, 0), (1, TILE_SIZE))
         #pygame.draw.rect(self.display_surface, "red", bot_left_rect)
-        bot_right_rect = pygame.FRect(rect.bottomright + vector(0, 0), (1, TILE_SIZE + 5))
+        bot_right_rect = pygame.FRect(rect.bottomright + vector(0, 0), (1, TILE_SIZE))
         #pygame.draw.rect(self.display_surface, "red", bot_right_rect)
 
         # grouping all basic collidable sprites
@@ -184,9 +184,9 @@ class Enemy(pygame.sprite.Sprite):
         curr_right_collide = True if (right_rect.collidelist(collide_rects) >= 0) else False
         # for enemy to not fall off.
         # bottom left
-        curr_bot_left_collide = True if (bot_left_rect.collidelist(terrain_rects) >= 0 or bot_left_rect.collidelist(semi_collide_rects) >= 0) else False
+        curr_bot_left_collide = True if (bot_left_rect.collidelist(terrain_rects) >= 0 or bot_left_rect.collidelist(semi_collide_rects) >= 0 or bot_left_rect.collidelist(collide_ramps) >= 0) else False
         # bottom right
-        curr_bot_right_collide = True if (bot_right_rect.collidelist(terrain_rects) >= 0 or bot_right_rect.collidelist(semi_collide_rects) >= 0) else False
+        curr_bot_right_collide = True if (bot_right_rect.collidelist(terrain_rects) >= 0 or bot_right_rect.collidelist(semi_collide_rects) >= 0 or bot_right_rect.collidelist(collide_ramps) >= 0) else False
 
         # semi - collisions (floor only)
         if (not semi_ignore):
@@ -255,6 +255,7 @@ class Enemy(pygame.sprite.Sprite):
     def jump(self):
         if (self.is_jumping):
             if (self.collision_side["bot"]):
+                self.frame_index = 0
                 self.is_jumping = True
                 self.velocity.y = self.jump_height
                 self.hitbox_rect.bottom -= 1
@@ -341,6 +342,10 @@ class Squirrel(Enemy):
         self.has_thrown = False
         self.angle_to_fire = 0
 
+        self.hitbox_rect = self.rect.inflate(-15, -25)
+        # previous rect in previous frame to know which direction this rect came from
+        self.old_rect = self.hitbox_rect.copy()
+
         # attack patterns
         self.attack_patterns.update(
             {
@@ -374,7 +379,7 @@ class Squirrel(Enemy):
 
     # attacks
     def locking_on(self):
-        #self.weapon.point_image(self.hitbox_rect, self.player_location)
+        #self.weapon.point_image(self.hitbox_rect.center, self.player_location)
         #getting angle of attack
         self.angle_to_fire = degrees(math.asin((abs(self.player_location.x - self.get_rect_center().x) * GRAVITY_NORM) / (SQ_PROJECTILE_SPEED**2)) / 2)
         
@@ -426,6 +431,7 @@ class Squirrel(Enemy):
                     self.current_attack = self.attack_seq[self.attack_index]
                     self.is_attacking = True
 
+                    self.frame_index = 0
                     self.attack_index += 1
 
             else:
@@ -523,9 +529,15 @@ class Squirrel(Enemy):
         self.animate(dt)
         self.flicker()
 
+        #pygame.draw.rect(pygame.display.get_surface(), "green", self.hitbox_rect)
+
 class Bird(Enemy):
     def __init__(self, pos, frames, groups, collision_sprites, semi_collision_sprites, ramp_collision_sprites, player_sprite, enemy_sprites, type = ENEMY_BIRD, pathfinder = None, id = "bird_0"):
         super().__init__(pos = pos, frames = frames, groups = groups, collision_sprites = collision_sprites, semi_collision_sprites = semi_collision_sprites, ramp_collision_sprites = ramp_collision_sprites, player_sprite = player_sprite, enemy_sprites = enemy_sprites, type = type, jump_height = -DOG_VEL_Y, accel_x = DOG_ACCEL, vel_max_x = DOG_MAX_VEL_X, vel_max_y = DOG_MAX_VEL_Y, pathfinder = pathfinder, id = id)
+
+        self.hitbox_rect = self.rect.inflate(-10, 0)
+        # previous rect in previous frame to know which direction this rect came from
+        self.old_rect = self.hitbox_rect.copy()
 
         self.flight_base_speed = FLIGHT_ATTACK_SPEED
         self.flight_speed = self.flight_base_speed 
@@ -543,6 +555,8 @@ class Bird(Enemy):
         self.flight_velocity = pygame.math.Vector2(0, 0)
         self.flight_complete = True # for dive and return. Either this flag or timer
         self.pathing_rect = self.hitbox_rect.copy()
+        
+        self.obstacles = (self.collision_sprites , self.semi_collision_sprites)
 
         self.dt = 1
 
@@ -566,8 +580,7 @@ class Bird(Enemy):
         self.setup_pathfinder()
         
     def setup_pathfinder(self):
-        obstacles = (self.collision_sprites , self.semi_collision_sprites)
-        self.pathfinder.build_matrix(obstacles)
+        self.pathfinder.build_matrix(self.obstacles)
 
     def check_for_player(self):
         # detection zone
@@ -667,7 +680,26 @@ class Bird(Enemy):
 
     def set_path_points(self, src, dest):
         self.flight_src = src
-        self.flight_dest = dest
+
+        # adjust destination if it is a collidable sprite
+        valid_dest = dest
+        valid_found = False
+        while (not valid_found):
+            valid_found = True
+            dest_rect = pygame.FRect((valid_dest), (1, 1))
+            for obs in self.obstacles:
+                for spr in obs:
+                    if (spr.rect.colliderect(dest_rect)):
+                        valid_found = False
+                        if (src[0] < dest[0]):
+                            valid_dest = valid_dest - pygame.math.Vector2(TILE_SIZE, 0)
+                        else:
+                            valid_dest = valid_dest + pygame.math.Vector2(TILE_SIZE, 0)
+                        break
+                if (not valid_found):
+                    break
+
+        self.flight_dest = valid_dest
 
     def set_path(self, src, dest):
         _, self.pathfinder.path = self.pathfinder.dijkstra(src, dest) # x, y
@@ -716,7 +748,7 @@ class Bird(Enemy):
         # self.determine_flight_vector(self.flight_src, self.flight_dest)
         self.get_velocity()
         self.check_checkpoint_collision()
-        self.weapon.point_image(self.hitbox_rect, self.flight_dest)
+        self.weapon.point_image(self.hitbox_rect.center, self.flight_dest)
 
     # enemy patrol and attack commands
     def perform_attack(self):
@@ -836,11 +868,6 @@ class Bird(Enemy):
     def get_state(self):
         if (self.is_hit):
             self.state = "hit"
-        elif (self.current_attack is not None):
-            if (self.current_attack["timer_name"] == "ram"):
-                self.state = "ram"
-            else:
-                self.state = "idle"
         else:
             self.state = "idle"
 
@@ -867,11 +894,18 @@ class Bird(Enemy):
         # update weapon position to stay with owner
         self.weapon.update_weapon_zone(self.hitbox_rect)
 
+        
+        #pygame.draw.rect(pygame.display.get_surface(), "green", self.hitbox_rect)
+
 class Dog(Enemy):
 
     def __init__(self, pos, frames, groups, collision_sprites, semi_collision_sprites, ramp_collision_sprites, player_sprite, enemy_sprites, type = ENEMY_DOG, id = "dog_0"):
 
         super().__init__(pos = pos, frames = frames, groups = groups, collision_sprites = collision_sprites, semi_collision_sprites = semi_collision_sprites, ramp_collision_sprites = ramp_collision_sprites, player_sprite = player_sprite, enemy_sprites = enemy_sprites, type = type, jump_height = -DOG_VEL_Y, accel_x = DOG_ACCEL, vel_max_x = DOG_MAX_VEL_X, vel_max_y = DOG_MAX_VEL_Y, id = id)
+
+        self.hitbox_rect = self.rect.inflate(-20, 0)
+        # previous rect in previous frame to know which direction this rect came from
+        self.old_rect = self.hitbox_rect.copy()
 
         # attack patterns
         self.attack_patterns.update(
@@ -970,6 +1004,7 @@ class Dog(Enemy):
                     self.current_attack = self.attack_seq[self.attack_index]
                     self.is_attacking = True
 
+                    self.frame_index = 0
                     self.attack_index += 1
             else:
                 if (not self.timers[self.current_attack["timer_name"]].active):
@@ -1036,6 +1071,7 @@ class Dog(Enemy):
         """
 
     def enemy_input(self):
+        #print(self.collision_side)
 
         if (self.state == "hit"): 
             # flinch
@@ -1098,11 +1134,14 @@ class Dog(Enemy):
             # hold at last frame, until state change (timer runs out)
             self.frame_index = len(self.frames[self.state]) - 1
         elif (self.state in ["uppercut", "slash"] and self.frame_index >= len(self.frames[self.state])):
+            # just hold on last frame, until state change (timer runs out)
+            self.frame_index = len(self.frames[self.state]) - 1
+
             # attack complete
-            self.frame_index = 0
-            self.timers[self.state].deactivate()    # responsibility of dev to match the duration of the attack rotation to the animation speed
-            self.weapon.set_can_damage(False)
-            self.get_state()
+            #self.frame_index = 0
+            #self.timers[self.state].deactivate()    # responsibility of dev to match the duration of the attack rotation to the animation speed
+            #self.weapon.set_can_damage(False)
+            #self.get_state()
         elif (self.state == "hit"):
             # when timer is finished then toggle off is_hit
             if (self.timers["take_damage_cd"].active):
@@ -1164,3 +1203,5 @@ class Dog(Enemy):
         # reset x vel
         if (self.velocity.x > -0.01 and self.velocity.x < 0.01):
             self.velocity.x = 0
+        
+        #pygame.draw.rect(pygame.display.get_surface(), "green", self.hitbox_rect)

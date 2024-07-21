@@ -33,7 +33,10 @@ class Movement():
     def vertical_movement(self, dt):
         vel_y_change = 0
         if (self.obj.on_ramp_slope["on"] and not self.obj.is_jumping):
-            vel_y_change = math.ceil(abs(self.obj.velocity.x))  # 1:1 . increase a little bit to ensure no bounces
+            if (self.obj.type == ENEMY_DOG):
+                vel_y_change = math.ceil(abs(self.obj.velocity.x + 5))
+            else:
+                vel_y_change = math.ceil(abs(self.obj.velocity.x))  # 1:1 for no bouncing down ramps
         elif (not self.obj.collision_side["bot"] and any((self.obj.collision_side["left"], self.obj.collision_side["right"])) and not self.obj.is_jumping and self.obj.type == PLAYER_OBJECTS):
             if (self.obj.velocity.y < 0):
                 # stop it from going any higher since touched wall
@@ -123,9 +126,9 @@ class Movement():
         for sprite in self.obj.list_collide_basic:
             if (axis == "horizontal"):    
                 move_offset = 0
-                if (sprite.type == MOVING_OBJECTS):
+                if (sprite.type in [MOVING_OBJECTS, ENEMY_BIRD]):
                     move_offset = sprite.rect.width / 4 # abs(self.obj.velocity.x + sprite.speed * dt) # doesn't work
-                    print(move_offset)
+                    #print(move_offset)
                 elif (hasattr(sprite, "velocity")):
                     # completely inelastic collision. final v = (ma * ua - mb * ub) / (ma + mb). Let ma = mb.   v = (ua - ub) / 2
                     # but sim elastic when adjust rects

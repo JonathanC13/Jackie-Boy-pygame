@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.10" tiledversion="1.10.2" orientation="orthogonal" renderorder="right-down" width="73" height="11" tilewidth="70" tileheight="70" infinite="0" nextlayerid="19" nextobjectid="317">
+<map version="1.10" tiledversion="1.10.2" orientation="orthogonal" renderorder="right-down" width="73" height="11" tilewidth="70" tileheight="70" infinite="0" nextlayerid="19" nextobjectid="322">
  <tileset firstgid="1" source="../tilesets/objects_characters.tsx"/>
  <tileset firstgid="14" source="../tilesets/objects_env.tsx"/>
  <tileset firstgid="75" source="../tilesets/tiles_terrain.tsx"/>
@@ -145,7 +145,6 @@
   <object id="313" name="plant" gid="40" x="3406" y="71" width="70" height="70"/>
  </objectgroup>
  <objectgroup id="10" name="General_objects">
-  <object id="234" name="rockAlt" gid="42" x="2310" y="630" width="70" height="70"/>
   <object id="235" name="rock" gid="41" x="3360" y="630" width="70" height="70"/>
   <object id="236" name="rockAlt" gid="42" x="3399" y="631" width="70" height="70"/>
   <object id="237" name="rockAlt" gid="42" x="4717" y="631" width="70" height="70"/>
@@ -154,35 +153,52 @@
     <property name="inverted" type="bool" value="true"/>
    </properties>
   </object>
-  <object id="94" name="thorn_bush" gid="9" x="4348.33" y="630.667" width="51" height="26"/>
-  <object id="96" name="thorn_bush" gid="9" x="1796" y="490" width="51" height="26"/>
-  <object id="97" name="thorn_bush" gid="9" x="2008" y="629" width="51" height="26"/>
-  <object id="98" name="thorn_bush" gid="9" x="2050" y="629" width="51" height="26"/>
-  <object id="99" name="thorn_bush" gid="9" x="529.667" y="630.333" width="51" height="26"/>
-  <object id="100" name="thorn_bush" gid="9" x="4389.67" y="630" width="51" height="26"/>
-  <object id="109" name="thorn_bush" gid="9" x="2709" y="350" width="51" height="26"/>
-  <object id="85" name="thorn_bush" gid="9" x="1621" y="560" width="51" height="26"/>
-  <object id="86" name="thorn_bush" gid="9" x="1759" y="490" width="51" height="26"/>
-  <object id="90" name="thorn_bush" gid="9" x="3298" y="629" width="51" height="26"/>
   <object id="284" name="invis_wall" x="5045.33" y="-15.0002" width="61.3333" height="803.334"/>
+  <object id="317" name="floor_spikes" gid="4" x="4340" y="630" width="64" height="64">
+   <properties>
+    <property name="inverted" type="bool" value="false"/>
+   </properties>
+  </object>
+  <object id="319" name="floor_spikes" gid="4" x="1610" y="630" width="64" height="64">
+   <properties>
+    <property name="inverted" type="bool" value="false"/>
+   </properties>
+  </object>
+  <object id="320" name="floor_spikes" gid="4" x="3290" y="630" width="64" height="64">
+   <properties>
+    <property name="inverted" type="bool" value="false"/>
+   </properties>
+  </object>
  </objectgroup>
  <objectgroup id="9" name="Moving_objects"/>
  <objectgroup id="3" name="Player_objects">
-  <object id="84" name="player" gid="5" x="140" y="280" width="92" height="66"/>
+  <object id="84" name="player" gid="5" x="110.667" y="275.333" width="92" height="66"/>
  </objectgroup>
  <objectgroup id="13" name="Enemy_objects">
   <object id="67" name="dog" gid="3" x="1824" y="627.5" width="51" height="51"/>
   <object id="68" name="squirrel" gid="8" x="1933" y="487" width="54" height="31"/>
-  <object id="70" name="bird" gid="2" x="3331" y="280" width="72" height="36"/>
+  <object id="70" name="bird" gid="2" x="1394.34" y="297.334" width="72" height="36">
+   <properties>
+    <property name="white" type="bool" value="false"/>
+   </properties>
+  </object>
   <object id="88" name="dog" gid="3" x="3794" y="209" width="51" height="51"/>
-  <object id="91" name="bird" gid="2" x="4257" y="281" width="72" height="36"/>
-  <object id="92" name="bird" gid="2" x="4182" y="210" width="72" height="36"/>
+  <object id="91" name="bird" gid="2" x="1243.67" y="155.667" width="72" height="36">
+   <properties>
+    <property name="white" type="bool" value="false"/>
+   </properties>
+  </object>
+  <object id="92" name="bird" gid="2" x="1133.27" y="268.788" width="72" height="36">
+   <properties>
+    <property name="white" type="bool" value="false"/>
+   </properties>
+  </object>
   <object id="217" name="squirrel" gid="8" x="2102" y="560" width="54" height="31"/>
-  <object id="274" name="dog" gid="3" x="4550" y="630" width="51" height="51"/>
   <object id="275" name="dog" gid="3" x="4620" y="630" width="51" height="51"/>
   <object id="314" name="squirrel" gid="8" x="3080" y="490" width="54" height="31"/>
   <object id="315" name="dog" gid="3" x="2632.33" y="344.667" width="51" height="51"/>
   <object id="316" name="dog" gid="3" x="3527" y="623.333" width="51" height="51"/>
+  <object id="321" name="dog" gid="3" x="446.333" y="625.667" width="87" height="54"/>
  </objectgroup>
  <objectgroup id="18" name="Item_objects">
   <object id="294" name="kibble" gid="104" x="840" y="630" width="64" height="64"/>
@@ -205,7 +221,7 @@
   <object id="312" name="denta" gid="103" x="1540" y="560" width="64" height="64"/>
  </objectgroup>
  <objectgroup id="17" name="Water_objects"/>
- <layer id="11" name="FG" width="73" height="11" visible="0">
+ <layer id="11" name="FG" width="73" height="11">
   <data encoding="csv">
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,

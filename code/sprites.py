@@ -212,9 +212,10 @@ class Orbit(AnimatedSprite):
 		self.start_angle = self.end_angle = self.angle = new_end_angle
 		#print(self.angle)
 
-	def point_image(self, rect_src, location):
+	def point_image(self, source, location):
+		source = pygame.math.Vector2(source)
 		location = pygame.math.Vector2(location)
-		angle = degrees(atan2(location.y - rect_src.centery, location.x - rect_src.centerx))
+		angle = degrees(atan2(location.y - source.y, location.x - source.x))
 		self.set_angle(angle)
 		
 	def update_angle(self, dt):

@@ -18,7 +18,7 @@ class Game:
         self.import_assets()
         
         self.ui = UI(self.font, self.ui_frames)
-        self.data = Data(self.ui)
+        self.data = Data(self.ui)   # todo, save info in like a plain text file, read and initilize Data. Save into text file only when level has been completed
         self.curr_level = 1
 
         self.level_maps = [
@@ -46,9 +46,11 @@ class Game:
 			'caloud_small': import_folder('..', 'graphics', 'level', 'clouds', 'small'),
 			'cldoud_large': import_image('..', 'graphics', 'level', 'clouds', 'large_cloud'),
             'dog': import_sub_folders('..', 'graphics', 'enemies', 'dog'),
-            'bird': import_sub_folders('..', 'graphics', 'enemies', 'bird'),
+            'bird_brown': import_sub_folders('..', 'graphics', 'enemies', 'bird_brown'),
+            'bird_white': import_sub_folders('..', 'graphics', 'enemies', 'bird_white'),
             'squirrel': import_sub_folders('..', 'graphics', 'enemies', 'squirrel'),
             'stick': import_sub_folders('..', 'graphics', 'weapons', 'stick'),
+            'umbrella': import_sub_folders('..', 'graphics', 'weapons', 'umbrella'),
             'beak': import_sub_folders('..', 'graphics', 'weapons', 'beak'),
             'acorn': import_sub_folders('..', 'graphics', 'weapons', 'acorn'),
             'acorn_projectile': import_sub_folders('..', 'graphics', 'projectile', 'acorn'),

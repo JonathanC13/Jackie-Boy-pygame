@@ -50,7 +50,7 @@ class Weapon(Orbit):
             I'll keep what I have now
         """
         weapon_range_rect_center = self.weapon_range_rect.center
-        pygame.draw.rect(pygame.display.get_surface(), "green", self.weapon_range_rect)
+        #pygame.draw.rect(pygame.display.get_surface(), "green", self.weapon_range_rect)
 
         if (self.weapon_range_rect.colliderect(player_sprite.hitbox_rect)):
             left_offset = 0
@@ -85,7 +85,7 @@ class Weapon(Orbit):
         # point weapon for enemy sprite
         if (self.owner.player_proximity["detected"]):
             # move to angle
-            self.point_image(self.owner.hitbox_rect, player_location)
+            self.point_image(self.owner.hitbox_rect.center, player_location)
         else:
             # reset
             self.start_angle = self.end_angle = self.angle = 0 if facing_right else 180      
@@ -96,7 +96,6 @@ class Weapon(Orbit):
             self.original_radius = self.radius
 
             self.center = (WINDOW_WIDTH + TILE_SIZE*2, WINDOW_HEIGHT + TILE_SIZE*2)
-            #self.radius = 0
         else:
             self.center = self.original_center
             #self.radius = self.original_radius
@@ -231,3 +230,4 @@ class Stick(Weapon):
         self.get_state()
         self.animate(dt)
         self.rotate_image(self.image_orientation)
+

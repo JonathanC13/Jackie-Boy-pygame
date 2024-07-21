@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.10" tiledversion="1.10.2" orientation="orthogonal" renderorder="right-down" width="73" height="11" tilewidth="70" tileheight="70" infinite="0" nextlayerid="19" nextobjectid="339">
+<map version="1.10" tiledversion="1.10.2" orientation="orthogonal" renderorder="right-down" width="73" height="11" tilewidth="70" tileheight="70" infinite="0" nextlayerid="19" nextobjectid="340">
  <tileset firstgid="1" source="../tilesets/objects_characters.tsx"/>
  <tileset firstgid="14" source="../tilesets/objects_env.tsx"/>
  <tileset firstgid="75" source="../tilesets/tiles_terrain.tsx"/>
@@ -134,7 +134,11 @@
    </properties>
   </object>
   <object id="293" name="rock" gid="41" x="2660" y="630" width="70" height="70"/>
-  <object id="330" name="thorn_bush" gid="9" x="2705.67" y="350.333" width="51" height="26"/>
+  <object id="339" name="floor_spikes" gid="4" x="2730" y="350" width="64" height="64">
+   <properties>
+    <property name="inverted" type="bool" value="false"/>
+   </properties>
+  </object>
  </objectgroup>
  <objectgroup id="9" name="Moving_objects">
   <object id="302" name="platform" x="4755" y="354.667" width="10" height="250.666">
@@ -171,15 +175,27 @@
  <objectgroup id="13" name="Enemy_objects">
   <object id="255" name="dog" gid="3" x="910" y="350" width="51" height="51"/>
   <object id="256" name="dog" gid="3" x="1190" y="700" width="51" height="51"/>
-  <object id="268" name="bird" gid="2" x="2162.67" y="278" width="72" height="36"/>
+  <object id="268" name="bird" gid="2" x="2162.67" y="278" width="72" height="36">
+   <properties>
+    <property name="white" type="bool" value="false"/>
+   </properties>
+  </object>
   <object id="269" name="dog" gid="3" x="1680" y="560" width="51" height="51"/>
-  <object id="270" name="bird" gid="2" x="2730" y="140" width="72" height="36"/>
+  <object id="270" name="bird" gid="2" x="2730" y="140" width="72" height="36">
+   <properties>
+    <property name="white" type="bool" value="false"/>
+   </properties>
+  </object>
   <object id="271" name="dog" gid="3" x="2380" y="490" width="51" height="51"/>
   <object id="272" name="squirrel" gid="8" x="2870" y="350" width="54" height="31"/>
   <object id="273" name="squirrel" gid="8" x="2870" y="630" width="54" height="31"/>
   <object id="274" name="dog" gid="3" x="3500" y="140" width="51" height="51"/>
   <object id="300" name="Boss_1_sign" gid="13" x="4822.5" y="281.5" width="66" height="92"/>
-  <object id="336" name="bird" gid="2" x="1265.33" y="134" width="72" height="36"/>
+  <object id="336" name="bird" gid="2" x="1265.33" y="134" width="72" height="36">
+   <properties>
+    <property name="white" type="bool" value="false"/>
+   </properties>
+  </object>
   <object id="337" name="dog" gid="3" x="1576.33" y="551.333" width="51" height="51"/>
   <object id="338" name="dog" gid="3" x="3091" y="484.667" width="51" height="51"/>
  </objectgroup>

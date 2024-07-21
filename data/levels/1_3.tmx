@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.10" tiledversion="1.10.2" orientation="orthogonal" renderorder="right-down" width="73" height="11" tilewidth="70" tileheight="70" infinite="0" nextlayerid="19" nextobjectid="330">
+<map version="1.10" tiledversion="1.10.2" orientation="orthogonal" renderorder="right-down" width="73" height="11" tilewidth="70" tileheight="70" infinite="0" nextlayerid="19" nextobjectid="331">
  <tileset firstgid="1" source="../tilesets/objects_characters.tsx"/>
  <tileset firstgid="14" source="../tilesets/objects_env.tsx"/>
  <tileset firstgid="75" source="../tilesets/tiles_terrain.tsx"/>
@@ -117,14 +117,17 @@
   <object id="301" name="rockAlt" gid="42" x="2940" y="560" width="70" height="70"/>
   <object id="302" name="rockAlt" gid="42" x="3640" y="490" width="70" height="70"/>
   <object id="303" name="rockAlt" gid="42" x="4760" y="630" width="70" height="70"/>
-  <object id="304" name="thorn_bush" gid="9" x="700" y="630" width="51" height="26"/>
-  <object id="306" name="thorn_bush" gid="9" x="4480" y="630" width="51" height="26"/>
   <object id="326" name="floor_spikes" gid="1073741828" x="4343" y="385" width="64" height="64">
    <properties>
     <property name="inverted" type="bool" value="true"/>
    </properties>
   </object>
   <object id="327" name="floor_spikes" gid="4" x="1680" y="350" width="64" height="64">
+   <properties>
+    <property name="inverted" type="bool" value="false"/>
+   </properties>
+  </object>
+  <object id="330" name="floor_spikes" gid="4" x="4480" y="630" width="64" height="64">
    <properties>
     <property name="inverted" type="bool" value="false"/>
    </properties>
@@ -209,18 +212,38 @@
   <object id="250" name="player" gid="5" x="140" y="630" width="92" height="66"/>
  </objectgroup>
  <objectgroup id="13" name="Enemy_objects">
-  <object id="261" name="bird" gid="2" x="852" y="70" width="72" height="36"/>
-  <object id="262" name="bird" gid="2" x="1545.33" y="140.667" width="72" height="36"/>
-  <object id="263" name="bird" gid="2" x="912" y="346" width="72" height="36"/>
+  <object id="261" name="bird" gid="2" x="852" y="70" width="72" height="36">
+   <properties>
+    <property name="white" type="bool" value="false"/>
+   </properties>
+  </object>
+  <object id="262" name="bird" gid="2" x="1545.33" y="140.667" width="72" height="36">
+   <properties>
+    <property name="white" type="bool" value="false"/>
+   </properties>
+  </object>
+  <object id="263" name="bird" gid="2" x="912" y="346" width="72" height="36">
+   <properties>
+    <property name="white" type="bool" value="false"/>
+   </properties>
+  </object>
   <object id="265" name="squirrel" gid="8" x="1890" y="140" width="54" height="31"/>
   <object id="267" name="dog" gid="3" x="1890" y="490" width="51" height="51"/>
   <object id="276" name="squirrel" gid="8" x="2660" y="280" width="54" height="31"/>
   <object id="282" name="dog" gid="3" x="3570" y="280" width="51" height="51"/>
   <object id="283" name="dog" gid="3" x="1820" y="490" width="51" height="51"/>
-  <object id="284" name="bird" gid="2" x="4089.33" y="181.333" width="72" height="36"/>
+  <object id="284" name="bird" gid="2" x="4089.33" y="181.333" width="72" height="36">
+   <properties>
+    <property name="white" type="bool" value="false"/>
+   </properties>
+  </object>
   <object id="287" name="squirrel" gid="8" x="4410" y="560" width="54" height="31"/>
   <object id="288" name="dog" gid="3" x="4690" y="630" width="51" height="51"/>
-  <object id="328" name="bird" gid="2" x="3150" y="280" width="72" height="36"/>
+  <object id="328" name="bird" gid="2" x="3150" y="280" width="72" height="36">
+   <properties>
+    <property name="white" type="bool" value="false"/>
+   </properties>
+  </object>
  </objectgroup>
  <objectgroup id="18" name="Item_objects">
   <object id="308" name="denta" gid="103" x="700" y="560" width="64" height="64"/>

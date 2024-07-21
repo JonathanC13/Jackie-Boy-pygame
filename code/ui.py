@@ -53,7 +53,7 @@ class UI:
 
     def create_static_sprites(self):
         AnimatedSprite((self.inventory_x, self.denta_y), self.denta_frames, self.static_sprites, "denta")
-        AnimatedSprite((self.inventory_x, self.kibble_y), self.kibble_frames, self.static_sprites, "denta")
+        AnimatedSprite((self.inventory_x, self.kibble_y), self.kibble_frames, self.static_sprites, "kibble")
 
     def outline_surface(self, surface, pos):
         """
@@ -94,7 +94,7 @@ class UI:
             self.outline_surface(self.heart_amount_surf, (x, y))
             self.display_surface.blit(self.heart_amount_surf, (x, y))
 
-        x = self.inventory_x + 45
+        x = self.inventory_x + 35
         if (self.denta_amount_surf is not None):
             y = self.denta_y + self.denta_surface_height - self.denta_amount_surf.get_size()[1]
             self.outline_surface(self.denta_amount_surf, (x, y))
