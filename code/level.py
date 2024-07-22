@@ -27,8 +27,8 @@ class Level:
         self.data = data
 
         # sprite groups
-        #self.all_sprites = pygame.sprite.Group()
-        self.all_sprites = AllSprites()
+        self.all_sprites = pygame.sprite.Group()
+        #self.all_sprites = AllSprites()
         self.player_sprite = pygame.sprite.GroupSingle()
         self.player_weapon_sprites = pygame.sprite.Group()
         self.ball_sprites = pygame.sprite.Group()
@@ -493,9 +493,9 @@ class Level:
         self.attack_collision()
         
         # draw all sprites
-        #self.all_sprites.draw(self.display_surface)
-        self.all_sprites.draw(self.player.hitbox_rect.center, self.player.hitbox_rect.width, self.tmx_map_max_width)
+        self.all_sprites.draw(self.display_surface)
+        #self.all_sprites.draw(self.player.hitbox_rect.center, self.player.hitbox_rect.width, self.tmx_map_max_width)
 
         # give player the window offset
-        self.current_window_offset_x = self.all_sprites.get_offset()
+        self.current_window_offset_x = 0#self.all_sprites.get_offset()
         self.player.set_current_window_offset((self.current_window_offset_x, 0))

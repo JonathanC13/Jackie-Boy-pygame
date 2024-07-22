@@ -548,7 +548,7 @@ class Bird(Enemy):
 
         self.patrol_left_bound = pygame.math.Vector2(self.spawn_pos[0] - 300, self.spawn_pos[1])
         self.patrol_right_bound = pygame.math.Vector2(self.spawn_pos[0] + 300, self.spawn_pos[1])
-        self.patrol_right = True
+        self.patrol_right = False
 
         self.flight_src = pygame.math.Vector2(pos)
         self.flight_dest =  pygame.math.Vector2(pos)
@@ -556,7 +556,8 @@ class Bird(Enemy):
         self.flight_complete = True # for dive and return. Either this flag or timer
         self.pathing_rect = self.hitbox_rect.copy()
         
-        self.obstacles = (self.collision_sprites , self.semi_collision_sprites)
+        # for collision_sprites, ignore self object since it would cause the spawn position as an obstacle if not excluded
+        self.obstacles = [spr for spr in self.collision_sprites if (not hasattr(spr, "id") or (hasattr(spr, "id") and spr.get_id() != self.get_id()))] + self.semi_collision_sprites.sprites() + self.ramp_collision_sprites.sprites()
 
         self.dt = 1
 
@@ -687,16 +688,13 @@ class Bird(Enemy):
         while (not valid_found):
             valid_found = True
             dest_rect = pygame.FRect((valid_dest), (1, 1))
-            for obs in self.obstacles:
-                for spr in obs:
-                    if (spr.rect.colliderect(dest_rect)):
-                        valid_found = False
-                        if (src[0] < dest[0]):
-                            valid_dest = valid_dest - pygame.math.Vector2(TILE_SIZE, 0)
-                        else:
-                            valid_dest = valid_dest + pygame.math.Vector2(TILE_SIZE, 0)
-                        break
-                if (not valid_found):
+            for spr in self.obstacles:
+                if (spr.rect.colliderect(dest_rect)):
+                    valid_found = False
+                    if (src[0] < dest[0]):
+                        valid_dest = valid_dest - pygame.math.Vector2(TILE_SIZE, 0)
+                    else:
+                        valid_dest = valid_dest + pygame.math.Vector2(TILE_SIZE, 0)
                     break
 
         self.flight_dest = valid_dest
@@ -731,6 +729,7 @@ class Bird(Enemy):
         if (self.home_rect is not None):
             self.is_home = self.home_rect.collidepoint(self.hitbox_rect.center)
             if (self.is_home):
+                self.home_rect = None
                 self.weapon.enemy_point_image(self.player_location, self.facing_right)
 
     def get_velocity(self):
@@ -764,9 +763,9 @@ class Bird(Enemy):
                         self.timers[self.current_attack["timer_name"]].kill()
                     else:
                         self.assess_path()
-                    #self.pathfinder.draw_path()
-                    #for rect in self.pathfinder.path_checkpoints:
-                        #pygame.draw.rect(pygame.display.get_surface(), "blue", rect)
+                    # self.pathfinder.draw_path()
+                    # for rect in self.pathfinder.path_checkpoints:
+                    #     pygame.draw.rect(pygame.display.get_surface(), "blue", rect)
 
             elif (self.current_attack["timer_name"] == "locking_on" and self.timers[self.current_attack["timer_name"]].active):
                 # specific attack
@@ -825,11 +824,13 @@ class Bird(Enemy):
             else:
                 self.flight_speed = FLIGHT_NORMAL_SPEED
                 if (len(self.pathfinder.path) == 0):
+                    self.patrol_right = not self.patrol_right
                     if (not self.is_home):
                         # check if home, if not return
                         self.set_path_points(self.get_rect_center(), self.spawn_pos)
                         self.determine_path()
-                        if (len(self.pathfinder.path_checkpoints) > 0):
+                        print(self.flight_src, ": ", self.flight_dest)
+                        if (len(self.pathfinder.path_checkpoints) > 0 and self.home_rect is None):
                             self.home_rect = self.pathfinder.path_checkpoints[-1]
                         self.set_if_home()
                     elif (self.is_home):
@@ -839,10 +840,13 @@ class Bird(Enemy):
                         else:
                             self.set_path_points(self.get_rect_center(), self.patrol_left_bound)
                             
-                        self.patrol_right = not self.patrol_right
                         self.determine_path()
 
                 self.assess_path()
+                if not self.is_home:
+                    self.pathfinder.draw_path()
+                    for rect in self.pathfinder.path_checkpoints:
+                        pygame.draw.rect(pygame.display.get_surface(), "blue", rect)
 
     def animate(self, dt):
         self.frame_index += self.animation_speed * dt/FPS_TARGET
@@ -903,7 +907,7 @@ class Dog(Enemy):
 
         super().__init__(pos = pos, frames = frames, groups = groups, collision_sprites = collision_sprites, semi_collision_sprites = semi_collision_sprites, ramp_collision_sprites = ramp_collision_sprites, player_sprite = player_sprite, enemy_sprites = enemy_sprites, type = type, jump_height = -DOG_VEL_Y, accel_x = DOG_ACCEL, vel_max_x = DOG_MAX_VEL_X, vel_max_y = DOG_MAX_VEL_Y, id = id)
 
-        self.hitbox_rect = self.rect.inflate(-20, 0)
+        self.hitbox_rect = self.rect.inflate(-50, 0)
         # previous rect in previous frame to know which direction this rect came from
         self.old_rect = self.hitbox_rect.copy()
 

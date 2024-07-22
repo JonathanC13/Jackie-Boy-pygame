@@ -8,11 +8,10 @@ class Pathfinder:
         self.path_checkpoints = []
 
     def build_matrix(self, obstacles):
-        for obs in obstacles:
-            for spr in obs:
-                x = int(spr.rect.topleft[0] // TILE_SIZE)
-                y = int(spr.rect.topleft[1] // TILE_SIZE)
-                self.matrix[x][y] = 0
+        for spr in obstacles:
+            x = int(spr.rect.topleft[0] // TILE_SIZE)
+            y = int(spr.rect.topleft[1] // TILE_SIZE)
+            self.matrix[x][y] = 0
 
     def empty_path(self):
         self.path = []
@@ -20,7 +19,7 @@ class Pathfinder:
     def print_matrix(self, matrix):
         for r in range(len(matrix)):
             for c in range(len(matrix[r])):
-                print(matrix[r][c], end= ", ")
+                print(f'{str(matrix[r][c]).center(10)}', end= ", ")
             print('-')
 
     def draw_matrix_rects(self):
@@ -30,10 +29,11 @@ class Pathfinder:
                     pygame.draw.rect(pygame.display.get_surface(), "red", Tile((c * TILE_SIZE, r * TILE_SIZE)).create_rect())   
 
     def dijkstra(self, start_coord, end_coord):
+        
         # have to resize for index
         start_coord = list([int(z // TILE_SIZE) for z in start_coord])
         end_coord = list([int(z // TILE_SIZE) for z in end_coord])
-
+        #print(start_coord, " => ", end_coord)
         adj_start_coord = start_coord#[start_coord[1], start_coord[0]] and then flip since x = col and y = row
         adj_end_coord = end_coord#[end_coord[1], end_coord[0]]
 
@@ -47,7 +47,7 @@ class Pathfinder:
         visited = [[False] * cols for _ in range(rows)]
         predecessors = [[None] * cols for _ in range(rows)]
         
-        directions = [[-1, 0], [-1, 1], [0, 1], [1, 1], [0, 1], [1, -1], [0, -1], [-1, -1]]
+        directions = [[-1, 0], [-1, 1], [0, 1], [1, 1], [1, 0], [1, -1], [0, -1], [-1, -1]]
 
         for _ in range(size):
             min_distance = float('inf')
@@ -62,6 +62,7 @@ class Pathfinder:
 
             if (curr is None or (curr[0] == adj_end_coord[0] and curr[1] == adj_end_coord[1])):
                 # either cannot continue due to no more unvisited edges or found target
+                #print(f"Breaking out of loop. Current vertex: {curr}")
                 break
 
             visited[curr[0]][curr[1]] = True
@@ -82,6 +83,8 @@ class Pathfinder:
                         distances[new_r][new_c] = new_dist
                         predecessors[new_r][new_c] = curr
 
+        #self.print_matrix(self.matrix)
+        #self.print_matrix(distances)
         #self.print_matrix(predecessors)
         return distances, self.get_path(predecessors, adj_start_coord, adj_end_coord)
         
@@ -99,7 +102,7 @@ class Pathfinder:
             elif (curr[0] == adj_start_coord[0] and curr[1] == adj_start_coord[1]):
                 self.path.insert(0, adj_start_coord)#[adj_start_coord[1], adj_start_coord[0]]
                 break
-        
+        #print(self.path)
         return self.path
     
     def draw_path(self):
@@ -110,6 +113,7 @@ class Pathfinder:
                 points.append([point[0] * TILE_SIZE + (TILE_SIZE/2), point[1] * TILE_SIZE + (TILE_SIZE/2)])
 
             pygame.draw.lines(pygame.display.get_surface(), "red", False, points)
+            print(points)
 
 class Tile:
     def __init__(self, pos):
