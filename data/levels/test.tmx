@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.10" tiledversion="1.10.2" orientation="orthogonal" renderorder="right-down" width="73" height="11" tilewidth="70" tileheight="70" infinite="0" nextlayerid="19" nextobjectid="314">
+<map version="1.10" tiledversion="1.10.2" orientation="orthogonal" renderorder="right-down" width="73" height="11" tilewidth="70" tileheight="70" infinite="0" nextlayerid="20" nextobjectid="318">
  <tileset firstgid="1" source="../tilesets/objects_characters.tsx"/>
  <tileset firstgid="14" source="../tilesets/objects_env.tsx"/>
  <tileset firstgid="75" source="../tilesets/tiles_terrain.tsx"/>
@@ -27,8 +27,8 @@
 0,0,0,0,0,76,0,0,0,0,0,0,0,0,76,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 0,0,0,0,0,76,0,0,0,0,0,0,0,76,76,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-0,0,0,0,76,0,76,76,76,76,76,76,76,0,0,0,0,0,0,0,0,0,0,75,75,75,75,75,75,75,75,75,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,76,
+0,0,0,0,76,0,76,76,76,76,76,76,76,0,0,0,0,0,0,0,0,0,0,75,75,75,75,75,75,75,75,75,76,76,76,76,76,76,76,76,76,76,76,76,76,76,76,76,76,76,76,76,76,76,76,76,76,76,76,76,76,76,76,76,76,76,76,76,76,76,76,76,76,
 76,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,76,0,0,0,75,75,75,75,75,75,75,75,75,75,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 76,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,75,75,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 76,76,76,81,81,81,81,81,81,81,81,81,81,81,81,81,78,76,75,75,75,75,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
@@ -96,7 +96,9 @@
 </data>
  </layer>
  <objectgroup id="12" name="Mid_details"/>
- <objectgroup id="10" name="General_objects"/>
+ <objectgroup id="10" name="General_objects">
+  <object id="315" name="flag" gid="11" x="2380" y="420" width="68" height="186"/>
+ </objectgroup>
  <objectgroup id="9" name="Moving_objects"/>
  <objectgroup id="3" name="Player_objects">
   <object id="306" name="player" gid="5" x="243" y="622" width="87" height="54"/>
@@ -136,7 +138,9 @@
   <object id="296" name="kibble" gid="104" x="1890" y="420" width="64" height="64"/>
   <object id="297" name="kibble" gid="104" x="1820" y="420" width="64" height="64"/>
  </objectgroup>
- <objectgroup id="17" name="Water_objects"/>
+ <objectgroup id="17" name="Water_objects">
+  <object id="314" name="water" x="1256.66" y="558.667" width="1890.67" height="210"/>
+ </objectgroup>
  <layer id="11" name="FG" width="73" height="11">
   <data encoding="csv">
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
@@ -154,4 +158,18 @@
  </layer>
  <objectgroup id="16" name="Triggers"/>
  <objectgroup id="15" name="notes"/>
+ <objectgroup id="19" name="Data">
+  <object id="316" name="Data" x="0" y="0" width="70" height="70">
+   <properties>
+    <property name="bg" value=""/>
+    <property name="bottom_limit" type="int" value="770"/>
+    <property name="death_border_bottom" type="int" value="0"/>
+    <property name="horizon_colour" value="#93c596"/>
+    <property name="horizon_line" type="int" value="600"/>
+    <property name="horizon_line_colour" value="#93db24"/>
+    <property name="level_unlock" type="int" value="1"/>
+    <property name="top_limit" type="int" value="0"/>
+   </properties>
+  </object>
+ </objectgroup>
 </map>

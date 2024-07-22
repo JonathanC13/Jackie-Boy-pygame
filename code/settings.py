@@ -28,6 +28,7 @@ TERRAIN_FLOOR_ONLY = "Terrain_floor_only"
 TERRAIN_BASIC = "Terrain_basic"
 BG_DETAILS = "BG_details"
 BG = "BG"
+DATA = "Data"
 
 # Layer order to be draw. Higher number is higher priority
 Z_LAYERS = {

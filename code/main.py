@@ -22,12 +22,12 @@ class Game:
         self.curr_level = 1
 
         self.level_maps = [
-            [0, 0, load_pygame(os.path.join("..", "data", "levels", "test_ground.tmx"))],
-            [0, 0, load_pygame(os.path.join("..", "data", "levels", "test.tmx"))],
-            [1, 1, load_pygame(os.path.join("..", "data", "levels", "1_1.tmx"))],
-            [1, 2, load_pygame(os.path.join("..", "data", "levels", "1_2.tmx"))],
-            [1, 3, load_pygame(os.path.join("..", "data", "levels", "1_3.tmx"))],
-            [1, 4, load_pygame(os.path.join("..", "data", "levels", "1_4.tmx"))]
+            {"stage_main" :0, "stage_sub": 0, "tmx_map": load_pygame(os.path.join("..", "data", "levels", "test_ground.tmx")), "completion_reqs": {}},
+            {"stage_main" :0, "stage_sub": 0, "tmx_map": load_pygame(os.path.join("..", "data", "levels", "test.tmx")), "completion_reqs": {"kibble": 5, "denta": 1}},
+            {"stage_main" :1, "stage_sub": 1, "tmx_map": load_pygame(os.path.join("..", "data", "levels", "1_1.tmx")), "completion_reqs": {}},
+            {"stage_main" :1, "stage_sub": 2, "tmx_map": load_pygame(os.path.join("..", "data", "levels", "1_2.tmx")), "completion_reqs": {}},
+            {"stage_main" :1, "stage_sub": 3, "tmx_map": load_pygame(os.path.join("..", "data", "levels", "1_3.tmx")), "completion_reqs": {}},
+            {"stage_main" :1, "stage_sub": 4, "tmx_map": load_pygame(os.path.join("..", "data", "levels", "1_4.tmx")), "completion_reqs": {}}
         ]
 
         self.run_level = Level(self.level_maps[self.curr_level], self.level_frames, self.data)
@@ -57,7 +57,13 @@ class Game:
             'ball': import_sub_folders('..', 'graphics', 'weapons', 'ball'),
             'ball_projectile': import_sub_folders('..', 'graphics', 'projectile', 'ball'),
             'items': import_sub_folders('..', 'graphics', 'items'),
-            'effect_particle': import_folder('..', 'graphics', 'effects', 'particle')
+            'effect_particle': import_folder('..', 'graphics', 'effects', 'particle'),
+            'flag': import_folder('..', 'graphics', 'level', 'flag'),
+            'water_top': import_folder('..', 'graphics', 'level', 'water', 'top'),
+            'water_body': import_image('..', 'graphics', 'level', 'water', 'body'),
+            'bg_tiles': import_folder_dict('..', 'graphics', 'level', 'bg', 'tiles'),
+            'cloud_small': import_folder('..', 'graphics', 'level', 'clouds', 'small'),
+            'cloud_large': import_image('..', 'graphics', 'level', 'clouds', 'large_cloud')
         }
 
         self.font = pygame.font.Font(join('..', 'graphics', 'ui', 'font', 'runescape_uf.ttf'), 25)

@@ -269,3 +269,16 @@ class Orbit(AnimatedSprite):
 		if (self.rotate):
 			self.rotate_image(self.image_orientation)
 			
+class Cloud(Sprite):
+	def __init__(self, pos, frames, groups, type = 'cloud', z = Z_LAYERS["clouds"], speed = 0.25):
+		super().__init__(pos, frames, groups, type, z)
+
+		self.cloud_direction = -1
+		self.cloud_speed = speed
+
+		self.rect.bottomleft = pos
+
+	def update(self, dt, event_list = None):
+		self.rect.x += self.cloud_direction * self.cloud_speed * dt
+		if (self.rect.right <= 0):
+			self.kill()

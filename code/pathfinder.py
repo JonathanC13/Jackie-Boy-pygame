@@ -113,7 +113,7 @@ class Pathfinder:
                 points.append([point[0] * TILE_SIZE + (TILE_SIZE/2), point[1] * TILE_SIZE + (TILE_SIZE/2)])
 
             pygame.draw.lines(pygame.display.get_surface(), "red", False, points)
-            print(points)
+            #print(points)
 
 class Tile:
     def __init__(self, pos):

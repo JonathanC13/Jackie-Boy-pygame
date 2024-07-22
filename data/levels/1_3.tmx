@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.10" tiledversion="1.10.2" orientation="orthogonal" renderorder="right-down" width="73" height="11" tilewidth="70" tileheight="70" infinite="0" nextlayerid="19" nextobjectid="331">
+<map version="1.10" tiledversion="1.10.2" orientation="orthogonal" renderorder="right-down" width="73" height="11" tilewidth="70" tileheight="70" infinite="0" nextlayerid="20" nextobjectid="334">
  <tileset firstgid="1" source="../tilesets/objects_characters.tsx"/>
  <tileset firstgid="14" source="../tilesets/objects_env.tsx"/>
  <tileset firstgid="75" source="../tilesets/tiles_terrain.tsx"/>
@@ -107,7 +107,6 @@
   <object id="280" name="sandLedgeRight" gid="72" x="3640" y="298" width="5" height="18"/>
   <object id="281" name="sandLedgeRight" gid="72" x="3710" y="508.333" width="5" height="18"/>
   <object id="285" name="sandLedgeLeft" gid="71" x="4405" y="578" width="5" height="18"/>
-  <object id="295" name="flag" gid="11" x="5002" y="629" width="68" height="186"/>
   <object id="307" name="dirtCaveSpikeTop" gid="28" x="1960" y="280" width="70" height="70"/>
  </objectgroup>
  <objectgroup id="10" name="General_objects">
@@ -132,6 +131,7 @@
     <property name="inverted" type="bool" value="false"/>
    </properties>
   </object>
+  <object id="331" gid="11" x="5000.67" y="629" width="68" height="186"/>
  </objectgroup>
  <objectgroup id="9" name="Moving_objects">
   <object id="257" name="boat" x="916" y="547.667" width="689.333" height="10">
@@ -266,8 +266,8 @@
   <object id="325" name="kibble" gid="104" x="4033.33" y="377.333" width="64" height="64"/>
  </objectgroup>
  <objectgroup id="17" name="Water_objects">
-  <object id="253" name="water" x="910" y="569.333" width="1890.67" height="200"/>
-  <object id="256" name="water" x="3080" y="569.33" width="1328" height="200"/>
+  <object id="253" name="water" x="910" y="569.333" width="1890.67" height="210"/>
+  <object id="256" name="water" x="3080" y="569.33" width="1328" height="210"/>
  </objectgroup>
  <layer id="11" name="FG" width="73" height="11">
   <data encoding="csv">
@@ -284,8 +284,20 @@
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
 </data>
  </layer>
- <objectgroup id="16" name="Triggers">
-  <object id="296" name="level_end" x="4999.33" y="6.00017" width="41.3334" height="630.666"/>
- </objectgroup>
+ <objectgroup id="16" name="Triggers"/>
  <objectgroup id="15" name="notes"/>
+ <objectgroup id="19" name="Data">
+  <object id="333" name="Data" x="0" y="0" width="70" height="70">
+   <properties>
+    <property name="bg" value="Blue"/>
+    <property name="bottom_limit" type="int" value="770"/>
+    <property name="death_border_bottom" type="int" value="0"/>
+    <property name="horizon_colour" value="#92a9c2"/>
+    <property name="horizon_line" type="int" value="600"/>
+    <property name="horizon_line_colour" value="#f5f1de"/>
+    <property name="level_unlock" type="int" value="1"/>
+    <property name="top_limit" type="int" value="0"/>
+   </properties>
+  </object>
+ </objectgroup>
 </map>

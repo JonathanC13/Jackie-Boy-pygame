@@ -777,7 +777,7 @@ class Player(pygame.sprite.Sprite):
         self.animate(dt)
         self.flicker()
 
-        pygame.draw.rect(self.display_surface, "green", self.hitbox_rect)
+        #pygame.draw.rect(self.display_surface, "green", self.hitbox_rect)
         
         # reset x vel
         if (self.velocity.x > -0.01 and self.velocity.x < 0.01):

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.10" tiledversion="1.10.2" orientation="orthogonal" renderorder="right-down" width="73" height="11" tilewidth="70" tileheight="70" infinite="0" nextlayerid="19" nextobjectid="433">
+<map version="1.10" tiledversion="1.10.2" orientation="orthogonal" renderorder="right-down" width="73" height="11" tilewidth="70" tileheight="70" infinite="0" nextlayerid="20" nextobjectid="436">
  <tileset firstgid="1" source="../tilesets/objects_characters.tsx"/>
  <tileset firstgid="14" source="../tilesets/objects_env.tsx"/>
  <tileset firstgid="75" source="../tilesets/tiles_terrain.tsx"/>
@@ -132,7 +132,6 @@
   <object id="365" name="plant" gid="40" x="2590" y="350" width="70" height="70"/>
   <object id="366" name="plant" gid="40" x="3010" y="420" width="70" height="70"/>
   <object id="367" name="plant" gid="40" x="3990" y="140" width="70" height="70"/>
-  <object id="373" name="flag" gid="11" x="4979.33" y="350.333" width="68" height="186"/>
   <object id="394" name="bush_large" gid="17" x="840" y="630" width="216" height="72"/>
   <object id="395" name="bush_small" gid="18" x="813" y="631" width="70" height="70"/>
   <object id="396" name="dirtCaveBL" gid="22" x="4270" y="700" width="70" height="70"/>
@@ -162,6 +161,7 @@
     <property name="inverted" type="bool" value="false"/>
    </properties>
   </object>
+  <object id="433" name="flag" gid="11" x="5000.67" y="349" width="68" height="186"/>
  </objectgroup>
  <objectgroup id="9" name="Moving_objects">
   <object id="312" name="bats" gid="12" x="1834" y="468.333" width="44" height="30">
@@ -248,8 +248,20 @@
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
 </data>
  </layer>
- <objectgroup id="16" name="Triggers">
-  <object id="372" name="level_end" x="4974.67" y="2.66667" width="62.6667" height="376"/>
- </objectgroup>
+ <objectgroup id="16" name="Triggers"/>
  <objectgroup id="15" name="notes"/>
+ <objectgroup id="19" name="Data">
+  <object id="435" name="Data" x="0" y="0" width="70" height="70">
+   <properties>
+    <property name="bg" value="Blue"/>
+    <property name="bottom_limit" type="int" value="770"/>
+    <property name="death_border_bottom" type="int" value="0"/>
+    <property name="horizon_colour" value="#93c596"/>
+    <property name="horizon_line" type="int" value="600"/>
+    <property name="horizon_line_colour" value="#93db24"/>
+    <property name="level_unlock" type="int" value="1"/>
+    <property name="top_limit" type="int" value="0"/>
+   </properties>
+  </object>
+ </objectgroup>
 </map>

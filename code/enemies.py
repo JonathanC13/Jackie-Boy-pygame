@@ -1167,13 +1167,9 @@ class Dog(Enemy):
     def get_state(self):
         if (self.is_hit):
             self.state = "hit"
-            return
-        elif (self.current_attack is not None):
-            if (self.current_attack["timer_name"] in ["ready_uppercut", "ready_slash", "uppercut", "slash"] and self.timers[self.current_attack["timer_name"]].active):
-                self.state = self.current_attack["timer_name"]
-                return
-
-        if (self.is_jumping):
+        elif (self.current_attack is not None and (self.current_attack["timer_name"] in ["ready_uppercut", "ready_slash", "uppercut", "slash"] and self.timers[self.current_attack["timer_name"]].active)):
+            self.state = self.current_attack["timer_name"]
+        elif (self.is_jumping):
             self.state = "jump" if self.velocity.y < 0 else "fall" 
         elif (self.LEFT_KEY or self.RIGHT_KEY):
             self.state = "run"

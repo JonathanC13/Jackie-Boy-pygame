@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.10" tiledversion="1.10.2" orientation="orthogonal" renderorder="right-down" width="73" height="11" tilewidth="70" tileheight="70" infinite="0" nextlayerid="19" nextobjectid="322">
+<map version="1.10" tiledversion="1.10.2" orientation="orthogonal" renderorder="right-down" width="73" height="11" tilewidth="70" tileheight="70" infinite="0" nextlayerid="20" nextobjectid="326">
  <tileset firstgid="1" source="../tilesets/objects_characters.tsx"/>
  <tileset firstgid="14" source="../tilesets/objects_env.tsx"/>
  <tileset firstgid="75" source="../tilesets/tiles_terrain.tsx"/>
@@ -136,7 +136,6 @@
   <object id="277" name="tree_large" gid="70" x="4970" y="630" width="172" height="630"/>
   <object id="278" name="tree_small" gid="69" x="4900" y="630" width="247" height="490"/>
   <object id="279" name="tinyShroom_red" gid="47" x="3447.67" y="631.667" width="70" height="70"/>
-  <object id="282" name="flag" gid="11" x="4986" y="630" width="68" height="186"/>
   <object id="288" name="plant" gid="40" x="597" y="632" width="70" height="70"/>
   <object id="289" name="plant" gid="40" x="862" y="631" width="70" height="70"/>
   <object id="290" name="plant" gid="40" x="2672" y="351" width="70" height="70"/>
@@ -169,6 +168,7 @@
     <property name="inverted" type="bool" value="false"/>
    </properties>
   </object>
+  <object id="322" name="flag" gid="11" x="4998" y="629" width="68" height="186"/>
  </objectgroup>
  <objectgroup id="9" name="Moving_objects"/>
  <objectgroup id="3" name="Player_objects">
@@ -238,7 +238,6 @@
  </layer>
  <objectgroup id="16" name="Triggers">
   <object id="106" name="secret_level_1" x="2" y="-0.666667" width="20" height="300"/>
-  <object id="283" name="level_end" x="4983.33" y="2.66667" width="57.3333" height="641.333"/>
  </objectgroup>
  <objectgroup id="15" name="notes">
   <object id="20" x="733.333" y="518.167" width="80" height="47.6667">
@@ -252,6 +251,20 @@
   </object>
   <object id="49" x="3667.67" y="322.5" width="80" height="17">
    <text wrap="1">wall jump</text>
+  </object>
+ </objectgroup>
+ <objectgroup id="19" name="Data">
+  <object id="325" name="Data" x="0" y="0" width="70" height="70">
+   <properties>
+    <property name="bg" value="Blue"/>
+    <property name="bottom_limit" type="int" value="770"/>
+    <property name="death_border_bottom" type="int" value="0"/>
+    <property name="horizon_colour" value="#93c596"/>
+    <property name="horizon_line" type="int" value="600"/>
+    <property name="horizon_line_colour" value="#93db24"/>
+    <property name="level_unlock" type="int" value="1"/>
+    <property name="top_limit" type="int" value="0"/>
+   </properties>
   </object>
  </objectgroup>
 </map>

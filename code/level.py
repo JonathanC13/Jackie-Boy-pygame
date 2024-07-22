@@ -13,10 +13,18 @@ class Level:
 
         self.display_surface = pygame.display.get_surface()
 
-        self.stage_main = level_data[0]
-        self.stage_sub = level_data[1]
-        self.tmx_map = level_data[2]
-        self.tmx_map_max_width = self.tmx_map.width
+        self.stage_main = level_data["stage_main"]
+        self.stage_sub = level_data["stage_sub"]
+        self.tmx_map = level_data["tmx_map"]
+        self.tmx_map_max_width = self.tmx_map.width * TILE_SIZE
+        self.tmx_map_max_height = self.tmx_map.height * TILE_SIZE
+
+        bg_tile = None
+        tmx_level_properties = self.tmx_map.get_layer_by_name('Data')[0].properties
+        if tmx_level_properties['bg']:
+            bg_tile = level_frames['bg_tiles'][tmx_level_properties['bg']]
+
+        self.completion_reqs = level_data["completion_reqs"]
 
         self.acorn_frames = level_frames["acorn_projectile"]
         self.particle_frames = level_frames["effect_particle"]
@@ -27,8 +35,14 @@ class Level:
         self.data = data
 
         # sprite groups
-        self.all_sprites = pygame.sprite.Group()
-        #self.all_sprites = AllSprites()
+        #self.all_sprites = pygame.sprite.Group()
+        self.all_sprites = AllSprites(
+            tmx_map_width = self.tmx_map.width, 
+            tmx_map_height = self.tmx_map.height,
+            clouds = {"large": level_frames['cloud_large'], "small": level_frames['cloud_small']},
+            horizon_info = {'horizon_line': tmx_level_properties['horizon_line'], 'horizon_line_colour': tmx_level_properties['horizon_line_colour'], 'horizon_colour': tmx_level_properties['horizon_colour']},
+            bg_tile = bg_tile,
+            top_limit = tmx_level_properties['top_limit'])
         self.player_sprite = pygame.sprite.GroupSingle()
         self.player_weapon_sprites = pygame.sprite.Group()
         self.ball_sprites = pygame.sprite.Group()
@@ -43,6 +57,8 @@ class Level:
         self.acorn_sprites = pygame.sprite.Group()
         self.damage_sprites = pygame.sprite.Group()
         self.item_sprites = pygame.sprite.Group()
+
+        self.level_finish_rect = None
 
         self.setup(level_frames)
 
@@ -172,6 +188,9 @@ class Level:
                 frames = level_frames[obj.name]
                 if obj.name == "floor_spikes" and obj.properties["inverted"]:
                     frames = [pygame.transform.flip(frame, False, True) for frame in frames]
+
+                if (obj.name == "flag"):
+                    self.level_finish_rect = pygame.Rect((obj.x, obj.y), (obj.width, obj.height))
 
                 # groups 
                 groups = [self.all_sprites]
@@ -326,11 +345,22 @@ class Level:
             )
         
         # water
+        for obj in self.tmx_map.get_layer_by_name(WATER_OBJECTS):
+            rows = int(obj.height / TILE_SIZE)
+            cols = int(obj.width / TILE_SIZE)
+            for row in range(rows):
+                for col in range(cols):
+                    x = obj.x + col * TILE_SIZE
+                    y = obj.y + row * TILE_SIZE
+
+                    if row == 0:
+                        AnimatedSprite((x, y), level_frames['water_top'], self.all_sprites, WATER_OBJECTS, Z_LAYERS['water'])
+                    else:
+                        Sprite((x, y), level_frames['water_body'], self.all_sprites, WATER_OBJECTS, Z_LAYERS['water'])
 
         # triggers
 
     def create_ball(self, pos, angle_fired, owner_id):
-        print(self.data.ball_level)
         BallProjectile(pos, self.ball_frames, (self.all_sprites, self.ball_sprites), PLAYER_THROW_SPEED, angle_fired, owner_id, self.particle_frames, self.all_sprites, 1, self.data.ball_level)
 
     def create_acorn(self, pos, angle_fired, owner_id):
@@ -481,6 +511,44 @@ class Level:
                             else:
                                 print(f"User error, missing type in attack_collision: {hit.type}")
 
+    def check_constraint(self):
+        # side constraints
+        if (self.player.hitbox_rect.left <= 0):
+            self.player.hitbox_rect.left = 0
+        elif (self.player.hitbox_rect.right >= self.tmx_map_max_width):
+            self.player.hitbox_rect.right = self.tmx_map_max_width
+
+        # top and bottom constraints
+        if (self.player.hitbox_rect.bottom <= 0):
+            self.player.hitbox_rect.top = 0
+        elif (self.player.hitbox_rect.bottom >= self.tmx_map_max_height):
+            print('death')
+
+        # completed level
+        if (self.level_finish_rect is not None and self.player.hitbox_rect.colliderect(self.level_finish_rect)):
+            requirements_met = True
+            for req_key, req_val in self.completion_reqs.items():
+                requirements_met = self.check_requirement(req_key, req_val)
+                if (not requirements_met):
+                    break
+            
+            if (requirements_met):
+                print('success')
+            else:
+                print('not all requirements met')
+
+    def check_requirement(self, key, value):
+        if (key == "denta"):
+            return True if self.data.denta >= value else False
+        elif (key == "kibble"):
+            return True if self.data.kibble >= value else False
+        elif (key == "boss"):
+            # check the boss's object and if it has been defeated
+            return True
+        else:
+            return False
+
+
     def run(self, dt, event_list):
         # game loop here for level. like checking collisions and updating screen
         self.display_surface.fill("black")
@@ -491,11 +559,12 @@ class Level:
         self.hit_collision()
         self.item_collision()
         self.attack_collision()
+        self.check_constraint()
         
         # draw all sprites
-        self.all_sprites.draw(self.display_surface)
-        #self.all_sprites.draw(self.player.hitbox_rect.center, self.player.hitbox_rect.width, self.tmx_map_max_width)
+        #self.all_sprites.draw(self.display_surface)
+        self.all_sprites.draw(self.player.hitbox_rect.center, dt)
 
         # give player the window offset
-        self.current_window_offset_x = 0#self.all_sprites.get_offset()
+        self.current_window_offset_x = self.all_sprites.get_offset()
         self.player.set_current_window_offset((self.current_window_offset_x, 0))

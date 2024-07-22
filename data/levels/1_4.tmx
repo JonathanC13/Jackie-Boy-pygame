@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.10" tiledversion="1.10.2" orientation="orthogonal" renderorder="right-down" width="73" height="11" tilewidth="70" tileheight="70" infinite="0" nextlayerid="19" nextobjectid="340">
+<map version="1.10" tiledversion="1.10.2" orientation="orthogonal" renderorder="right-down" width="73" height="11" tilewidth="70" tileheight="70" infinite="0" nextlayerid="20" nextobjectid="343">
  <tileset firstgid="1" source="../tilesets/objects_characters.tsx"/>
  <tileset firstgid="14" source="../tilesets/objects_env.tsx"/>
  <tileset firstgid="75" source="../tilesets/tiles_terrain.tsx"/>
@@ -124,7 +124,6 @@
   <object id="296" name="plant" gid="40" x="3522" y="141.333" width="70" height="70"/>
   <object id="297" name="tinyShroom_brown" gid="46" x="3549" y="141" width="70" height="70"/>
   <object id="299" name="fenceBroken" gid="35" x="3640" y="140" width="70" height="70"/>
-  <object id="301" name="flag" gid="11" x="4970" y="700" width="68" height="186"/>
  </objectgroup>
  <objectgroup id="10" name="General_objects">
   <object id="250" name="invis_wall" x="2.66668" y="-1" width="61.3333" height="770"/>
@@ -139,6 +138,7 @@
     <property name="inverted" type="bool" value="false"/>
    </properties>
   </object>
+  <object id="340" name="flag" gid="11" x="4970" y="700" width="68" height="186"/>
  </objectgroup>
  <objectgroup id="9" name="Moving_objects">
   <object id="302" name="platform" x="4755" y="354.667" width="10" height="250.666">
@@ -238,4 +238,18 @@
  </layer>
  <objectgroup id="16" name="Triggers"/>
  <objectgroup id="15" name="notes"/>
+ <objectgroup id="19" name="Data">
+  <object id="342" name="Data" x="0" y="0" width="70" height="70">
+   <properties>
+    <property name="bg" value="Blue"/>
+    <property name="bottom_limit" type="int" value="770"/>
+    <property name="death_border_bottom" type="int" value="0"/>
+    <property name="horizon_colour" value="#93c596"/>
+    <property name="horizon_line" type="int" value="600"/>
+    <property name="horizon_line_colour" value="#93db24"/>
+    <property name="level_unlock" type="int" value="1"/>
+    <property name="top_limit" type="int" value="0"/>
+   </properties>
+  </object>
+ </objectgroup>
 </map>
