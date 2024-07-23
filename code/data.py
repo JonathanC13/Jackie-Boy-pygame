@@ -2,19 +2,20 @@ class Data:
     def __init__(self, ui):
         self.ui = ui
 
-        self._player_health = 5
+        self._player_health = 3
         self._kibble = 0
         self._denta = 0
 
-        self._stick_level = 1
-        self._lance_level = 1
-        self._ball_level = 1
         self._stick_level_min = 1
         self._stick_level_max = 2
         self._lance_level_min = 1
         self._lance_level_max = 2
         self._ball_level_min = 1
         self._ball_level_max = 2
+
+        self._stick_level = self.stick_level = 1
+        self._lance_level = self.lance_level = 1
+        self._ball_level = self.ball_level = 1
 
         self.kibble_for_life = 50
 

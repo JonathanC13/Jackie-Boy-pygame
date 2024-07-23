@@ -30,7 +30,7 @@ class Level:
         self.particle_frames = level_frames["effect_particle"]
         self.ball_frames = level_frames["ball_projectile"]
 
-        self.current_window_offset_x = 0
+        self._current_window_offset = vector(0, 0)
 
         self.data = data
 
@@ -61,6 +61,14 @@ class Level:
         self.level_finish_rect = None
 
         self.setup(level_frames)
+
+    @property
+    def current_window_offset(self):
+        return self._current_window_offset
+    
+    @current_window_offset.setter
+    def current_window_offset(self, offset):
+        self._current_window_offset = offset
 
     def setup(self, level_frames):
         """
@@ -196,6 +204,8 @@ class Level:
                 groups = [self.all_sprites]
                 if obj.name in ("floor_spike"): 
                     groups.append(self.damage_sprites)
+                elif obj.name in ('husky'):
+                    groups.append(self.collision_sprites)
 
                 # z index
                 z = Z_LAYERS["main"] if not "bg" in obj.name else Z_LAYERS["bg_details"]
@@ -566,5 +576,5 @@ class Level:
         self.all_sprites.draw(self.player.hitbox_rect.center, dt)
 
         # give player the window offset
-        self.current_window_offset_x = self.all_sprites.get_offset()
-        self.player.set_current_window_offset((self.current_window_offset_x, 0))
+        self.current_window_offset = self.all_sprites.get_offset()
+        self.player.set_current_window_offset((self.current_window_offset, 0))

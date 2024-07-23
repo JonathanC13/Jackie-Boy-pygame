@@ -11,6 +11,14 @@ ANIMATION_SPEED = 5
 FPS_MAX = 60
 FPS_TARGET = 60
 
+# saves
+SAVES_DIR = os.path.join("..", "saves")
+SAVE_KEYS = ['levels_unlocked', 'player_health', 'kibble', 'denta', 'stick_level', 'lance_level', 'ball_level']
+
+# overlay names
+MAIN = "Main"
+SAVES = "Saves"
+
 # names of layers and objects from Tiled.
 TRIGGERS = "Triggers"
 FG = "FG"

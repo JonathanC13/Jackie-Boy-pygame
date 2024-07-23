@@ -375,7 +375,7 @@ class Squirrel(Enemy):
             self.player_proximity["detected"] = self.player_proximity["weapon_in_range"] = True
             #break
 
-        self.facing_right = False if (self.player_proximity["detected"] and self.player_location.x < self.hitbox_rect.centerx) else True
+        self.facing_right = True if (self.player_proximity["detected"] and self.player_location.x > self.hitbox_rect.centerx) else False
 
     # attacks
     def locking_on(self):
