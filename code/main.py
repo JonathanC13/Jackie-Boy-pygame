@@ -7,7 +7,7 @@ from support import *
 from data import Data
 from ui import UI
 from saves import Saves
-from overlay import MainMenu
+from overlay import SavesOverlay
 
 class Game:
     
@@ -37,10 +37,9 @@ class Game:
             {"stage_main" :1, "stage_sub": 4, "tmx_map": load_pygame(os.path.join("..", "data", "levels", "1_4.tmx")), "completion_reqs": {}}
         ]
 
-        self.current_overlay = MAIN
         self.current_saves = None
         self.current_save_file = None
-        self.main_menu = MainMenu(self.current_overlay, self.font, self.current_saves, self.overlay_frames)
+        self.current_overlay = SavesOverlay(self.font_title, self.font, self.current_saves, self.overlay_frames, self.load_save_file)
         
         self.run_level = Level(self.level_maps_test[self.curr_level], self.level_frames, self.data)
         #self.run_level = Level(self.level_maps[self.curr_level], self.level_frames, self.data)
@@ -79,7 +78,9 @@ class Game:
             'cloud_large': import_image('..', 'graphics', 'level', 'clouds', 'large_cloud')
         }
 
+        self.font_title = pygame.font.Font(join('..', 'graphics', 'ui', 'font', 'runescape_uf.ttf'), 45)
         self.font = pygame.font.Font(join('..', 'graphics', 'ui', 'font', 'runescape_uf.ttf'), 25)
+        
         self.ui_frames = {
             'heart': import_folder('..', 'graphics', 'ui', 'heart'),
             'kibble': import_folder('..', 'graphics', 'ui', 'kibble'),
@@ -91,13 +92,16 @@ class Game:
             'denta': import_folder('..', 'graphics', 'ui', 'denta')
         }
 
-    def load_save_files(self):
+    def get_save_files(self):
         if (self.current_saves == None):
             # get saves from dir if not loaded. This is set to none when leaving 'saves' menu, so that when returning it will load again
             self.current_saves = Saves()
             print(self.current_saves.get_all_saves())
 
         print("saves")
+
+    def load_save_file(self, filename):
+        print(f'{filename}')
 
     def run(self):
         # moved previous time here due to remove the time it takes during initialization 
@@ -113,6 +117,10 @@ class Game:
                     pygame.quit()
                     sys.exit()
 
+                if (event.type == pygame.MOUSEBUTTONDOWN):
+                    if (event.button == 1):
+                        self.current_overlay.check_button_clicked(event.pos)
+
             if (not self.game_active):
                 
                 # depending on overlay, pause the game
@@ -124,13 +132,14 @@ class Game:
 
                 # if main menu level. Also display the main_menu
                 if (self.level_maps_test[self.curr_level]['stage_main'] == 0 and self.level_maps_test[self.curr_level]['stage_sub'] == 0):
-                    if (not self.current_saves):
-                        # only reload current_saves when first time on main menu or returning, not while in main menu
-                        self.load_save_files()
-                        self.main_menu.save_data = self.current_saves.get_all_saves()
+                    if (self.current_overlay.overlay == SAVES):
+                        if (not self.current_saves):
+                            # only reload current_saves when first time on main menu or returning, not while in main menu
+                            self.get_save_files()
+                            self.current_overlay.save_data = self.current_saves.get_all_saves()
 
-                    offset = self.run_level.current_window_offset
-                    self.main_menu.update(offset)
+                        #offset = self.run_level.current_window_offset
+                        self.current_overlay.update()
                     
                 else:
                     self.current_saves = None

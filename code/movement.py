@@ -98,18 +98,42 @@ class Movement():
         else:
             return (False, 0)
         
-    def semi_collisions(self):
+    def semi_collisions(self, axis):
         if (not self.obj.timers["unlock_semi_drop_down"].active):
             # only apply floor collision if player has not expressly keyed down to drop down through the platform
             for sprite in self.obj.list_semi_collide:
-                move_offset = 0
-                if (sprite.type == MOVING_OBJECTS):
-                    move_offset = sprite.speed
 
-                if (self.obj.hitbox_rect.bottom >= sprite.rect.top and self.obj.old_rect.bottom - move_offset <= sprite.rect.top):
-                    if (self.obj.velocity.y > 0):
-                        self.obj.velocity.y = 0
-                    self.obj.hitbox_rect.bottom = sprite.rect.top
+                if (axis == 'horizontal'):
+                    if (self.obj.hitbox_rect.bottom >= sprite.rect.top and self.obj.old_rect.bottom <= sprite.rect.top):
+                        
+                        self.obj.hitbox_rect.bottom = sprite.rect.top
+                else:
+                    move_offset = 0
+                    direction = 1
+                    if (sprite.type == MOVING_OBJECTS):
+                        move_offset = sprite.speed*3    # *3 since at low fps, the offset is not large enought to keep the player on the moving platform
+                        direction = sprite.direction.y
+
+                    if (direction > 0):
+                        if (self.obj.hitbox_rect.bottom >= sprite.rect.top and self.obj.old_rect.bottom - move_offset <= sprite.rect.top):
+                            # from top
+                            self.obj.velocity.y = 0
+                            self.obj.hitbox_rect.bottom = sprite.rect.top
+                        # else:
+                        #     print(direction)
+                        #     print(self.obj.hitbox_rect.bottom, ': ', sprite.rect.top)
+                        #     print(self.obj.old_rect.bottom - move_offset, ': ', sprite.rect.top)
+                    else:
+                        if (self.obj.hitbox_rect.bottom + move_offset >= sprite.rect.top and self.obj.old_rect.bottom - move_offset <= sprite.rect.top + move_offset):
+                            # from top
+                            self.obj.velocity.y = 0
+                            self.obj.hitbox_rect.bottom = sprite.rect.top
+                        # else:
+                        #     print(direction)
+                        #     print(self.obj.hitbox_rect.bottom + move_offset, ': ', sprite.rect.top)
+                        #     print(self.obj.old_rect.bottom - move_offset, ': ', sprite.rect.top + move_offset)
+                    
+                
 
     def collision(self, axis, dt):
         """
@@ -120,7 +144,7 @@ class Movement():
         self.obj.fill_collide_lists(self.obj.hitbox_rect)
 
         # for semi collision rects
-        self.semi_collisions()
+        self.semi_collisions(axis)
              
         # basic collisions (rectangular rects)
         for sprite in self.obj.list_collide_basic:

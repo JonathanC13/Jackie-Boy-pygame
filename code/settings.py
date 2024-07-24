@@ -4,6 +4,7 @@ import os.path
 import pygame, sys, time
 from pygame.math import Vector2 as vector
 
+GAME_TITLE = 'JACKIE BOY'
 
 WINDOW_WIDTH, WINDOW_HEIGHT = 1280, 720
 TILE_SIZE = 70
