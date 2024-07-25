@@ -7,7 +7,7 @@ from support import *
 from data import Data
 from ui import UI
 from saves import Saves
-from overlay import SavesOverlay
+from overlay import MainMenuControl
 
 class Game:
     
@@ -37,9 +37,7 @@ class Game:
             {"stage_main" :1, "stage_sub": 4, "tmx_map": load_pygame(os.path.join("..", "data", "levels", "1_4.tmx")), "completion_reqs": {}}
         ]
 
-        self.current_saves = None
-        self.current_save_file = None
-        self.current_overlay = SavesOverlay(self.font_title, self.font, self.current_saves, self.overlay_frames, self.load_save_file)
+        self.main_menus = MainMenuControl(self.font_title, self.font, self.overlay_frames, self.new_game, self.load_save_file, self.quit_game)
         
         self.run_level = Level(self.level_maps_test[self.curr_level], self.level_frames, self.data)
         #self.run_level = Level(self.level_maps[self.curr_level], self.level_frames, self.data)
@@ -103,6 +101,12 @@ class Game:
     def load_save_file(self, filename):
         print(f'{filename}')
 
+    def new_game(self):
+        print("init new game")
+
+    def quit_game(self):
+        print("quit")
+
     def run(self):
         # moved previous time here due to remove the time it takes during initialization 
         self.previous_time = time.time()
@@ -119,7 +123,7 @@ class Game:
 
                 if (event.type == pygame.MOUSEBUTTONDOWN):
                     if (event.button == 1):
-                        self.current_overlay.check_button_clicked(event.pos)
+                        self.main_menus.get_current_menu().check_button_clicked(event.pos)
 
             if (not self.game_active):
                 
@@ -132,14 +136,7 @@ class Game:
 
                 # if main menu level. Also display the main_menu
                 if (self.level_maps_test[self.curr_level]['stage_main'] == 0 and self.level_maps_test[self.curr_level]['stage_sub'] == 0):
-                    if (self.current_overlay.overlay == SAVES):
-                        if (not self.current_saves):
-                            # only reload current_saves when first time on main menu or returning, not while in main menu
-                            self.get_save_files()
-                            self.current_overlay.save_data = self.current_saves.get_all_saves()
-
-                        #offset = self.run_level.current_window_offset
-                        self.current_overlay.update()
+                    self.main_menus.get_current_menu().update()
                     
                 else:
                     self.current_saves = None

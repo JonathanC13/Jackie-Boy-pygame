@@ -1,4 +1,56 @@
 from settings import *
+from saves import Saves
+
+class MainMenuControl:
+    def __init__(self, font_title, font, overlay_frames, func_new_save_file, func_load_save_file, func_quit):
+
+        self.font_title = font_title
+        self.font = font
+        self.overlay_frames = overlay_frames
+
+        # callback triggers to main
+        self.func_new_save_file = func_new_save_file
+        self.func_load_save_file = func_load_save_file
+        self.func_quit = func_quit
+
+        self.saves = None
+        self.reload_saves()
+
+        self.main_menu_list = []
+        self.setup_menus()
+        self.current_menu = self.find_menu(MAIN)
+
+    def reload_saves(self):
+        self.saves = Saves()
+        self.saves.load_saves()
+    
+    def setup_menus(self):
+
+        self.main_menu_list.append({'menu_name': MAIN, 'obj': MainMenuOverlay(self.font_title, self.font, self.overlay_frames, True if (self.saves.get_all_saves) else False, self.goto_save_menu, self.func_new_save_file, self.goto_control_help, self.func_quit)})
+
+        self.main_menu_list.append({'menu_name': SAVES, 'obj': MainMenuOverlay(self.font_title, self.font, self.overlay_frames, True if (self.saves.get_all_saves) else False, self.goto_save_menu, self.func_new_save_file, self.goto_control_help, self.func_quit)})
+
+        self.main_menu_list.append({'menu_name': CONTROL_HELP, 'obj': MainMenuOverlay(self.font_title, self.font, self.overlay_frames, True if (self.saves.get_all_saves) else False, self.goto_save_menu, self.func_new_save_file, self.goto_control_help, self.func_quit)})
+
+    def find_menu(self, name):
+        for menu in self.main_menu_list:
+            if (menu['menu_name'] == name):
+                return menu['obj']
+            
+        # else
+        print("Menu does not exist")
+
+    def goto_save_menu(self):
+        print(self.saves.get_all_saves())
+        self.current_menu = self.find_menu(SAVES)
+
+    def goto_control_help(self):
+        print("how to play")
+        self.current_menu = self.find_menu(CONTROL_HELP)
+
+    def get_current_menu(self):
+        return self.current_menu
+
 
 class Button:
     def __init__(self, name, surface, pos, size, clickable = False, func = None, params = None):
@@ -26,11 +78,15 @@ class Overlay:
 
         self.display_surface = pygame.display.get_surface()
 
-        self.title_surfaces = []
+        self.subtitle_surfaces = []
         self.content_surfaces = []
         self.right_col_1_surfaces = []
 
         self.start_idx = 0
+        
+        self.container_size = vector(275, 150)
+        self.current_total_spacing_y = 0
+        self.between_spacing_x, self.between_spacing_y = 25, 25
 
         self.buttons = []
 
@@ -68,19 +124,28 @@ class Overlay:
                     #print(f'clicked: {button.name}')
                     button.click()
 
+    def display_title(self):
+        # title 
+        self.current_total_spacing_y = self.between_spacing_y
+        title_surf = self.font_title.render(GAME_TITLE, False, "white", bgcolor=None, wraplength=0)
+        topleft = vector(WINDOW_WIDTH/2 - title_surf.get_width()/2, self.current_total_spacing_y)
+        self.outline_surface(title_surf, topleft)
+        self.display_surface.blit(title_surf, topleft)
+        self.current_total_spacing_y += title_surf.get_height() + self.between_spacing_y
+
     def display_overlay(self, container_size, col_x, current_total_spacing_y, between_spacing_y):
         self.buttons = []
         # title
         x = col_x
         y = current_total_spacing_y
-        if (self.title_surfaces):
-            for i in range(len(self.title_surfaces)):
-                self.title_surfaces[i].sort(key = lambda s: s['layer'])
-                if (y + self.title_surfaces[i][0]['surf'].get_height() + self.title_surfaces[i][0]['offset'].y > WINDOW_HEIGHT):
+        if (self.subtitle_surfaces):
+            for i in range(len(self.subtitle_surfaces)):
+                self.subtitle_surfaces[i].sort(key = lambda s: s['layer'])
+                if (y + self.subtitle_surfaces[i][0]['surf'].get_height() + self.subtitle_surfaces[i][0]['offset'].y > WINDOW_HEIGHT):
                     break
                 else:
                     y_add = 0
-                    for surf in self.title_surfaces[i]:
+                    for surf in self.subtitle_surfaces[i]:
                         pos_x = x + surf['offset'].x
                         pos_y = y + surf['offset'].y
                         self.display_surface.blit(surf['surf'], (pos_x, pos_y))
@@ -129,6 +194,47 @@ class Overlay:
                             self.buttons.append(Button(surf['name'], surf['surf'], (pos_x, pos_y), surf['surf'].get_size(), surf['clickable'], surf['func'], surf['params']))
                     y += y_add + between_spacing_y
 
+class MainMenuOverlay(Overlay):
+    def __init__(self, font_title, font, overlay_frames, have_save_data, func_save_menu, func_new_game, func_control_help, func_quit):
+        super().__init__(MAIN, font_title, font, overlay_frames)
+
+        self.have_save_data = have_save_data
+
+        self.func_save_menu = func_save_menu
+        self.func_new_game = func_new_game
+        self.func_control_help = func_control_help
+        self.func_quit = func_quit
+
+        test_text = self.font.render('hello, world!', False, "white", bgcolor=None, wraplength=0)
+        self.container_size = vector(275, test_text.get_height() + 20)
+
+        self.populate_content_surfaces()
+
+    def create_content_surface(self, text, func):
+        container = []
+        # container
+        container_surf = pygame.Surface((self.container_size.x, self.container_size.y))
+        container_surf.set_alpha(55)
+        container_surf.fill('#28282B')
+        container.append({'name': text, "surf": container_surf, "layer": 0, "offset": vector(0, 0), "clickable": True, "func": func, "params": None})  
+        # text
+        text_surf = self.font.render(text, False, "white", bgcolor=None, wraplength=0)
+        container.append({"name": text, "surf": text_surf, "layer": 1, "offset": vector(10, 10), "clickable": False, "func": None, "params": None})
+        self.content_surfaces.append(container)
+
+    def populate_content_surfaces(self):
+        self.content_surfaces = []
+
+        if (self.have_save_data):
+            self.create_content_surface('Save files', self.func_save_menu)
+        self.create_content_surface('New game', self.func_new_game)
+        self.create_content_surface('How to play', self.func_control_help)
+        self.create_content_surface('Quit', self.func_quit)
+
+    def update(self):
+        self.display_title()
+        self.display_overlay(self.container_size, WINDOW_WIDTH/2 - self.container_size.x/2, self.current_total_spacing_y, self.between_spacing_y)
+
 class SavesOverlay(Overlay):
     def __init__(self, font_title, font, save_data, overlay_frames, func_load_save_file):
         
@@ -136,13 +242,10 @@ class SavesOverlay(Overlay):
         self.func_load_save_file = func_load_save_file
 
         super().__init__(SAVES, font_title, font, overlay_frames)
-
-        self.current_total_spacing_y = 0
-        self.between_spacing_x, self.between_spacing_y = 25, 25
         
         self.container_size = vector(275, 150)
 
-        self.populate_title_surfaces()
+        self.populate_subtitle_surfaces()
 
     @property
     def save_data(self):
@@ -165,8 +268,8 @@ class SavesOverlay(Overlay):
         else:
             print("display [No save data]")
 
-    def populate_title_surfaces(self):
-        self.title_surfaces = []
+    def populate_subtitle_surfaces(self):
+        self.subtitle_surfaces = []
         container = []
         # 'Saves' subtitle
         save_title_surf = self.font.render('Saves', False, "white", bgcolor=None, wraplength=0)
@@ -177,7 +280,7 @@ class SavesOverlay(Overlay):
         save_title_container_surf.fill('#28282B')
         container.append({"name": "subtitle_container", "surf": save_title_container_surf, "layer": 0, "offset": vector(0, 0), "clickable": False, "func": None, "params": None})
 
-        self.title_surfaces.append(container)
+        self.subtitle_surfaces.append(container)
 
     def populate_right_col_1(self):
         self.right_col_1_surfaces = []
@@ -280,13 +383,7 @@ class SavesOverlay(Overlay):
             pygame.draw.rect(self.display_surface, "red", (button.pos, button.size))
 
     def update(self):
-        # title 
-        self.current_total_spacing_y = self.between_spacing_y
-        title_surf = self.font_title.render(GAME_TITLE, False, "white", bgcolor=None, wraplength=0)
-        topleft = vector(WINDOW_WIDTH/2 - title_surf.get_width()/2, self.current_total_spacing_y)
-        self.outline_surface(title_surf, topleft)
-        self.display_surface.blit(title_surf, topleft)
-        self.current_total_spacing_y += title_surf.get_height() + self.between_spacing_y
+        self.display_title()
 
         self.display_overlay(self.container_size, WINDOW_WIDTH/2 - self.container_size.x/2, self.current_total_spacing_y, self.between_spacing_y)
     

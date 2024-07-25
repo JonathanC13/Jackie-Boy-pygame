@@ -7,13 +7,12 @@ class Saves:
         self.saves_dir = SAVES_DIR
         self.all_saves = []
 
-        self.load_saves()
-
     def get_all_saves(self):
         return self.all_saves
 
     def load_saves(self):
-        print(self.saves_dir)
+        #print(self.saves_dir)
+        self.all_saves = []
         with os.scandir(self.saves_dir) as it:
             for entry in it:
                 if entry.is_file() and os.path.splitext(entry)[1] == '.json':
