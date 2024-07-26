@@ -2,15 +2,16 @@ from settings import *
 from saves import Saves
 
 class MainMenuControl:
-    def __init__(self, font_title, font, overlay_frames, func_new_save_file, func_load_save_file, func_quit):
+    def __init__(self, font_title, font, overlay_frames, func_new_save_file, func_load_save_file, func_quit, level_names):
 
         self.font_title = font_title
         self.font = font
         self.overlay_frames = overlay_frames
+        self.level_names = level_names
 
         # callback triggers to main
         self.func_new_save_file = func_new_save_file
-        self.func_load_save_file = func_load_save_file
+        self.func_load_save_file = func_load_save_file  # todo, in level selector overlay callback to this
         self.func_quit = func_quit
 
         self.saves = None
@@ -28,7 +29,9 @@ class MainMenuControl:
 
         self.main_menu_list.append({'menu_name': MAIN, 'obj': MainMenuOverlay(self.font_title, self.font, self.overlay_frames, True if (self.saves.get_all_saves) else False, self.goto_save_menu, self.func_new_save_file, self.goto_control_help, self.func_quit)})
         
-        self.main_menu_list.append({'menu_name': SAVES, 'obj': SavesOverlay(self.font_title, self.font, self.saves.get_all_saves, self.overlay_frames, self.func_load_save_file, self.go_back)})
+        self.main_menu_list.append({'menu_name': SAVES, 'obj': SavesOverlay(self.font_title, self.font, self.saves.get_all_saves, self.overlay_frames, self.goto_level_selector, self.go_back)})
+
+        self.main_menu_list.append({'menu_name': LEVEL_SELECTOR, 'obj': LevelSelectorOverlay(self.font_title, self.font, self.overlay_frames, self.level_names, self.func_load_save_file, self.go_back)})
 
         #self.main_menu_list.append({'menu_name': CONTROL_HELP, 'obj': SavesOverlay(self.font_title, self.font, self.overlay_frames, True if (self.saves.get_all_saves) else False, self.goto_save_menu, self.func_new_save_file, self.goto_control_help, self.func_quit, self.go_back)})
 
@@ -45,6 +48,14 @@ class MainMenuControl:
         self.current_menu = self.find_menu(SAVES)
         self.current_menu.save_data = self.saves.get_all_saves()
 
+    def goto_level_selector(self, filename):
+        self.saves.load_saves()
+        self.current_menu = self.find_menu(LEVEL_SELECTOR)
+        for save in self.saves.get_all_saves():
+            if (save['filename'] == filename):
+                self.current_menu.set_save_info(filename, save['data']['highest_level_cleared'])
+                break
+
     def goto_control_help(self):
         print("how to play")
         #self.current_menu = self.find_menu(CONTROL_HELP)
@@ -53,6 +64,8 @@ class MainMenuControl:
         dest = MAIN
         if self.current_menu == SAVES:
             dest = MAIN
+        elif self.current_menu == LEVEL_SELECTOR:
+            dest = SAVES
         elif self.current_menu == CONTROL_HELP:
             dest = MAIN
         else:
@@ -90,22 +103,32 @@ class Overlay:
 
         self.display_surface = pygame.display.get_surface()
 
-        self.subtitle_surfaces = []
-        self.content_surfaces = []
-        self.content_surface_right_1 = []
-        self.content_surface_left_1 = []
-
-        self.start_idx = 0
-        
         self.container_size = vector(275, 150)
         self.current_total_spacing_y = 0
         self.between_spacing_x, self.between_spacing_y = 25, 25
 
-        self.content_col_x = {
-                'left_1': WINDOW_WIDTH/2 - self.container_size.x/2 - self.between_spacing_x - self.container_size.x,
-                'center': WINDOW_WIDTH/2 - self.container_size.x/2,
-                'right_1': WINDOW_WIDTH/2 + self.container_size.x + self.between_spacing_x
-            }
+        self.subtitle_surfaces = []
+
+        self.content_surfaces = {
+            "center":
+                {
+                    "surfaces": [],
+                    "content_col_x": WINDOW_WIDTH/2 - self.container_size.x/2,
+                    "start_idx": 0
+                },
+            "right_1":
+                {
+                    "surfaces": [],
+                    "content_col_x": WINDOW_WIDTH/2 + self.container_size.x + self.between_spacing_x,
+                    "start_idx": 0
+                },
+            "left_1":
+                {
+                    "surfaces": [],
+                    "content_col_x": WINDOW_WIDTH/2 - self.container_size.x/2 - self.between_spacing_x - self.container_size.x,
+                    "start_idx": 0
+                }
+        }
 
         self.buttons = []
 
@@ -143,6 +166,18 @@ class Overlay:
                     #print(f'clicked: {button.name}')
                     button.click()
 
+    def create_content_surface(self, text, func, params):
+        container = []
+        # container
+        container_surf = pygame.Surface((self.container_size.x, self.container_size.y))
+        container_surf.set_alpha(85)
+        container_surf.fill('#28282B')
+        container.append({'name': text, "surf": container_surf, "layer": 0, "offset": vector(0, 0), "clickable": True, "func": func, "params": params})  
+        # text
+        text_surf = self.font.render(text, False, "white", bgcolor=None, wraplength=0)
+        container.append({"name": text, "surf": text_surf, "layer": 1, "offset": vector(self.container_size.x/2 - text_surf.get_width()/2, 10), "clickable": False, "func": None, "params": None})
+        return container
+
     def display_title(self):
         # title 
         self.current_total_spacing_y = self.between_spacing_y
@@ -155,7 +190,7 @@ class Overlay:
     def display_overlay(self, container_size, current_total_spacing_y, between_spacing_y):
         self.buttons = []
         # title
-        x = self.content_col_x['center']
+        x = self.content_surfaces['center']['content_col_x']
         y = current_total_spacing_y
         if (self.subtitle_surfaces):
             for i in range(len(self.subtitle_surfaces)):
@@ -176,21 +211,19 @@ class Overlay:
 
                     y += y_add + between_spacing_y
 
-
-        content_lists = [[self.content_surfaces, self.content_col_x['center'], self.start_idx], [self.content_surface_right_1, self.content_col_x['right_1'], 0], [self.content_surface_left_1, self.content_col_x['left_1'], 0]]
         content_y = y # starting y of the content
-        for surf_list, content_x, content_idx in content_lists:
+        for content_elems in self.content_surfaces.values():
             if (list):
-                start_idx = content_idx
-                x = content_x
+                start_idx = content_elems['start_idx']
+                x = content_elems['content_col_x']
                 y = content_y   # reset to top of content section
-                for i in range(start_idx, len(surf_list)):
-                    surf_list[i].sort(key = lambda s: s['layer'])
-                    if (y + surf_list[i][0]['surf'].get_height() + surf_list[i][0]['offset'].y > WINDOW_HEIGHT):
+                for i in range(start_idx, len(content_elems['surfaces'])):
+                    content_elems['surfaces'][i].sort(key = lambda s: s['layer'])
+                    if (y + content_elems['surfaces'][i][0]['surf'].get_height() + content_elems['surfaces'][i][0]['offset'].y > WINDOW_HEIGHT):
                         break
                     else:
                         y_add = 0
-                        for surf in surf_list[i]:
+                        for surf in content_elems['surfaces'][i]:
                             pos_x = x + surf['offset'].x
                             pos_y = y + surf['offset'].y
                             self.display_surface.blit(surf['surf'], (pos_x, pos_y))
@@ -199,67 +232,6 @@ class Overlay:
                                 self.buttons.append(Button(surf['name'], surf['surf'], (pos_x, pos_y), surf['surf'].get_size(), surf['clickable'], surf['func'], surf['params']))
                         y += y_add + between_spacing_y
 
-        
-        # content
-        # center column
-        # content_y = y
-        # if (self.content_surfaces):
-        #     for i in range(self.start_idx, len(self.content_surfaces)):
-        #         self.content_surfaces[i].sort(key = lambda s: s['layer'])
-        #         if (y + self.content_surfaces[i][0]['surf'].get_height() + self.content_surfaces[i][0]['offset'].y > WINDOW_HEIGHT):
-        #             break
-        #         else:
-        #             y_add = 0
-        #             for surf in self.content_surfaces[i]:
-        #                 pos_x = x + surf['offset'].x
-        #                 pos_y = y + surf['offset'].y
-        #                 self.display_surface.blit(surf['surf'], (pos_x, pos_y))
-        #                 if (surf['layer'] == 0):
-        #                     y_add = surf['surf'].get_height()
-        #                     self.buttons.append(Button(surf['name'], surf['surf'], (pos_x, pos_y), surf['surf'].get_size(), surf['clickable'], surf['func'], surf['params']))
-        #             y += y_add + between_spacing_y
-
-        # right column 1
-        # x = self.content_col_x['right_1']
-        # y = content_y
-        # if (self.content_surface_right_1):
-        #     for i in range(len(self.content_surface_right_1)):
-        #         self.content_surface_right_1[i].sort(key = lambda s: s['layer'])
-        #         if (y + self.content_surface_right_1[i][0]['surf'].get_height() + self.content_surface_right_1[i][0]['offset'].y > WINDOW_HEIGHT):
-        #             break
-        #         else:
-        #             y_add = 0
-        #             for surf in self.content_surface_right_1[i]:
-        #                 pos_x = x + surf['offset'].x
-        #                 pos_y = y + surf['offset'].y
-        #                 # print('====')
-        #                 # print(pos_x, pos_x, surf['name'])
-        #                 self.display_surface.blit(surf['surf'], (pos_x, pos_y))
-        #                 if (surf['layer'] == 0):
-        #                     y_add = surf['surf'].get_height()
-        #                     self.buttons.append(Button(surf['name'], surf['surf'], (pos_x, pos_y), surf['surf'].get_size(), surf['clickable'], surf['func'], surf['params']))
-        #             y += y_add + between_spacing_y
-
-        # # left column 1
-        # x = self.content_col_x['left_1']
-        # y = content_y
-        # if (self.content_surface_left_1):
-        #     for i in range(len(self.content_surface_left_1)):
-        #         self.content_surface_left_1[i].sort(key = lambda s: s['layer'])
-        #         if (y + self.content_surface_left_1[i][0]['surf'].get_height() + self.content_surface_left_1[i][0]['offset'].y > WINDOW_HEIGHT):
-        #             break
-        #         else:
-        #             y_add = 0
-        #             for surf in self.content_surface_left_1[i]:
-        #                 pos_x = x + surf['offset'].x
-        #                 pos_y = y + surf['offset'].y
-        #                 # print('====')
-        #                 # print(pos_x, pos_x, surf['name'])
-        #                 self.display_surface.blit(surf['surf'], (pos_x, pos_y))
-        #                 if (surf['layer'] == 0):
-        #                     y_add = surf['surf'].get_height()
-        #                     self.buttons.append(Button(surf['name'], surf['surf'], (pos_x, pos_y), surf['surf'].get_size(), surf['clickable'], surf['func'], surf['params']))
-        #             y += y_add + between_spacing_y
 
 class MainMenuOverlay(Overlay):
     def __init__(self, font_title, font, overlay_frames, have_save_data, func_save_menu, func_new_game, func_control_help, func_quit):
@@ -275,47 +247,73 @@ class MainMenuOverlay(Overlay):
         test_text = self.font.render('hello, world!', False, "white", bgcolor=None, wraplength=0)
         self.container_size = vector(275, test_text.get_height() + 20)
 
-        self.content_col_x.update({'center': WINDOW_WIDTH/2 - self.container_size.x/2})
-        self.content_col_x.update({'right_1': self.content_col_x['center'] + self.container_size.x + self.between_spacing_x})
+        self.content_surfaces['center']['content_col_x'] = WINDOW_WIDTH/2 - self.container_size.x/2
+        self.content_surfaces['right_1']['content_col_x'] = self.content_surfaces['center']['content_col_x'] + self.container_size.x + self.between_spacing_x
 
         self.populate_content_surfaces()
         #self.populate_content_surface_right_1()
 
-    def create_content_surface(self, text, func):
-        container = []
-        # container
-        container_surf = pygame.Surface((self.container_size.x, self.container_size.y))
-        container_surf.set_alpha(55)
-        container_surf.fill('#28282B')
-        container.append({'name': text, "surf": container_surf, "layer": 0, "offset": vector(0, 0), "clickable": True, "func": func, "params": None})  
-        # text
-        text_surf = self.font.render(text, False, "white", bgcolor=None, wraplength=0)
-        container.append({"name": text, "surf": text_surf, "layer": 1, "offset": vector(10, 10), "clickable": False, "func": None, "params": None})
-        return container
-
     def populate_content_surfaces(self):
-        self.content_surfaces = []
+        self.content_surfaces['center']['surfaces'] = []
 
         if (self.have_save_data):
-            container = self.create_content_surface('Save files', self.func_save_menu)
-            self.content_surfaces.append(container)
+            container = self.create_content_surface('Save files', self.func_save_menu, None)
+            self.content_surfaces['center']['surfaces'].append(container)
 
-        container = self.create_content_surface('New game', self.func_new_game)
-        self.content_surfaces.append(container)
+        container = self.create_content_surface('New game', self.func_new_game, None)
+        self.content_surfaces['center']['surfaces'].append(container)
 
-        container = self.create_content_surface('How to play', self.func_control_help)
-        self.content_surfaces.append(container)
+        container = self.create_content_surface('Player movement', self.func_control_help, None)
+        self.content_surfaces['center']['surfaces'].append(container)
 
-        container = self.create_content_surface('Quit', self.func_quit)
-        self.content_surfaces.append(container)
+        container = self.create_content_surface('Quit', self.func_quit, None)
+        self.content_surfaces['center']['surfaces'].append(container)
 
     def populate_content_surface_right_1(self):
-        container = self.create_content_surface('hello, world!', None)
-        self.content_surface_right_1.append(container)
+        self.content_surfaces['right_1']['surfaces'] = []
+        container = self.create_content_surface('hello, world!', None, None)
+        self.content_surfaces['right_1']['surfaces'].append(container)
 
     def update(self):
         self.display_title()
         self.display_overlay(self.container_size, self.current_total_spacing_y, self.between_spacing_y)
+
+class ControlHelp(Overlay):
+    def __init__(self, font_title, font, overlay_frames, func_go_back):
+        super().__init__(SAVES, font_title, font, overlay_frames)
+
+        self.func_go_back = func_go_back
+
+        self.container_size = vector(350, 350)
+
+        self.populate_content_surfaces()
+
+    def populate_content_surfaces(self):
+        self.populate_content_surface_center()
+        self.populate_content_surface_right_1()
+        self.populate_content_surface_left_1()
+
+    def populate_content_surface_center(self):
+        self.content_surfaces['center']['surfaces'] = []
+        container = []
+        container = self.create_content_surface('hello, world!', None, None)
+        self.content_surfaces['center']['surfaces'].append(container)
+
+    def populate_content_surface_right_1(self):
+        self.content_surfaces['right_1']['surfaces'] = []
+        container = []
+        container = self.create_content_surface('hello, world!', None, None)
+        self.content_surfaces['right_1']['surfaces'].append(container)
+
+    def populate_content_surface_left_1(self):
+        self.content_surfaces['left_1']['surfaces'] = []
+        containter = []
+        container = self.create_content_surface('hello, world!', None, None)
+        self.content_surfaces['left_1']['surfaces'].append(container)
+
+    def update(self):
+        self.display_title()
+        self.display_overlay()
 
 class SavesOverlay(Overlay):
     def __init__(self, font_title, font, save_data, overlay_frames, func_load_save_file, func_go_back):
@@ -326,10 +324,10 @@ class SavesOverlay(Overlay):
 
         super().__init__(SAVES, font_title, font, overlay_frames)
         
-        self.container_size = vector(275, 150)
+        self.container_size = vector(350, 150)
 
-        self.content_col_x.update({'center': WINDOW_WIDTH/2 - self.container_size.x/2})
-        self.content_col_x.update({'right_1': self.content_col_x['center'] + self.container_size.x + self.between_spacing_x})
+        self.content_surfaces['center']['content_col_x'] = WINDOW_WIDTH/2 - self.container_size.x/2
+        self.content_surfaces['right_1']['content_col_x'] = self.content_surfaces['center']['content_col_x'] + self.container_size.x + self.between_spacing_x
 
         self.populate_subtitle_surfaces()
 
@@ -339,13 +337,13 @@ class SavesOverlay(Overlay):
     
     @save_data.setter
     def save_data(self, save_data):
-        self.start_idx = 0
+        self.content_surfaces['center']['start_idx'] = 0
         self._save_data = save_data
         # reload surfaces
         self.populate_content_surfaces()
 
     def populate_content_surfaces(self):
-        self.content_surfaces = []
+        self.content_surfaces['center']['surfaces'] = []
 
         if (self.save_data):
             for save in self.save_data:
@@ -361,17 +359,17 @@ class SavesOverlay(Overlay):
         container = []
         # 'Saves' subtitle
         save_title_surf = self.font.render('Saves', False, "white", bgcolor=None, wraplength=0)
-        container.append({"name": "subtitle_text", "surf": save_title_surf, "layer": 1, "offset": vector(10, 10), "clickable": False, "func": None, "params": None})
+        container.append({"name": "subtitle_text", "surf": save_title_surf, "layer": 1, "offset": vector(self.container_size.x/2 - save_title_surf.get_width()/2, 10), "clickable": False, "func": None, "params": None})
 
         save_title_container_surf = pygame.Surface((self.container_size.x, save_title_surf.get_height() + 20))
-        save_title_container_surf.set_alpha(55)
+        save_title_container_surf.set_alpha(85)
         save_title_container_surf.fill('#28282B')
         container.append({"name": "subtitle_container", "surf": save_title_container_surf, "layer": 0, "offset": vector(0, 0), "clickable": False, "func": None, "params": None})
 
         self.subtitle_surfaces.append(container)
 
     def populate_right_col_1(self):
-        self.content_surface_right_1 = []
+        self.content_surfaces['right_1']['surfaces'] = []
         container = []
 
         # up
@@ -383,13 +381,13 @@ class SavesOverlay(Overlay):
         up_container_surf.set_alpha(0)
         up_container_surf.fill('#28282B')
         clickable = False
-        if (self.start_idx > 0):
+        if (self.content_surfaces['center']['start_idx'] > 0):
             clickable = True
             up_surf.set_alpha(255)
-            up_container_surf.set_alpha(55)
+            up_container_surf.set_alpha(85)
 
         container.append({"name": "UP", "surf": up_container_surf, "layer": 0, "offset": vector(0, 0), "clickable": clickable, "func": self.change_start_idx, "params": [-1]})
-        self.content_surface_right_1.append(container)
+        self.content_surfaces['right_1']['surfaces'].append(container)
         container = []
 
         # down
@@ -401,15 +399,15 @@ class SavesOverlay(Overlay):
         down_container_surf.set_alpha(0)
         down_container_surf.fill('#28282B')
         clickable = False
-        if (self.start_idx < len(self.content_surfaces) - 1):   # -1 so that at least one save is in the column
+        if (self.content_surfaces['center']['start_idx'] < len(self.content_surfaces['center']['surfaces']) - 1):   # -1 so that at least one save is in the column
             clickable = True
             down_surf.set_alpha(255)
-            down_container_surf.set_alpha(55)
+            down_container_surf.set_alpha(85)
         container.append({"name": "DOWN", "surf": down_container_surf, "layer": 0, "offset": vector(0, 0), "clickable": True, "func": self.change_start_idx, "params": [1]})
-        self.content_surface_right_1.append(container)
+        self.content_surfaces['right_1']['surfaces'].append(container)
 
     def populate_left_col_1(self):
-        self.content_surface_left_1 = []
+        self.content_surfaces['left_1']['surfaces'] = []
         container = []
         # back
         back_surf = self.font.render('BACK', False, "white", bgcolor=None, wraplength=0)
@@ -417,16 +415,16 @@ class SavesOverlay(Overlay):
 
         back_container_surf = pygame.Surface((back_surf.get_width() + 20, back_surf.get_height() + 20))
         back_container_surf.fill('#28282B')
-        back_container_surf.set_alpha(55)
+        back_container_surf.set_alpha(85)
 
-        container.append({"name": "UP", "surf": back_container_surf, "layer": 0, "offset": vector(0, 0), "clickable": True, "func": self.func_go_back, "params": None})
-        self.content_surface_left_1.append(container)
+        container.append({"name": "BACK_container", "surf": back_container_surf, "layer": 0, "offset": vector(0, 0), "clickable": True, "func": self.func_go_back, "params": None})
+        self.content_surfaces['left_1']['surfaces'].append(container)
         container = []
         
-        self.content_col_x.update({'left_1': self.content_col_x['center'] - self.between_spacing_x - back_container_surf.get_width()})
+        self.content_surfaces['left_1']['content_col_x'] = self.content_surfaces['center']['content_col_x'] - self.between_spacing_x - back_container_surf.get_width()
 
     def change_start_idx(self, change):
-        self.start_idx = max(min(self.start_idx + change, len(self.content_surfaces) - 1), 0)  # -1 so that at least one save is in the column
+        self.content_surfaces['center']['start_idx'] = max(min(self.content_surfaces['center']['start_idx'] + change, len(self.content_surfaces['center']['surfaces']) - 1), 0)  # -1 so that at least one save is in the column
         self.populate_right_col_1()
 
     def save_file_chosen(self, name):
@@ -441,7 +439,7 @@ class SavesOverlay(Overlay):
 
         # container
         container_surf = pygame.Surface((self.container_size.x, self.container_size.y))
-        container_surf.set_alpha(55)
+        container_surf.set_alpha(85)
         container_surf.fill('#28282B')
         container.append({"name": str(save['filename']), "surf": container_surf, "layer": 0, "offset": vector(0, 0), "clickable": True, "func": self.save_file_chosen, "params": [str(save['filename'])]})
         
@@ -449,37 +447,68 @@ class SavesOverlay(Overlay):
         filename_surf = self.font.render('Filename: ' + filename, False, "white", bgcolor=None, wraplength=0)
         container.append({"name": str(save['filename']), "surf": filename_surf, "layer": 1, "offset": vector(10, 10), "clickable": False, "func": None, "params": None})
 
-        # items
+        
         x_offset = 10
+        y_offset = filename_surf.get_height()
+        row_height = 32
         x_spacing = 10
         y_spacing = 15
+        
+        # items
         # hearts
+        bottom_of_row_y = y_offset + y_spacing + row_height
+
         heart_surf = self.overlay_frames['heart'][0]
-        container.append({"name": "heart", "surf": heart_surf, "layer": 1, "offset": vector(x_offset, filename_surf.get_height() + y_spacing), "clickable": False, "func": None, "params": None})
-        x_offset += heart_surf.get_width() + x_spacing
+        container.append({"name": "heart", "surf": heart_surf, "layer": 1, "offset": vector(x_offset, bottom_of_row_y - heart_surf.get_height()), "clickable": False, "func": None, "params": None})
+        x_offset += heart_surf.get_width() + x_spacing/2
         heart_num_surf = self.font.render('x ' + str(save_data['player_health']), False, "white", bgcolor=None, wraplength=0)
-        container.append({"name": "heart", "surf": heart_num_surf, "layer": 1, "offset": vector(x_offset + x_spacing, filename_surf.get_height() + y_spacing), "clickable": False, "func": None, "params": None})
-        x_offset += heart_num_surf.get_width() + x_spacing*2
+        container.append({"name": "heart", "surf": heart_num_surf, "layer": 1, "offset": vector(x_offset + x_spacing, bottom_of_row_y - heart_num_surf.get_height()), "clickable": False, "func": None, "params": None})
+        x_offset += heart_num_surf.get_width() + x_spacing*3
 
         # denta
         denta_surf = self.overlay_frames['denta'][0]
-        container.append({"name": "denta", "surf": denta_surf, "layer": 1, "offset": vector(x_offset, filename_surf.get_height() + y_spacing), "clickable": False, "func": None, "params": None})
-        x_offset += denta_surf.get_width() + x_spacing
+        container.append({"name": "denta", "surf": denta_surf, "layer": 1, "offset": vector(x_offset, bottom_of_row_y - denta_surf.get_height()), "clickable": False, "func": None, "params": None})
+        x_offset += denta_surf.get_width() + x_spacing/2
         denta_num_surf = self.font.render('x ' + str(save_data['denta']), False, "white", bgcolor=None, wraplength=0)
-        container.append({"name": "denta", "surf": denta_num_surf, "layer": 1, "offset": vector(x_offset, filename_surf.get_height() + y_spacing), "clickable": False, "func": None, "params": None})
-        x_offset += denta_num_surf.get_width() + x_spacing*2
+        container.append({"name": "denta", "surf": denta_num_surf, "layer": 1, "offset": vector(x_offset, bottom_of_row_y - denta_num_surf.get_height()), "clickable": False, "func": None, "params": None})
+        x_offset += denta_num_surf.get_width() + x_spacing*3
 
         # kibble
         kibble_surf = self.overlay_frames['kibble'][0]
-        container.append({"name": "kibble", "surf": kibble_surf, "layer": 1, "offset": vector(x_offset, filename_surf.get_height() + y_spacing), "clickable": False, "func": None, "params": None})
-        x_offset += kibble_surf.get_width() + x_spacing
+        container.append({"name": "kibble", "surf": kibble_surf, "layer": 1, "offset": vector(x_offset, bottom_of_row_y - kibble_surf.get_height()), "clickable": False, "func": None, "params": None})
+        x_offset += kibble_surf.get_width() + x_spacing/2
         kibble_num_surf = self.font.render('x ' + str(save_data['kibble']), False, "white", bgcolor=None, wraplength=0)
-        container.append({"name": "kibble", "surf": kibble_num_surf, "layer": 1, "offset": vector(x_offset, filename_surf.get_height() + y_spacing), "clickable": False, "func": None, "params": None})
+        container.append({"name": "kibble", "surf": kibble_num_surf, "layer": 1, "offset": vector(x_offset, bottom_of_row_y - kibble_num_surf.get_height()), "clickable": False, "func": None, "params": None})
 
         # weapons
-        x_offset = 0
+        x_offset = 10
 
-        self.content_surfaces.append(container)
+        bottom_of_row_y += y_spacing + row_height
+        # stick
+        stick_surf = self.overlay_frames['weapons']['stick']
+        container.append({"name": "stick_img", "surf": stick_surf, "layer": 1, "offset": vector(x_offset, bottom_of_row_y - stick_surf.get_height()), "clickable": False, "func": None, "params": None})
+        x_offset += stick_surf.get_width() + x_spacing/2
+        stick_level_surf = self.font.render('lvl ' + str(save_data['stick_level']), False, "white", bgcolor=None, wraplength=0)
+        container.append({"name": "stick_level", "surf": stick_level_surf, "layer": 1, "offset": vector(x_offset + x_spacing, bottom_of_row_y - stick_level_surf.get_height()), "clickable": False, "func": None, "params": None})
+        x_offset += stick_level_surf.get_width() + x_spacing*3
+
+        # umbrella
+        umbrella_surf = self.overlay_frames['weapons']['umbrella']
+        container.append({"name": "umbrella_img", "surf": umbrella_surf, "layer": 1, "offset": vector(x_offset, bottom_of_row_y - umbrella_surf.get_height()), "clickable": False, "func": None, "params": None})
+        x_offset += umbrella_surf.get_width() + x_spacing/2
+        umbrella_level_surf = self.font.render('lvl ' + str(save_data['lance_level']), False, "white", bgcolor=None, wraplength=0)
+        container.append({"name": "umbrella_level", "surf": umbrella_level_surf, "layer": 1, "offset": vector(x_offset + x_spacing, bottom_of_row_y - umbrella_level_surf.get_height()), "clickable": False, "func": None, "params": None})
+        x_offset += umbrella_level_surf.get_width() + x_spacing*3
+
+        # ball
+        ball_surf = self.overlay_frames['weapons']['ball']
+        container.append({"name": "ball_img", "surf": ball_surf, "layer": 1, "offset": vector(x_offset, bottom_of_row_y - ball_surf.get_height()), "clickable": False, "func": None, "params": None})
+        x_offset += ball_surf.get_width() + x_spacing/2
+        ball_level_surf = self.font.render('lvl ' + str(save_data['ball_level']), False, "white", bgcolor=None, wraplength=0)
+        container.append({"name": "ball_level", "surf": ball_level_surf, "layer": 1, "offset": vector(x_offset + x_spacing, bottom_of_row_y - ball_level_surf.get_height()), "clickable": False, "func": None, "params": None})
+        x_offset += ball_level_surf.get_width() + x_spacing*3
+
+        self.content_surfaces['center']['surfaces'].append(container)
 
     def draw_test(self):
         for button in self.buttons:
@@ -487,7 +516,78 @@ class SavesOverlay(Overlay):
 
     def update(self):
         self.display_title()
-
         self.display_overlay(self.container_size, self.current_total_spacing_y, self.between_spacing_y)
     
         #self.draw_test()
+
+class LevelSelectorOverlay(Overlay):
+    def __init__(self, font_title, font, overlay_frames, level_names, func_load_save_file, func_go_back):
+        super().__init__(LEVEL_SELECTOR, font_title, font, overlay_frames)
+
+        self.level_names = level_names
+        self.func_load_save_file = func_load_save_file
+        self.func_go_back = func_go_back
+
+        self.filename = ''
+        self._highest_level_cleared = 0
+
+        test_text = self.font.render('hello, world!', False, "white", bgcolor=None, wraplength=0)
+        self.container_size = vector(275, test_text.get_height() + 20)
+
+        self.populate_subtitle_surfaces()
+        self.populate_content_surface_center()
+        self.populate_left_col_1()
+
+    def populate_subtitle_surfaces(self):
+        self.subtitle_surfaces = []
+        container = []
+        # 'Saves' subtitle
+        level_selector_surf = self.font.render('Level selector', False, "white", bgcolor=None, wraplength=0)
+        container.append({"name": "level_selector_text", "surf": level_selector_surf, "layer": 1, "offset": vector(self.container_size.x/2 - level_selector_surf.get_width()/2, 10), "clickable": False, "func": None, "params": None})
+
+        level_selector_container_surf = pygame.Surface((self.container_size.x, level_selector_surf.get_height() + 20))
+        level_selector_container_surf.set_alpha(85)
+        level_selector_container_surf.fill('#28282B')
+        container.append({"name": "level_selector_container", "surf": level_selector_container_surf, "layer": 0, "offset": vector(0, 0), "clickable": False, "func": None, "params": None})
+
+        self.subtitle_surfaces.append(container)
+
+    def set_save_info(self, filename, highest_level_cleared):
+        self.filename = filename
+        self._highest_level_cleared = highest_level_cleared
+        self.populate_content_surface_center()
+
+    def populate_content_surface_center(self):
+        self.content_surfaces['center']['surfaces'] = []
+        for i in range(1, self._highest_level_cleared + 1):
+            container = []
+            container = self.create_content_surface(self.level_names[i], self.func_load_save_file, [self.filename, i])
+            self.content_surfaces['center']['surfaces'].append(container)
+
+    def populate_left_col_1(self):
+
+        self.content_surfaces['left_1']['surfaces'] = []
+        container = []
+        # back
+        back_surf = self.font.render('BACK', False, "white", bgcolor=None, wraplength=0)
+        container.append({"name": "BACK", "surf": back_surf, "layer": 1, "offset": vector(10, 10), "clickable": False, "func": None, "params": None})
+
+        back_container_surf = pygame.Surface((back_surf.get_width() + 20, back_surf.get_height() + 20))
+        back_container_surf.fill('#28282B')
+        back_container_surf.set_alpha(85)
+
+        container.append({"name": "BACK_container", "surf": back_container_surf, "layer": 0, "offset": vector(0, 0), "clickable": True, "func": self.func_go_back, "params": None})
+        self.content_surfaces['left_1']['surfaces'].append(container)
+        container = []
+        
+        self.content_surfaces['left_1']['content_col_x'] = self.content_surfaces['center']['content_col_x'] - self.between_spacing_x - back_container_surf.get_width()
+
+    # def populate_content_surface_left_1(self):
+    #     self.content_surfaces['left_1']['surfaces'] = []
+    #     containter = []
+    #     container = self.create_content_surface('hello, world!', None)
+    #     self.content_surfaces['left_1']['surfaces'].append(container)
+
+    def update(self):
+        self.display_title()
+        self.display_overlay(self.container_size, self.current_total_spacing_y, self.between_spacing_y)

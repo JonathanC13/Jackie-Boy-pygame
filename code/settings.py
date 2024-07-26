@@ -19,6 +19,7 @@ SAVE_KEYS = ['levels_unlocked', 'player_health', 'kibble', 'denta', 'stick_level
 # overlay names
 MAIN = "Main"
 SAVES = "Saves"
+LEVEL_SELECTOR = "Level selector"
 CONTROL_HELP = "Control help"
 
 # names of layers and objects from Tiled.

@@ -21,7 +21,7 @@ class Game:
         
         self.ui = UI(self.font, self.ui_frames)
         self.data = Data(self.ui)   # todo, save info in like a plain text file, read and initilize Data. Save into text file only when level has been completed
-        self.curr_level = 0
+        self.curr_level = 1
         self.game_active = True
 
         self.level_maps_test = [
@@ -37,7 +37,11 @@ class Game:
             {"stage_main" :1, "stage_sub": 4, "tmx_map": load_pygame(os.path.join("..", "data", "levels", "1_4.tmx")), "completion_reqs": {}}
         ]
 
-        self.main_menus = MainMenuControl(self.font_title, self.font, self.overlay_frames, self.new_game, self.load_save_file, self.quit_game)
+        self.level_names = []
+        for i in range(len(self.level_maps)):
+            self.level_names.append(str(self.level_maps[i]['stage_main']) + '-' + str(self.level_maps[i]['stage_sub']))
+
+        self.main_menus = MainMenuControl(self.font_title, self.font, self.overlay_frames, self.new_game, self.load_save_file, self.quit_game, self.level_names)
         
         self.run_level = Level(self.level_maps_test[self.curr_level], self.level_frames, self.data)
         #self.run_level = Level(self.level_maps[self.curr_level], self.level_frames, self.data)
@@ -53,8 +57,8 @@ class Game:
             'bats': import_folder('..', 'graphics','enemies', 'bats'),
             'water_top': import_folder('..', 'graphics', 'level', 'water', 'top'),
 			'water_body': import_image('..', 'graphics', 'level', 'water', 'body'),
-			'caloud_small': import_folder('..', 'graphics', 'level', 'clouds', 'small'),
-			'cldoud_large': import_image('..', 'graphics', 'level', 'clouds', 'large_cloud'),
+			'cloud_small': import_folder('..', 'graphics', 'level', 'clouds', 'small'),
+			'cloud_large': import_image('..', 'graphics', 'level', 'clouds', 'large_cloud'),
             'dog': import_sub_folders('..', 'graphics', 'enemies', 'dog'),
             'bird_brown': import_sub_folders('..', 'graphics', 'enemies', 'bird_brown'),
             'bird_white': import_sub_folders('..', 'graphics', 'enemies', 'bird_white'),
@@ -69,11 +73,7 @@ class Game:
             'items': import_sub_folders('..', 'graphics', 'items'),
             'effect_particle': import_folder('..', 'graphics', 'effects', 'particle'),
             'flag': import_folder('..', 'graphics', 'level', 'flag'),
-            'water_top': import_folder('..', 'graphics', 'level', 'water', 'top'),
-            'water_body': import_image('..', 'graphics', 'level', 'water', 'body'),
-            'bg_tiles': import_folder_dict('..', 'graphics', 'level', 'bg', 'tiles'),
-            'cloud_small': import_folder('..', 'graphics', 'level', 'clouds', 'small'),
-            'cloud_large': import_image('..', 'graphics', 'level', 'clouds', 'large_cloud')
+            'bg_tiles': import_folder_dict('..', 'graphics', 'level', 'bg', 'tiles')
         }
 
         self.font_title = pygame.font.Font(join('..', 'graphics', 'ui', 'font', 'runescape_uf.ttf'), 45)
@@ -87,7 +87,8 @@ class Game:
         self.overlay_frames = {
             'heart': import_folder('..', 'graphics', 'ui', 'heart'),
             'kibble': import_folder('..', 'graphics', 'ui', 'kibble'),
-            'denta': import_folder('..', 'graphics', 'ui', 'denta')
+            'denta': import_folder('..', 'graphics', 'ui', 'denta'),
+            'weapons': import_folder_dict('..', 'graphics', 'ui', 'weapons')
         }
 
     def get_save_files(self):
@@ -98,14 +99,15 @@ class Game:
 
         print("saves")
 
-    def load_save_file(self, filename):
-        print(f'{filename}')
+    def load_save_file(self, filename, level_selected):
+        print(f'{filename} with level {level_selected}')
 
     def new_game(self):
         print("init new game")
 
     def quit_game(self):
-        print("quit")
+        pygame.quit()
+        sys.exit()
 
     def run(self):
         # moved previous time here due to remove the time it takes during initialization 
@@ -118,8 +120,7 @@ class Game:
             event_list = pygame.event.get()
             for event in event_list:
                 if (event.type == pygame.QUIT):
-                    pygame.quit()
-                    sys.exit()
+                    self.quit_game()
 
                 if (event.type == pygame.MOUSEBUTTONDOWN):
                     if (event.button == 1):

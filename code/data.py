@@ -19,6 +19,8 @@ class Data:
 
         self.kibble_for_life = 50
 
+        self.highest_level_cleared = 0
+
         self.ui.create_hearts(self.player_health)
         self.ui.create_denta_count_surf(self.denta)
         self.ui.create_kibble_count_surf(self.kibble)
