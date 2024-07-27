@@ -62,11 +62,12 @@ class MainMenuControl:
 
     def go_back(self):
         dest = MAIN
-        if self.current_menu == SAVES:
+        curr_overlay = self.current_menu.overlay
+        if curr_overlay == SAVES:
             dest = MAIN
-        elif self.current_menu == LEVEL_SELECTOR:
+        elif curr_overlay == LEVEL_SELECTOR:
             dest = SAVES
-        elif self.current_menu == CONTROL_HELP:
+        elif curr_overlay == CONTROL_HELP:
             dest = MAIN
         else:
             dest = MAIN
@@ -206,7 +207,7 @@ class Overlay:
                         if (surf['layer'] == 0):
                             y_add = surf['surf'].get_height()
 
-                            # currently only the containers will be the "button". Don't need each surface within a container to be a button obj
+                        if (surf['clickable']):
                             self.buttons.append(Button(surf['name'], surf['surf'], (pos_x, pos_y), surf['surf'].get_size(), surf['clickable'], surf['func'], surf['params']))
 
                     y += y_add + between_spacing_y
@@ -229,9 +230,9 @@ class Overlay:
                             self.display_surface.blit(surf['surf'], (pos_x, pos_y))
                             if (surf['layer'] == 0):
                                 y_add = surf['surf'].get_height()
+                            if (surf['clickable']):
                                 self.buttons.append(Button(surf['name'], surf['surf'], (pos_x, pos_y), surf['surf'].get_size(), surf['clickable'], surf['func'], surf['params']))
                         y += y_add + between_spacing_y
-
 
 class MainMenuOverlay(Overlay):
     def __init__(self, font_title, font, overlay_frames, have_save_data, func_save_menu, func_new_game, func_control_help, func_quit):
@@ -324,7 +325,9 @@ class SavesOverlay(Overlay):
 
         super().__init__(SAVES, font_title, font, overlay_frames)
         
-        self.container_size = vector(350, 150)
+        self.saves = Saves()
+
+        self.container_size = vector(350, 182)
 
         self.content_surfaces['center']['content_col_x'] = WINDOW_WIDTH/2 - self.container_size.x/2
         self.content_surfaces['right_1']['content_col_x'] = self.content_surfaces['center']['content_col_x'] + self.container_size.x + self.between_spacing_x
@@ -441,7 +444,7 @@ class SavesOverlay(Overlay):
         container_surf = pygame.Surface((self.container_size.x, self.container_size.y))
         container_surf.set_alpha(85)
         container_surf.fill('#28282B')
-        container.append({"name": str(save['filename']), "surf": container_surf, "layer": 0, "offset": vector(0, 0), "clickable": True, "func": self.save_file_chosen, "params": [str(save['filename'])]})
+        container.append({"name": str(save['filename']), "surf": container_surf, "layer": 0, "offset": vector(0, 0), "clickable": False, "func": None, "params": None})
         
         # file name
         filename_surf = self.font.render('Filename: ' + filename, False, "white", bgcolor=None, wraplength=0)
@@ -508,7 +511,35 @@ class SavesOverlay(Overlay):
         container.append({"name": "ball_level", "surf": ball_level_surf, "layer": 1, "offset": vector(x_offset + x_spacing, bottom_of_row_y - ball_level_surf.get_height()), "clickable": False, "func": None, "params": None})
         x_offset += ball_level_surf.get_width() + x_spacing*3
 
+        # save file operations.
+        x_offset = 10
+        bottom_of_row_y += y_spacing + row_height
+        # level select
+        level_select_surf = self.font.render('Level select', False, "white", bgcolor=None, wraplength=0)
+        level_select_container_surf = pygame.Surface((160, level_select_surf.get_height() + 20))
+
+        container.append({"name": 'level_sel_surf', "surf": level_select_surf, "layer": 2, "offset": vector(level_select_container_surf.get_width()/2 - level_select_surf.get_width()/2, bottom_of_row_y - level_select_surf.get_height()), "clickable": False, "func": None, "params": None})
+
+        level_select_container_surf.set_alpha(85)
+        level_select_container_surf.fill('#28282B')
+        container.append({"name": 'level_sel_container_surf', "surf": level_select_container_surf, "layer": 1, "offset": vector(x_offset, bottom_of_row_y - level_select_container_surf.get_height() + 10), "clickable": True, "func": self.save_file_chosen, "params": [str(save['filename'])]})
+        x_offset += level_select_container_surf.get_width()
+
+        # delete
+        delete_surf = self.font.render('Delete', False, "white", bgcolor=None, wraplength=0)
+        delete_container_surf = pygame.Surface((160, delete_surf.get_height() + 20))
+
+        container.append({"name": 'delete_surf', "surf": delete_surf, "layer": 2, "offset": vector(x_offset + x_spacing + delete_container_surf.get_width()/2 - delete_surf.get_width()/2, bottom_of_row_y - delete_surf.get_height()), "clickable": False, "func": None, "params": None})
+        
+        delete_container_surf.set_alpha(85)
+        delete_container_surf.fill('#28282B')
+        container.append({"name": 'delete_container_surf', "surf": delete_container_surf, "layer": 1, "offset": vector(x_offset + x_spacing, bottom_of_row_y - delete_container_surf.get_height() + 10), "clickable": True, "func": self.delete_save_file, "params": [str(save['filename'])]})
+
+
         self.content_surfaces['center']['surfaces'].append(container)
+
+    def delete_save_file(self, filename):
+        self.saves.delete_file(filename)
 
     def draw_test(self):
         for button in self.buttons:

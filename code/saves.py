@@ -43,3 +43,6 @@ class Saves:
 
         if valid_save_file:
             self.all_saves.append({"filename": str(filename), "data": data})
+
+    def delete_file(self, filename):
+        print('delete: ', filename)
