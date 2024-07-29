@@ -76,24 +76,39 @@ class Saves:
         path = os.path.join(self.saves_dir, new_stem)
 
         # Serializing json
-        json_object = '{}'
         try:
-            json_object = json.dumps(SAVE_NEW_TEMPLATE, indent=4)
-        except:
-            print("Could not serialize json for save file.")
+            f = open(path, 'w')
+        except OSError:
+            print("Could not open file:", path)
             return None
         else:
-            try:
-                f = open(path, 'w')
-            except OSError:
-                print("Could not open file:", path)
-                return None
-            else:
-                with f:
-                    f.write(json_object)
+            with f:
+                json.dump(SAVE_NEW_TEMPLATE, f)
 
-                return new_stem
+            return new_stem
+        
         return None
+    
+    def save_data(self, data):
+        path = os.path.join(self.saves_dir, data.save_filename)
+        
+        try:
+            f = open(path, 'r+')
+        except OSError:
+            print("Could not open file:", path)
+            return None
+        else:
+            with f:
+                json_data = json.load(f)
+
+                for key, val in data.data_dict.items():
+                    json_data[key] = val
+
+                    f.seek(0)
+                    
+                json.dump(json_data, f)
+                f.truncate()
+
 
     def delete_file(self, filename):
         path = os.path.join(self.saves_dir, filename)

@@ -56,7 +56,7 @@ class Item(AnimatedSprite):
 		elif (self.item_type == "denta"):
 			self.data.denta = self.data.denta + 1
 
-		self.data.print_data()
+		#self.data.print_data()
 
 class ParticleEffectSprite(AnimatedSprite):
 	def __init__(self, pos, frames, groups):

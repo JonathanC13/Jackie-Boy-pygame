@@ -736,7 +736,8 @@ class Bird(Enemy):
         if (len(self.pathfinder.path_checkpoints) > 0):
             start = pygame.math.Vector2(self.hitbox_rect.center)
             end = pygame.math.Vector2(self.pathfinder.path_checkpoints[0].center)
-            self.velocity = (end - start).normalize() * self.flight_speed
+            if (end - start) != (0, 0):
+                self.velocity = (end - start).normalize() * self.flight_speed
         else:
             self.velocity = pygame.math.Vector2(0, 0)
             self.pathfinder.empty_path()

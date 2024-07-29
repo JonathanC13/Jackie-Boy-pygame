@@ -7,7 +7,7 @@ from support import *
 from data import Data
 from ui import UI
 from saves import Saves
-from overlay import MainMenuControl, PauseMainControl
+from overlay import MainMenuControl, PauseMainControl, GameCompleteOverlay
 
 class Game:
     
@@ -47,12 +47,13 @@ class Game:
 
         self.main_menus = MainMenuControl(self.font_title, self.font, self.overlay_frames, self.new_game, self.load_save_file, self.quit_game, self.level_names)
         self.saves = Saves()
-        self.pause_menu = PauseMainControl(self.font_title, self.font, self.overlay_frames, self.data, self.func_resume_game, self.load_save_file, self.quit_game, self.level_names)
+        self.pause_menu = PauseMainControl(self.font_title, self.font, self.overlay_frames, self.data, self.func_resume_game, self.to_main_menu, self.load_save_file, self.quit_game, self.level_names)
+        self.game_complete_screen = GameCompleteOverlay(self.font_title, self.font, self.overlay_frames, self.to_main_menu, self.quit_game)
 
         self.game_state = MAIN_MENU
 
         #self.run_level = Level(self.level_maps_test[self.curr_level], self.level_frames, self.data)
-        self.run_level = Level(self.level_maps[self.curr_level], self.level_frames, self.data)
+        self.run_level = Level(self.level_maps[self.curr_level], self.level_frames, self.data, self.level_complete)
 
     def import_assets(self):
         self.level_frames = {
@@ -116,12 +117,14 @@ class Game:
             data = self.saves.read_save_file(filename)
 
             if (data):
-                self.data.load_save_data(data)
+                self.data.load_save_data(filename, data)
                 #self.data.print_data()
 
                 self.curr_level = level_selected
                 self.load_level()
-                # start game at level 1
+                
+                if (not self.game_active):
+                    self.game_active = True
             else:
                 print('Could not read save file.')
         else:
@@ -137,14 +140,45 @@ class Game:
         self.load_save_file(filename, 1)
 
     def load_level(self):
-        self.run_level = Level(self.level_maps[self.curr_level], self.level_frames, self.data)
+        self.run_level = Level(self.level_maps[self.curr_level], self.level_frames, self.data, self.level_complete)
 
     def quit_game(self):
         pygame.quit()
         sys.exit()
 
+    def to_main_menu(self):
+        self.curr_level = 0
+        self.load_level()
+
     def func_resume_game(self):
         self.game_active = True
+
+    def bound(self, val, val_min, val_max):
+        return max(min(val, val_max), val_min)
+    
+    def save_data(self):
+        self.saves.save_data(self.data)
+
+    def level_complete(self):
+        # save player data into save file
+        # if final level completed, save the last level index 
+        self.curr_level += 1    # next level in self.level_maps
+        self.data.highest_stage_level = self.bound(self.curr_level, self.data.highest_stage_level, len(self.level_maps) - 1)    # save to data, but account for the player can complete a previously completed level.
+
+        if self.curr_level >= len(self.level_maps):
+            # all levels complete
+            self.curr_level = self.bound(self.curr_level, 0, len(self.level_maps) - 1)
+            self.game_state = GAME_COMPLETE
+
+        self.save_data()
+        self.load_level()
+
+    def draw_bg_tile(self, bg_tile_name):
+        for row in range(int(WINDOW_HEIGHT / TILE_SIZE) + 1):
+            for col in range(int(WINDOW_WIDTH) + 1):
+                x = col * TILE_SIZE
+                y = row * TILE_SIZE
+                self.display_surface.blit(self.level_frames['bg_tiles'][bg_tile_name], (x, y))
 
     def run(self):
         # moved previous time here due to remove the time it takes during initialization 
@@ -157,6 +191,9 @@ class Game:
             # if main menu level. Also display the main_menu
             if (self.level_maps[self.curr_level]['stage_main'] == 0 and self.level_maps[self.curr_level]['stage_sub'] == 0):
                 self.game_state = MAIN_MENU
+                self.game_active = True
+            elif (self.game_state == GAME_COMPLETE):
+                self.game_active = False
             else:
                 self.game_state = LIVE
 
@@ -166,18 +203,31 @@ class Game:
                     self.quit_game()
                 elif event.type == pygame.KEYDOWN:
                     if (event.key == pygame.K_ESCAPE):
-                        if(self.game_state == LIVE and self.game_active):
+                        if (self.game_state == LIVE and self.game_active):
                             self.game_active = False
+                            self.pause_menu.goto_pause_main()
+                        elif (self.game_state == LIVE and not self.game_active):
+                            self.game_active = True
 
                 if (event.type == pygame.MOUSEBUTTONDOWN):
                     if (event.button == 1):
                         if (self.game_state == MAIN_MENU):
                             self.main_menus.get_current_menu().check_button_clicked(event.pos)
-                        elif (not self.game_active):
+                        elif (self.game_state == LIVE and not self.game_active):
                             self.pause_menu.get_current_menu().check_button_clicked(event.pos)
+                        elif (self.game_state == GAME_COMPLETE):
+                            self.game_complete_screen.check_button_clicked(event.pos)
 
             if (not self.game_active):
-                self.pause_menu.get_current_menu().update()
+                # game paused
+                if (self.game_state == LIVE):
+                    # since the game is "paused", where the background is not updating, need to remove the previous menu's options or else they will still be visible in another menu
+                    # my idea to "remove" previous menu options, just blit a surface to override the old before update to draw the new
+                    self.draw_bg_tile('Green')
+                    self.pause_menu.get_current_menu().update()
+                elif (self.game_state == GAME_COMPLETE):
+                    self.draw_bg_tile('Brown')
+                    self.game_complete_screen.update()
             else:
                 self.run_level.run(dt, event_list)
                 self.ui.update(dt, event_list)
@@ -188,6 +238,9 @@ class Game:
                 else:
                     # don't need to hold onto the saves while in the levels
                     self.current_saves = None
+                    if (self.main_menus.current_menu.overlay != MAIN):
+                        # ensure next time returning to main menu, starts at the primary main menu
+                        self.main_menus.goto_main_menu()
 
             pygame.display.update()
 

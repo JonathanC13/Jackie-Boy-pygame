@@ -31,6 +31,7 @@ class Player(pygame.sprite.Sprite):
         self.current_window_offset = pygame.math.Vector2(0, 0)
 
         # rects
+        self.player_spawn_point = pos
         # rect to hold entire image
         self.rect = self.image.get_frect(topleft = pos)
         # reduce rect for actual representation of the hit box of the image. -50 means 25 pixels from left and 25 from right
@@ -92,6 +93,11 @@ class Player(pygame.sprite.Sprite):
 
         # modules
         self.movement = Movement(self)
+
+    def move_player_to_spawn(self):
+        self.hitbox_rect.topleft = self.player_spawn_point
+        self.rect.center = self.hitbox_rect.center
+        self.old_rect = self.hitbox_rect.copy()
 
     def set_current_window_offset(self, current_window_offset):
         self.current_window_offset = pygame.math.Vector2(current_window_offset[0], current_window_offset[1])
@@ -638,6 +644,9 @@ class Player(pygame.sprite.Sprite):
             self.is_hit = True
             self.timers["take_damage_cd"].activate()
 
+            if (self.data.player_health - damage <= 0):
+                self.move_player_to_spawn()
+                
             self.data.player_health = self.data.player_health - damage
 
             # stop current attack

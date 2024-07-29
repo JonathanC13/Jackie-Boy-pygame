@@ -15,6 +15,7 @@ FPS_TARGET = 60
 # game states
 MAIN_MENU = "Main_menu"
 LIVE = "Live"
+GAME_COMPLETE = "Complete complete"
 
 # saves
 SAVES_DIR = os.path.join("..", "saves")

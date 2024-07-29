@@ -6,10 +6,11 @@ from enemies import Dog, Bird, Squirrel
 from weapons import Stick, Lance, Ball
 from projectiles import AcornProjectile, BallProjectile
 from pathfinder import Pathfinder
+from timerClass import Timer
 
 class Level:
 
-    def __init__(self, level_data, level_frames, data):
+    def __init__(self, level_data, level_frames, data, func_level_complete):
 
         self.display_surface = pygame.display.get_surface()
 
@@ -18,6 +19,8 @@ class Level:
         self.tmx_map = level_data["tmx_map"]
         self.tmx_map_max_width = self.tmx_map.width * TILE_SIZE
         self.tmx_map_max_height = self.tmx_map.height * TILE_SIZE
+
+        self.func_level_complete = func_level_complete
 
         bg_tile = None
         tmx_level_properties = self.tmx_map.get_layer_by_name('Data')[0].properties
@@ -59,6 +62,8 @@ class Level:
         self.item_sprites = pygame.sprite.Group()
 
         self.level_finish_rect = None
+
+        self.timers = {"flag_timer": Timer(250)}
 
         self.setup(level_frames)
 
@@ -446,7 +451,6 @@ class Level:
 
             if(hit_sprites):
                 for sprite in hit_sprites:
-                    # later will need to check if enemy weapon is also active to inflict damage
                     #print('hit with mask')
                     if (sprite.type == ENEMY_ACORN_PROJECTILE):
                         sprite.kill()
@@ -465,6 +469,7 @@ class Level:
                         # other damage sprite
                         if (hasattr(sprite, "can_damage")):
                             if (sprite.get_can_damage()):
+                                # only can damage the player if it is "active"
                                 self.player.evaluate_damage(sprite.get_damage(), sprite.get_type())
                             
                     
@@ -532,7 +537,11 @@ class Level:
         if (self.player.hitbox_rect.bottom <= 0):
             self.player.hitbox_rect.top = 0
         elif (self.player.hitbox_rect.bottom >= self.tmx_map_max_height):
-            print('death')
+            # reduce one heart
+            self.data.player_health -= 1
+
+            # move player to original spawn point
+            self.player.move_player_to_spawn()
 
         # completed level
         if (self.level_finish_rect is not None and self.player.hitbox_rect.colliderect(self.level_finish_rect)):
@@ -542,10 +551,12 @@ class Level:
                 if (not requirements_met):
                     break
             
-            if (requirements_met):
-                print('success')
-            else:
-                print('not all requirements met')
+            if (not self.timers['flag_timer'].active):
+                self.timers['flag_timer'].activate()
+                if (requirements_met):
+                    self.func_level_complete()
+                else:
+                    print('not all requirements met')
 
     def check_requirement(self, key, value):
         if (key == "denta"):
@@ -557,11 +568,15 @@ class Level:
             return True
         else:
             return False
-
+        
+    def update_timers(self):
+        for timer in self.timers.values():
+            timer.update()
 
     def run(self, dt, event_list):
         # game loop here for level. like checking collisions and updating screen
         self.display_surface.fill("black")
+        self.update_timers()
 
         # update sprites
         self.all_sprites.update(dt, event_list)

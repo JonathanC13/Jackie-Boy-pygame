@@ -44,7 +44,7 @@ class AllSprites(pygame.sprite.Group):
         # smaller clouds
         # timer -> cloud every 2.5 seconds
         # lots of clouds on init
-        self.small_cloud_init_num = 5#21        # if fps worsening, lessen init clouds and increase cloud spawn timer
+        self.small_cloud_init_num = 10#21        # if fps worsening, lessen init clouds and increase cloud spawn timer
         self.small_cloud_speed_min = 0.25
         self.small_cloud_speed_max = 0.5
         self.init_small_clouds()

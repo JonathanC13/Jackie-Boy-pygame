@@ -2,7 +2,7 @@ from settings import *
 from saves import Saves
 
 class PauseMainControl:
-    def __init__(self, font_title, font, overlay_frames, obj_data, func_resume_game, func_load_save_file, func_quit, level_names):
+    def __init__(self, font_title, font, overlay_frames, obj_data, func_resume_game, func_to_main_menu, func_load_save_file, func_quit, level_names):
         self.font_title = font_title
         self.font = font
         self.overlay_frames = overlay_frames
@@ -10,6 +10,7 @@ class PauseMainControl:
         self.level_names = level_names
 
         self.func_resume_game = func_resume_game
+        self.func_to_main_menu = func_to_main_menu
         self.func_load_save_file = func_load_save_file
         self.func_quit = func_quit
 
@@ -18,7 +19,7 @@ class PauseMainControl:
         self.current_menu = self.find_menu(PAUSE_MAIN)
 
     def setup_menus(self):
-        self.pause_menu_list.append({'menu_name': PAUSE_MAIN, 'obj': PauseMainOverlay(self.font_title, self.font, self.overlay_frames, self.obj_data, self.func_resume_game, self.goto_level_selector, self.goto_control_help, self.func_quit)})
+        self.pause_menu_list.append({'menu_name': PAUSE_MAIN, 'obj': PauseMainOverlay(self.font_title, self.font, self.overlay_frames, self.obj_data, self.func_resume_game, self.func_to_main_menu, self.goto_level_selector, self.goto_control_help, self.func_quit)})
 
         self.pause_menu_list.append({'menu_name': LEVEL_SELECTOR, 'obj': LevelSelectorOverlay(self.font_title, self.font, self.overlay_frames, self.level_names, self.func_load_save_file, self.go_back)})
 
@@ -31,6 +32,10 @@ class PauseMainControl:
             
         # else
         print("Menu does not exist")
+
+    def goto_pause_main(self):
+        # go to pause main
+        self.current_menu = self.find_menu(PAUSE_MAIN)
 
     def goto_level_selector(self):
         self.current_menu = self.find_menu(LEVEL_SELECTOR)
@@ -88,6 +93,9 @@ class MainMenuControl:
             
         # else
         print("Menu does not exist")
+
+    def goto_main_menu(self):
+        self.current_menu = self.find_menu(MAIN)
 
     def goto_save_menu(self):
         self.saves.load_saves()
@@ -219,7 +227,7 @@ class Overlay:
         container_surf = pygame.Surface((self.container_size.x, self.container_size.y))
         container_surf.set_alpha(85)
         container_surf.fill('#28282B')
-        container.append({'name': text, "surf": container_surf, "layer": 0, "offset": vector(0, 0), "clickable": True, "func": func, "params": params})  
+        container.append({'name': text + str('_container'), "surf": container_surf, "layer": 0, "offset": vector(0, 0), "clickable": True, "func": func, "params": params})  
         # text
         text_surf = self.font.render(text, False, "white", bgcolor=None, wraplength=0)
         container.append({"name": text, "surf": text_surf, "layer": 1, "offset": vector(self.container_size.x/2 - text_surf.get_width()/2, 10), "clickable": False, "func": None, "params": None})
@@ -280,13 +288,57 @@ class Overlay:
                                 self.buttons.append(Button(surf['name'], surf['surf'], (pos_x, pos_y), surf['surf'].get_size(), surf['clickable'], surf['func'], surf['params']))
                         y += y_add + between_spacing_y
 
+class GameCompleteOverlay(Overlay):
+    def __init__(self, font_title, font, overlay_frames, func_to_main_menu, func_quit):
+        super().__init__(MAIN, font_title, font, overlay_frames)
+
+        self.func_to_main_menu = func_to_main_menu
+        self.func_quit = func_quit
+
+        test_text = self.font.render('hello, world!', False, "white", bgcolor=None, wraplength=0)
+        self.container_size = vector(275, test_text.get_height() + 20)
+
+        self.content_surfaces['center']['content_col_x'] = WINDOW_WIDTH/2 - self.container_size.x/2
+        self.content_surfaces['right_1']['content_col_x'] = self.content_surfaces['center']['content_col_x'] + self.container_size.x + self.between_spacing_x
+
+        self.populate_subtitle_surfaces()
+        self.populate_content_surfaces()
+    
+    def populate_subtitle_surfaces(self):
+        self.subtitle_surfaces = []
+        container = []
+        # 'Saves' subtitle
+        save_title_surf = self.font.render('Game Completed!', False, "white", bgcolor=None, wraplength=0)
+        container.append({"name": "subtitle_text", "surf": save_title_surf, "layer": 1, "offset": vector(self.container_size.x/2 - save_title_surf.get_width()/2, 10), "clickable": False, "func": None, "params": None})
+
+        save_title_container_surf = pygame.Surface((self.container_size.x, save_title_surf.get_height() + 20))
+        save_title_container_surf.set_alpha(125)
+        save_title_container_surf.fill('#28282B')
+        container.append({"name": "subtitle_container", "surf": save_title_container_surf, "layer": 0, "offset": vector(0, 0), "clickable": False, "func": None, "params": None})
+
+        self.subtitle_surfaces.append(container)
+
+    def populate_content_surfaces(self):
+        self.content_surfaces['center']['surfaces'] = []
+
+        container = self.create_content_surface('Main menu', self.func_to_main_menu, None)
+        self.content_surfaces['center']['surfaces'].append(container)
+
+        container = self.create_content_surface('Quit game', self.func_quit, None)
+        self.content_surfaces['center']['surfaces'].append(container)
+
+    def update(self):
+        self.display_title()
+        self.display_overlay(self.container_size, self.current_total_spacing_y, self.between_spacing_y)
+
 class PauseMainOverlay(Overlay):
-    def __init__(self, font_title, font, overlay_frames, obj_data, func_resume_game, goto_level_selector, func_goto_control_help, func_quit):
+    def __init__(self, font_title, font, overlay_frames, obj_data, func_resume_game, func_to_main_menu, goto_level_selector, func_goto_control_help, func_quit):
         super().__init__(MAIN, font_title, font, overlay_frames)
 
         self.save_data = obj_data
 
         self.func_resume_game = func_resume_game
+        self.func_to_main_menu = func_to_main_menu
         self.goto_level_selector = goto_level_selector
         self.func_goto_control_help = func_goto_control_help
         self.func_quit = func_quit
@@ -308,7 +360,7 @@ class PauseMainOverlay(Overlay):
         container.append({"name": "subtitle_text", "surf": save_title_surf, "layer": 1, "offset": vector(self.container_size.x/2 - save_title_surf.get_width()/2, 10), "clickable": False, "func": None, "params": None})
 
         save_title_container_surf = pygame.Surface((self.container_size.x, save_title_surf.get_height() + 20))
-        save_title_container_surf.set_alpha(85)
+        save_title_container_surf.set_alpha(125)
         save_title_container_surf.fill('#28282B')
         container.append({"name": "subtitle_container", "surf": save_title_container_surf, "layer": 0, "offset": vector(0, 0), "clickable": False, "func": None, "params": None})
 
@@ -320,14 +372,17 @@ class PauseMainOverlay(Overlay):
         container = self.create_content_surface('Resume game', self.func_resume_game, None)
         self.content_surfaces['center']['surfaces'].append(container)
 
-        # container = self.create_content_surface('Level select', self.goto_level_selector, None)
-        # self.content_surfaces['center']['surfaces'].append(container)
+        container = self.create_content_surface('Main menu', self.func_to_main_menu, None)
+        self.content_surfaces['center']['surfaces'].append(container)
 
-        # container = self.create_content_surface('Player movement', self.func_goto_control_help, None)
-        # self.content_surfaces['center']['surfaces'].append(container)
+        container = self.create_content_surface('Level select', self.goto_level_selector, None)
+        self.content_surfaces['center']['surfaces'].append(container)
 
-        # container = self.create_content_surface('Quit', self.func_quit, None)
-        # self.content_surfaces['center']['surfaces'].append(container)
+        container = self.create_content_surface('Player movement', self.func_goto_control_help, None)
+        self.content_surfaces['center']['surfaces'].append(container)
+
+        container = self.create_content_surface('Quit game', self.func_quit, None)
+        self.content_surfaces['center']['surfaces'].append(container)
 
     def update(self):
         self.display_title()
@@ -366,7 +421,7 @@ class MainMenuOverlay(Overlay):
         container = self.create_content_surface('Player movement', self.func_to_control_help, None)
         self.content_surfaces['center']['surfaces'].append(container)
 
-        container = self.create_content_surface('Quit', self.func_quit, None)
+        container = self.create_content_surface('Quit game', self.func_quit, None)
         self.content_surfaces['center']['surfaces'].append(container)
 
     def populate_content_surface_right_1(self):
@@ -441,7 +496,6 @@ class SavesOverlay(Overlay):
     def save_data(self, save_data):
         self.content_surfaces['center']['start_idx'] = 0
         self._save_data = save_data
-        print("hi")
         # reload surfaces
         self.populate_content_surfaces()
 
@@ -465,7 +519,7 @@ class SavesOverlay(Overlay):
         container.append({"name": "subtitle_text", "surf": save_title_surf, "layer": 1, "offset": vector(self.container_size.x/2 - save_title_surf.get_width()/2, 10), "clickable": False, "func": None, "params": None})
 
         save_title_container_surf = pygame.Surface((self.container_size.x, save_title_surf.get_height() + 20))
-        save_title_container_surf.set_alpha(85)
+        save_title_container_surf.set_alpha(125)
         save_title_container_surf.fill('#28282B')
         container.append({"name": "subtitle_container", "surf": save_title_container_surf, "layer": 0, "offset": vector(0, 0), "clickable": False, "func": None, "params": None})
 
@@ -679,7 +733,7 @@ class LevelSelectorOverlay(Overlay):
         container.append({"name": "level_selector_text", "surf": level_selector_surf, "layer": 1, "offset": vector(self.container_size.x/2 - level_selector_surf.get_width()/2, 10), "clickable": False, "func": None, "params": None})
 
         level_selector_container_surf = pygame.Surface((self.container_size.x, level_selector_surf.get_height() + 20))
-        level_selector_container_surf.set_alpha(85)
+        level_selector_container_surf.set_alpha(125)
         level_selector_container_surf.fill('#28282B')
         container.append({"name": "level_selector_container", "surf": level_selector_container_surf, "layer": 0, "offset": vector(0, 0), "clickable": False, "func": None, "params": None})
 
