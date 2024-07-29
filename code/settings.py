@@ -12,15 +12,30 @@ ANIMATION_SPEED = 5
 FPS_MAX = 60
 FPS_TARGET = 60
 
+# game states
+MAIN_MENU = "Main_menu"
+LIVE = "Live"
+
 # saves
 SAVES_DIR = os.path.join("..", "saves")
-SAVE_KEYS = ['levels_unlocked', 'player_health', 'kibble', 'denta', 'stick_level', 'lance_level', 'ball_level']
+SAVE_KEYS = ['secret_levels_unlocked', 'player_health', 'kibble', 'denta', 'stick_level', 'lance_level', 'ball_level', 'highest_stage_level']
+SAVE_NEW_TEMPLATE = {
+	"secret_levels_unlocked":[1], 
+	"player_health":3, 
+	"kibble":0,
+	"denta":0,
+	"stick_level":1,
+	"lance_level":1,
+	"ball_level":1,
+	"highest_stage_level": 1
+}
 
 # overlay names
 MAIN = "Main"
 SAVES = "Saves"
 LEVEL_SELECTOR = "Level selector"
 CONTROL_HELP = "Control help"
+PAUSE_MAIN = "Pause main"
 
 # names of layers and objects from Tiled.
 TRIGGERS = "Triggers"

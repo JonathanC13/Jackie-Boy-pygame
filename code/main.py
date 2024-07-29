@@ -7,7 +7,7 @@ from support import *
 from data import Data
 from ui import UI
 from saves import Saves
-from overlay import MainMenuControl
+from overlay import MainMenuControl, PauseMainControl
 
 class Game:
     
@@ -21,12 +21,12 @@ class Game:
         
         self.ui = UI(self.font, self.ui_frames)
         self.data = Data(self.ui)   # todo, save info in like a plain text file, read and initilize Data. Save into text file only when level has been completed
-        self.curr_level = 1
+        self.curr_level = 0
         self.game_active = True
 
         self.level_maps_test = [
             {"stage_main" :0, "stage_sub": 0, "tmx_map": load_pygame(os.path.join("..", "data", "levels", "menu.tmx")), "completion_reqs": {}},
-            {"stage_main" :0, "stage_sub": 0, "tmx_map": load_pygame(os.path.join("..", "data", "levels", "test.tmx")), "completion_reqs": {"kibble": 5, "denta": 1}}
+            {"stage_main" :0, "stage_sub": 1, "tmx_map": load_pygame(os.path.join("..", "data", "levels", "test.tmx")), "completion_reqs": {"kibble": 5, "denta": 1}}
         ]
 
         self.level_maps = [
@@ -37,18 +37,27 @@ class Game:
             {"stage_main" :1, "stage_sub": 4, "tmx_map": load_pygame(os.path.join("..", "data", "levels", "1_4.tmx")), "completion_reqs": {}}
         ]
 
+        self.secret_maps = [
+            {"stage_main" :0, "stage_sub": 0, "tmx_map": load_pygame(os.path.join("..", "data", "levels", "S_1.tmx")), "completion_reqs": {}}
+        ]
+
         self.level_names = []
         for i in range(len(self.level_maps)):
             self.level_names.append(str(self.level_maps[i]['stage_main']) + '-' + str(self.level_maps[i]['stage_sub']))
 
         self.main_menus = MainMenuControl(self.font_title, self.font, self.overlay_frames, self.new_game, self.load_save_file, self.quit_game, self.level_names)
-        
-        self.run_level = Level(self.level_maps_test[self.curr_level], self.level_frames, self.data)
-        #self.run_level = Level(self.level_maps[self.curr_level], self.level_frames, self.data)
+        self.saves = Saves()
+        self.pause_menu = PauseMainControl(self.font_title, self.font, self.overlay_frames, self.data, self.func_resume_game, self.load_save_file, self.quit_game, self.level_names)
+
+        self.game_state = MAIN_MENU
+
+        #self.run_level = Level(self.level_maps_test[self.curr_level], self.level_frames, self.data)
+        self.run_level = Level(self.level_maps[self.curr_level], self.level_frames, self.data)
 
     def import_assets(self):
         self.level_frames = {
             'player': import_sub_folders('..', 'graphics', 'player'),
+            'husky': import_folder('..', 'graphics', 'npcs', 'husky'),
             'items': import_sub_folders('..', 'graphics', 'items'),
             'platform': import_folder('..', 'graphics', 'level', 'platform'),
 			'boat': import_folder('..',  'graphics', 'objects', 'boat'),
@@ -100,14 +109,42 @@ class Game:
         print("saves")
 
     def load_save_file(self, filename, level_selected):
-        print(f'{filename} with level {level_selected}')
+        # load into data.py
+        print(f'chosen: {level_selected}')
+        data = ''
+        if (filename):
+            data = self.saves.read_save_file(filename)
+
+            if (data):
+                self.data.load_save_data(data)
+                #self.data.print_data()
+
+                self.curr_level = level_selected
+                self.load_level()
+                # start game at level 1
+            else:
+                print('Could not read save file.')
+        else:
+            print('No filename provided.')
 
     def new_game(self):
-        print("init new game")
+        """
+        init new save file
+        """
+        # create file
+        filename = self.saves.create_new_save()
+        # load into data.py
+        self.load_save_file(filename, 1)
+
+    def load_level(self):
+        self.run_level = Level(self.level_maps[self.curr_level], self.level_frames, self.data)
 
     def quit_game(self):
         pygame.quit()
         sys.exit()
+
+    def func_resume_game(self):
+        self.game_active = True
 
     def run(self):
         # moved previous time here due to remove the time it takes during initialization 
@@ -117,32 +154,42 @@ class Game:
             dt = (time.time() - self.previous_time) * FPS_TARGET
             self.previous_time = time.time()
 
+            # if main menu level. Also display the main_menu
+            if (self.level_maps[self.curr_level]['stage_main'] == 0 and self.level_maps[self.curr_level]['stage_sub'] == 0):
+                self.game_state = MAIN_MENU
+            else:
+                self.game_state = LIVE
+
             event_list = pygame.event.get()
             for event in event_list:
                 if (event.type == pygame.QUIT):
                     self.quit_game()
+                elif event.type == pygame.KEYDOWN:
+                    if (event.key == pygame.K_ESCAPE):
+                        if(self.game_state == LIVE and self.game_active):
+                            self.game_active = False
 
                 if (event.type == pygame.MOUSEBUTTONDOWN):
                     if (event.button == 1):
-                        self.main_menus.get_current_menu().check_button_clicked(event.pos)
+                        if (self.game_state == MAIN_MENU):
+                            self.main_menus.get_current_menu().check_button_clicked(event.pos)
+                        elif (not self.game_active):
+                            self.pause_menu.get_current_menu().check_button_clicked(event.pos)
 
             if (not self.game_active):
-                
-                # depending on overlay, pause the game
-
-                pass
+                self.pause_menu.get_current_menu().update()
             else:
                 self.run_level.run(dt, event_list)
                 self.ui.update(dt, event_list)
 
                 # if main menu level. Also display the main_menu
-                if (self.level_maps_test[self.curr_level]['stage_main'] == 0 and self.level_maps_test[self.curr_level]['stage_sub'] == 0):
+                if (self.game_state == MAIN_MENU):
                     self.main_menus.get_current_menu().update()
-                    
                 else:
+                    # don't need to hold onto the saves while in the levels
                     self.current_saves = None
 
-                pygame.display.update()
+            pygame.display.update()
 
             self.clock.tick(FPS_MAX)
 
