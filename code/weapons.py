@@ -2,10 +2,12 @@ from settings import *
 from sprites import Orbit
 
 class Weapon(Orbit):
-    def __init__(self, owner, range, weapon_range_rect, damage, damage_type, level, **kwargs):
+    def __init__(self, owner, range, weapon_range_rect, damage, damage_type, level, weapon_name, damage_colour, **kwargs):
         self.damage = damage
         self.damage_type = damage_type
         self.level = level if level is not None else 1
+        self.weapon_name = weapon_name
+        self.damage_colour = damage_colour
         self.can_damage = False
 
         self.owner = owner
@@ -123,7 +125,7 @@ class Weapon(Orbit):
 
 # types of weapons
 class Ball(Weapon):
-    def __init__(self, pos, groups, frames, owner, level):
+    def __init__(self, pos, groups, frames, owner, level, weapon_name = BALL):
         self.frame_index = 0
         self.state = "level1_idle"
 
@@ -132,7 +134,7 @@ class Ball(Weapon):
         self.owner_ball_offset = self.owner.rect.width / 2
         self.target_angle = 0 if owner.facing_right else 180
 
-        super().__init__(owner = owner, range = 0, weapon_range_rect = 0, damage = 1, damage_type = BALL, level = level,
+        super().__init__(owner = owner, range = 0, weapon_range_rect = 0, damage = 1, damage_type = BALL, level = level, weapon_name = weapon_name, damage_colour = DAMAGE_COLOUR[BALL],
                          pos = pos, frames = frames[self.state], radius = self.owner_ball_offset, speed = 0, start_angle = 0, end_angle = 0, clockwise = True, groups = groups, type = BALL, z = Z_LAYERS['main'], direction_changes = 0, rotate = True, image_orientation = IMAGE_RIGHT
                          )
         
@@ -159,7 +161,7 @@ class Ball(Weapon):
         self.rotate_image(self.image_orientation)
 
 class Lance(Weapon):
-    def __init__(self, pos, groups, frames, owner, level):
+    def __init__(self, pos, groups, frames, owner, level, weapon_name = LANCE):
         self.frame_index = 0
         self.state = "level1_idle"
 
@@ -168,7 +170,7 @@ class Lance(Weapon):
         self.owner_lance_offset = self.owner.rect.width / 1.5
         self.target_angle = 0 if owner.facing_right else 180
 
-        super().__init__(owner = owner, range = 0, weapon_range_rect = 0, damage = 1, damage_type = LANCE, level = level,
+        super().__init__(owner = owner, range = 0, weapon_range_rect = 0, damage = 1, damage_type = LANCE, level = level, weapon_name = weapon_name, damage_colour = DAMAGE_COLOUR[LANCE],
                          pos = pos, frames = frames[self.state], radius = self.owner_lance_offset, speed = 0, start_angle = 0, end_angle = 0, clockwise = True, groups = groups, type = LANCE, z = Z_LAYERS['main'], direction_changes = 0, rotate = True, image_orientation = IMAGE_RIGHT
                          )
         
@@ -195,7 +197,7 @@ class Lance(Weapon):
 
 # class Stick(Weapon, Orbit):
 class Stick(Weapon):
-    def __init__(self, pos, groups, frames, owner, level):
+    def __init__(self, pos, groups, frames, owner, level, weapon_name = STICK):
 
         self.frame_index = 0
         self.state = "level1_idle"
@@ -205,7 +207,7 @@ class Stick(Weapon):
         self.owner_stick_offset = self.owner.rect.width / 1.5
         self.target_angle = 0 if owner.facing_right else 180
 
-        super().__init__(owner = owner, range = 0, weapon_range_rect = 0, damage = 1, damage_type = STICK, level = level,
+        super().__init__(owner = owner, range = 0, weapon_range_rect = 0, damage = 1, damage_type = STICK, level = level, weapon_name = weapon_name, damage_colour = DAMAGE_COLOUR[STICK],
                          pos = pos, frames = frames[self.state], radius = self.owner_stick_offset, speed = 0, start_angle = 0, end_angle = 0, clockwise = True, groups = groups, type = STICK, z = Z_LAYERS['main'], direction_changes = 0, rotate = True, image_orientation = IMAGE_RIGHT
                          )
         

@@ -13,6 +13,9 @@ class Enemy(pygame.sprite.Sprite):
         self.enemy = True
         self.id = id
 
+        self._health = 1
+        self._weakness = choice([STICK, LANCE, BALL])
+
         self.display_surface = pygame.display.get_surface()
 
         self.frames, self.frame_index = frames, 0
@@ -87,6 +90,22 @@ class Enemy(pygame.sprite.Sprite):
         # modules
         self.movement = Movement(self)
         self.pathfinder = pathfinder
+
+    @property
+    def health(self):
+        return self._health
+    
+    @health.setter
+    def health(self, health):
+        self._health = health
+
+    @property
+    def weakness(self):
+        return self._weakness
+    
+    @weakness.setter
+    def weakness(self, weakness):
+        self._weakness = weakness
 
     def set_id(self, id):
         self.id = id
@@ -272,14 +291,20 @@ class Enemy(pygame.sprite.Sprite):
     def evaluate_damage(self, damage, damage_type):
         # later check if match damage type
         if (not self.timers["take_damage_cd"].active):
+            self.timers["take_damage_cd"].activate()
             self.frame_index = 0
             self.is_hit = True
+
             print('hit with ' + str(damage_type))
+            if (damage_type == self._weakness):
+                print('correct weakness')
+                self._health -= damage
 
-            # if defeated, kill weapon sprite
-            #self.kill_weapon()
-
-            self.timers["take_damage_cd"].activate()
+            if (self._health <= 0):
+                self.kill_weapon()
+                return DEAD
+            
+        return ALIVE
 
     # attacks
     def idle(self):
@@ -738,6 +763,8 @@ class Bird(Enemy):
             end = pygame.math.Vector2(self.pathfinder.path_checkpoints[0].center)
             if (end - start) != (0, 0):
                 self.velocity = (end - start).normalize() * self.flight_speed
+            else:
+                self.velocity = pygame.math.Vector2(0, 0)
         else:
             self.velocity = pygame.math.Vector2(0, 0)
             self.pathfinder.empty_path()
@@ -939,7 +966,7 @@ class Dog(Enemy):
     def check_for_player(self):
         # detection zone
         self.detection_rect = self.hitbox_rect.inflate(300, self.weapon.range * 2)
-        #pygame.draw.rect(self.display_surface, "yellow", self.detection_rect)
+        pygame.draw.rect(self.display_surface, "yellow", self.detection_rect)
 
         self.check_for_player_gen(self.detection_rect)
 
@@ -1181,6 +1208,9 @@ class Dog(Enemy):
         self.old_rect = self.hitbox_rect.copy()
         self.update_timers()
 
+        #self.outline_surface(enemy.image, (enemy.hitbox_rect.topleft + self.current_window_offset), DAMAGE_COLOUR[enemy.weakness])
+        
+
         self.check_for_player()
         if (not self.is_attacking):
             self.weapon.enemy_point_image(self.player_location, self.facing_right)
@@ -1197,7 +1227,6 @@ class Dog(Enemy):
         self.get_state()
         self.animate(dt)
         self.flicker()
-
         # update weapon 
         self.weapon.update_weapon_zone(self.hitbox_rect)
 

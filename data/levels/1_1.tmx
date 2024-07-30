@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.10" tiledversion="1.10.2" orientation="orthogonal" renderorder="right-down" width="73" height="11" tilewidth="70" tileheight="70" infinite="0" nextlayerid="20" nextobjectid="340">
+<map version="1.10" tiledversion="1.10.2" orientation="orthogonal" renderorder="right-down" width="73" height="11" tilewidth="70" tileheight="70" infinite="0" nextlayerid="20" nextobjectid="342">
  <tileset firstgid="1" source="../tilesets/objects_characters.tsx"/>
  <tileset firstgid="15" source="../tilesets/objects_env.tsx"/>
  <tileset firstgid="76" source="../tilesets/tiles_terrain.tsx"/>
@@ -144,8 +144,6 @@
   <object id="313" name="plant" gid="41" x="3406" y="71" width="70" height="70"/>
  </objectgroup>
  <objectgroup id="10" name="General_objects">
-  <object id="236" name="rockAlt" gid="43" x="3399" y="631" width="70" height="70"/>
-  <object id="237" name="rockAlt" gid="43" x="4717" y="631" width="70" height="70"/>
   <object id="287" name="floor_spikes" gid="1073741828" x="3572.67" y="204.667" width="64" height="64">
    <properties>
     <property name="inverted" type="bool" value="true"/>
@@ -168,6 +166,8 @@
    </properties>
   </object>
   <object id="322" name="flag" gid="11" x="4998" y="629" width="68" height="186"/>
+  <object id="340" name="rockAlt" gid="43" x="3360" y="630" width="70" height="48"/>
+  <object id="341" name="rock" gid="42" x="4690" y="630" width="70" height="41"/>
  </objectgroup>
  <objectgroup id="9" name="Moving_objects"/>
  <objectgroup id="3" name="Player_objects">
@@ -177,7 +177,7 @@
   <object id="321" name="dog" gid="3" x="331.666" y="625.667" width="87" height="54"/>
   <object id="326" name="dog" gid="3" x="1803.67" y="627" width="87" height="54"/>
   <object id="327" name="squirrel" gid="8" x="2030" y="490" width="52" height="52"/>
-  <object id="328" name="squirrel" gid="8" x="2310" y="630" width="52" height="52"/>
+  <object id="328" name="squirrel" gid="8" x="2175" y="634" width="52" height="52"/>
   <object id="329" name="dog" gid="3" x="2641" y="343" width="87" height="54"/>
   <object id="330" name="dog" gid="3" x="3546.33" y="620.333" width="87" height="54"/>
   <object id="331" name="dog" gid="3" x="4578.33" y="624.333" width="87" height="54"/>

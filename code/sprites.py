@@ -41,11 +41,12 @@ class AnimatedSprite(Sprite):
 		self.animate(dt)
 
 class Item(AnimatedSprite):
-	def __init__(self, item_type, pos, frames, groups, data):
+	def __init__(self, item_type, pos, frames, groups, data, player_obj = None):
 		super().__init__(pos, frames, groups, item_type)
 		self.rect.center = pos
 		self.item_type = item_type
 		self.data = data
+		self.player_obj = player_obj
 
 	def get_item_type(self):
 		return self.item_type
@@ -57,6 +58,20 @@ class Item(AnimatedSprite):
 			self.data.denta = self.data.denta + 1
 
 		#self.data.print_data()
+
+	def update(self, dt, event_list = None):
+		if self.player_obj is not None:
+			# move toward player
+			start = pygame.math.Vector2(self.rect.center)
+			end = pygame.math.Vector2(self.player_obj.hitbox_rect.center)
+			if (end - start) != (0, 0):
+				velocity = (end - start).normalize() * 5
+			else:
+				velocity = pygame.math.Vector2(0, 0)
+
+			self.rect.center += velocity * dt
+
+		self.animate(dt)
 
 class ParticleEffectSprite(AnimatedSprite):
 	def __init__(self, pos, frames, groups):

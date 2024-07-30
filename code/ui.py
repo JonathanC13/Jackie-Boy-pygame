@@ -9,6 +9,7 @@ class UI:
         self.heart_sprites = pygame.sprite.Group()
         self.static_sprites = pygame.sprite.Group()
         self.font = font
+        self.frames = frames
 
         self.inventory_x = 20
 
@@ -33,7 +34,73 @@ class UI:
         self.kibble_y = self.denta_y + self.denta_surface_height + 20
         self.kibble_amount_surf = None
 
+        # weapons.
+        self._weapon_list = []
+        self.weapon_bg_size = (60, 60)
+        self._current_weapon_index = 0
+
+        self._game_state = MAIN_MENU
+
         self.create_static_sprites()
+
+    @property
+    def current_weapon_index(self):
+        return self._current_weapon_index
+    
+    @current_weapon_index.setter
+    def current_weapon_index(self, current_weapon_index):
+        self._current_weapon_index = current_weapon_index
+
+    @property
+    def game_state(self):
+        return self._game_state
+    
+    @game_state.setter
+    def game_state(self, _game_state):
+        self._game_state = _game_state
+
+    @property
+    def weapon_list(self):
+        return self._weapon_list
+    
+    @weapon_list.setter
+    def weapon_list(self, weapon_list):
+        self._weapon_list = weapon_list
+
+    def display_weapons(self):
+        # get weapon info and get total width for all weapons in ui
+        weapon_ui = [{'weapon_name': '', 'damage_colour': 'grey', 'pos': vector(WINDOW_WIDTH/2, 20)} for _ in range(len(self.weapon_list))]
+        all_weapon_width = 0
+        for i in range(len(self.weapon_list)):
+            weapon_name = self.weapon_list[i]['weapon'].weapon_name
+            damage_colour = self.weapon_list[i]['weapon'].damage_colour
+            #weapon_surf_width = self.frames['weapons'][weapon_name].get_width()
+            weapon_surf_width = self.weapon_bg_size[0]
+
+            weapon_ui[i]['weapon_name'] = weapon_name
+            weapon_ui[i]['damage_colour'] = damage_colour
+
+            weapon_ui[i]['pos'].x += all_weapon_width
+            all_weapon_width += weapon_surf_width
+        
+        # adjust to center the weapon ui while bliting
+        offset_to_center = all_weapon_width / 2
+        for i in range(len(weapon_ui)):
+            weapon_surf = self.frames['weapons'][weapon_ui[i]['weapon_name']]
+            # bg
+            weapon_bg = pygame.Surface(self.weapon_bg_size)
+            weapon_bg.fill(weapon_ui[i]['damage_colour'])
+            if (i == self._current_weapon_index):
+                weapon_bg.set_alpha(255)
+            else:
+                weapon_bg.set_alpha(50)
+            self.display_surface.blit(weapon_bg, (weapon_ui[i]['pos'].x - offset_to_center, weapon_ui[i]['pos'].y))
+
+            # weapon image. center within container
+            self.display_surface.blit(weapon_surf, (weapon_ui[i]['pos'].x - offset_to_center + self.weapon_bg_size[0]/2 - weapon_surf.get_width()/2, weapon_ui[i]['pos'].y + self.weapon_bg_size[1]/2 - weapon_surf.get_height()/2))
+
+            # weapon key
+
 
     def create_hearts(self, amount):
         hearts = 0
@@ -82,29 +149,33 @@ class UI:
         self.kibble_amount_surf = self.font.render('x ' + str(amount), False, "white", bgcolor=None, wraplength=0)
 
     def update(self, dt, event_list = None):
-        self.heart_sprites.update(dt, event_list)
-        self.static_sprites.update(dt, event_list)
-        
-        self.heart_sprites.draw(self.display_surface)
-        self.static_sprites.draw(self.display_surface)
+        if (self.game_state != MAIN_MENU):
+            self.heart_sprites.update(dt, event_list)
+            self.static_sprites.update(dt, event_list)
+            
+            self.heart_sprites.draw(self.display_surface)
+            self.static_sprites.draw(self.display_surface)
 
-        if (self.heart_amount_surf is not None):
-            x = 100
-            y = self.heart_y + self.heart_surface_height - self.heart_amount_surf.get_size()[1]
-            self.outline_surface(self.heart_amount_surf, (x, y))
-            self.display_surface.blit(self.heart_amount_surf, (x, y))
+            if (self.heart_amount_surf is not None):
+                x = 100
+                y = self.heart_y + self.heart_surface_height - self.heart_amount_surf.get_size()[1]
+                self.outline_surface(self.heart_amount_surf, (x, y))
+                self.display_surface.blit(self.heart_amount_surf, (x, y))
 
-        x = self.inventory_x + 35
-        if (self.denta_amount_surf is not None):
-            y = self.denta_y + self.denta_surface_height - self.denta_amount_surf.get_size()[1]
-            self.outline_surface(self.denta_amount_surf, (x, y))
-            self.display_surface.blit(self.denta_amount_surf, (x, y))
-            #re = self.denta_amount_surf.get_frect(topleft = (x, y))
-            #pygame.draw.rect(self.display_surface, "green", re)
-        if (self.kibble_amount_surf is not None):
-            y = self.kibble_y + self.kibble_surface_height - self.kibble_amount_surf.get_size()[1]
-            self.outline_surface(self.kibble_amount_surf, (x, y))
-            self.display_surface.blit(self.kibble_amount_surf, (x, y))
+            x = self.inventory_x + 35
+            if (self.denta_amount_surf is not None):
+                y = self.denta_y + self.denta_surface_height - self.denta_amount_surf.get_size()[1]
+                self.outline_surface(self.denta_amount_surf, (x, y))
+                self.display_surface.blit(self.denta_amount_surf, (x, y))
+                #re = self.denta_amount_surf.get_frect(topleft = (x, y))
+                #pygame.draw.rect(self.display_surface, "green", re)
+            if (self.kibble_amount_surf is not None):
+                y = self.kibble_y + self.kibble_surface_height - self.kibble_amount_surf.get_size()[1]
+                self.outline_surface(self.kibble_amount_surf, (x, y))
+                self.display_surface.blit(self.kibble_amount_surf, (x, y))
+
+            if (self.weapon_list):
+                self.display_weapons()
 
 class Heart(AnimatedSprite):
     def __init__(self, pos, frames, groups):

@@ -32,6 +32,7 @@ class Level:
         self.acorn_frames = level_frames["acorn_projectile"]
         self.particle_frames = level_frames["effect_particle"]
         self.ball_frames = level_frames["ball_projectile"]
+        self.denta_frames = level_frames["items"]["denta"]
 
         self._current_window_offset = vector(0, 0)
 
@@ -245,7 +246,8 @@ class Level:
                     groups = (self.all_sprites, self.player_weapon_sprites),
                     frames = level_frames["stick"],
                     owner = self.player,
-                    level = self.data.stick_level
+                    level = self.data.stick_level,
+                    weapon_name = 'stick'
                 )
 
                 lance_weapon = Lance(
@@ -253,7 +255,8 @@ class Level:
                     groups = (self.all_sprites, self.player_weapon_sprites),
                     frames = level_frames["umbrella"],
                     owner = self.player,
-                    level = self.data.lance_level
+                    level = self.data.lance_level,
+                    weapon_name = 'umbrella'
                 )
 
                 ball_weapon = Ball(
@@ -261,11 +264,13 @@ class Level:
                     groups = (self.all_sprites),
                     frames = level_frames["ball"],
                     owner = self.player,
-                    level = self.data.ball_level
+                    level = self.data.ball_level,
+                    weapon_name = 'ball'
                 )
 
                 weapon_list = [{"weapon": stick_weapon}, {"weapon": lance_weapon}, {"weapon": ball_weapon}]
                 self.player.weapon_setup(weapon_list)
+                self.data.weapon_list = weapon_list
        
         dog_idx = 0
         bird_idx = 0
@@ -413,7 +418,12 @@ class Level:
         for sprite in sprites:
             #pygame.sprite.spritecollide(sprite, self.acorn_sprites, True, pygame.sprite.collide_mask)  # need to use mask if image surface is larger than the actual image
             for projectile_grp in projectile_sprite_groups:
-                collided_list = pygame.sprite.spritecollide(sprite, projectile_grp, True, collided=self.check_projectile_owner) 
+                if (sprite.type in [BALL_PROJECTILE, ENEMY_ACORN_PROJECTILE]):
+                    collided_list = pygame.sprite.spritecollide(sprite, projectile_grp, True, collided=self.check_projectile_owner)
+                else:
+                    # specifically use mask for the ramps so there is no collision on the non ramp part of the image.
+                    collided_list = pygame.sprite.spritecollide(sprite, projectile_grp, True, collided=pygame.sprite.collide_mask)
+
                 if (collided_list):
                     for collided_sprite in collided_list:
                         ParticleEffectSprite(
@@ -425,7 +435,19 @@ class Level:
                         if (hasattr(collided_sprite, "owner_id") and hasattr(sprite, "enemy")):
                             if (collided_sprite.get_owner_id() == self.player.get_id()):
                                 # if the owner of the projectile is the player, then it can damage the enemy
-                                sprite.evaluate_damage(collided_sprite.get_damage(), collided_sprite.get_type())
+                                if (sprite.type in [ENEMY_DOG, ENEMY_BIRD, ENEMY_SQUIRREL]):
+                                    type = BALL if collided_sprite.get_type() in [BALL, BALL_PROJECTILE, ENEMY_ACORN_PROJECTILE] else collided_sprite.get_type()
+                                    status = sprite.evaluate_damage(collided_sprite.get_damage(), type)
+                                    if (status == DEAD):
+                                        sprite.kill()
+                                        ParticleEffectSprite(
+                                            pos = collided_sprite.rect.center, 
+                                            frames = self.particle_frames, 
+                                            groups = self.all_sprites
+                                        )
+
+                                        # spawn loot
+                                        self.create_loot(sprite.rect.center)
 
     # def acorn_collision(self):
     #     # collision with terrain should remove the acorn from game
@@ -517,7 +539,18 @@ class Level:
                             if (hit.type in [ENEMY_DOG, ENEMY_BIRD, ENEMY_SQUIRREL]):
                                 # damage to enemey
                                 # since there can be multiple collisions within one attack, within enemy sprites have internal timer for cooldown to receive damage so only one instance of damage
-                                hit.evaluate_damage(player_current_weapon.get_damage(), player_current_weapon.type)
+                                status = hit.evaluate_damage(player_current_weapon.get_damage(), player_current_weapon.type)
+                                if (status == DEAD):
+                                    hit.kill()
+                                    ParticleEffectSprite(
+                                        pos = hit.rect.center, 
+                                        frames = self.particle_frames, 
+                                        groups = self.all_sprites
+                                    )
+
+                                    # spawn loot
+                                    self.create_loot(hit.rect.center)
+                                    
                             elif (hit.type in [ENEMY_ACORN_PROJECTILE]):
                                 # reflect projectile
                                 hit.reverse(PLAYER_THROW_SPEED, player_current_weapon.angle)
@@ -569,6 +602,42 @@ class Level:
         else:
             return False
         
+    def create_loot(self, pos):
+        Item(
+            item_type = "denta", 
+            pos = pos, 
+            frames = self.denta_frames, 
+            groups = (self.all_sprites, self.item_sprites),
+            data = self.data,
+            player_obj = self.player
+        )
+        
+    def outline_surface(self, mask, pos, colour):
+        """
+        
+        """
+        offset = 1
+        direction = [[0,  -offset], [offset,  -offset], [offset,  0], [offset,  offset], [0,  offset], [-offset,  offset], [-offset,  0], [-offset,  -offset]]
+
+        outline_surface = mask.to_surface()
+        outline_surface.set_colorkey('black')
+
+        surf_w, surf_h = outline_surface.get_size()
+        for x in range(surf_w):
+            for y in range(surf_h):
+                if outline_surface.get_at((x, y))[0] != 0:
+                    outline_surface.set_at((x, y), colour)
+
+        for dir in direction:
+            self.display_surface.blit(outline_surface, (pos[0] + dir[0], pos[1] + dir[1]))
+        
+    def blit_enemy_weakness(self):
+        for enemy in self.enemy_sprites:
+            self.outline_surface(enemy.mask, (enemy.rect.topleft + self.current_window_offset), DAMAGE_COLOUR[enemy.weakness])
+
+            # have to blit the image again so that the "shield" is behind the enemy sprite
+            self.display_surface.blit(enemy.image, (enemy.rect.topleft + self.current_window_offset))
+        
     def update_timers(self):
         for timer in self.timers.values():
             timer.update()
@@ -577,7 +646,6 @@ class Level:
         # game loop here for level. like checking collisions and updating screen
         self.display_surface.fill("black")
         self.update_timers()
-
         # update sprites
         self.all_sprites.update(dt, event_list)
         self.projectile_collision()
@@ -588,8 +656,12 @@ class Level:
         
         # draw all sprites
         #self.all_sprites.draw(self.display_surface)
+        
         self.all_sprites.draw(self.player.hitbox_rect.center, dt)
 
         # give player the window offset
         self.current_window_offset = self.all_sprites.get_offset()
         self.player.set_current_window_offset((self.current_window_offset, 0))
+        
+        self.data.current_weapon_index = self.player.current_weapon_index
+        self.blit_enemy_weakness()

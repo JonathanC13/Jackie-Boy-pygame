@@ -29,12 +29,33 @@ class Data:
 
         self.kibble_for_life = 50
 
+        self._weapon_list = []
+        self._current_weapon_index = 0
+
         self.ui.create_hearts(self.data_dict['player_health'])
         self.ui.create_denta_count_surf(self.data_dict['denta'])
         self.ui.create_kibble_count_surf(self.data_dict['kibble'])
 
     def bound_values(self, value, min_val, max_val):
         return max(min(max_val, value), min_val)
+
+    @property
+    def current_weapon_index(self):
+        return self._current_weapon_index
+    
+    @current_weapon_index.setter
+    def current_weapon_index(self, current_weapon_index):
+        self._current_weapon_index = current_weapon_index
+        self.ui.current_weapon_index = current_weapon_index
+
+    @property
+    def weapon_list(self):
+        return self._weapon_list
+    
+    @weapon_list.setter
+    def weapon_list(self, weapon_list):
+        self._weapon_list = weapon_list
+        self.ui.weapon_list = weapon_list
 
     @property
     def player_health(self):

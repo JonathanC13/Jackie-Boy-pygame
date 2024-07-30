@@ -73,6 +73,9 @@ Z_LAYERS = {
 
 # Tiled, one scene w, h = 18.2, 10.2
 
+ALIVE = "Alive"
+DEAD = "Dead"
+
 # Physics
 # Player settings
 PLAYER_ACCEL = 0.85
@@ -106,10 +109,15 @@ FLIGHT_NORMAL_SPEED = 3
 SQ_PROJECTILE_SPEED = 12   # max x range = (v0^2 sin(2θ0))/g = 390
 
 # Weapon types
-ALL = "All"
 STICK = "Stick"
 BALL = "Ball"
 LANCE = "Lance"
+
+DAMAGE_COLOUR = {
+    STICK: 'red',
+    BALL: 'green',
+    LANCE: 'blue'
+}
 
 # image_orientation offset
 IMAGE_RIGHT = 90

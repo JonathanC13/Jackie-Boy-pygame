@@ -781,7 +781,7 @@ class Player(pygame.sprite.Sprite):
         self.check_contact()
         self.movement.collision_tweak()
         self.movement.platform_move(dt)
-
+        
         self.get_state()
         self.animate(dt)
         self.flicker()

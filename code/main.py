@@ -21,12 +21,12 @@ class Game:
         
         self.ui = UI(self.font, self.ui_frames)
         self.data = Data(self.ui)   # todo, save info in like a plain text file, read and initilize Data. Save into text file only when level has been completed
-        self.curr_level = 0
+        self.curr_level = 5
         self.game_active = True
 
         self.level_maps_test = [
-            {"stage_main" :0, "stage_sub": 0, "tmx_map": load_pygame(os.path.join("..", "data", "levels", "menu.tmx")), "completion_reqs": {}},
-            {"stage_main" :0, "stage_sub": 1, "tmx_map": load_pygame(os.path.join("..", "data", "levels", "test.tmx")), "completion_reqs": {"kibble": 5, "denta": 1}}
+            {"stage_main" :1, "stage_sub": 1, "tmx_map": load_pygame(os.path.join("..", "data", "levels", "menu.tmx")), "completion_reqs": {}},
+            {"stage_main" :1, "stage_sub": 2, "tmx_map": load_pygame(os.path.join("..", "data", "levels", "test.tmx")), "completion_reqs": {"kibble": 5, "denta": 1}}
         ]
 
         self.level_maps = [
@@ -35,6 +35,7 @@ class Game:
             {"stage_main" :1, "stage_sub": 2, "tmx_map": load_pygame(os.path.join("..", "data", "levels", "1_2.tmx")), "completion_reqs": {}},
             {"stage_main" :1, "stage_sub": 3, "tmx_map": load_pygame(os.path.join("..", "data", "levels", "1_3.tmx")), "completion_reqs": {}},
             {"stage_main" :1, "stage_sub": 4, "tmx_map": load_pygame(os.path.join("..", "data", "levels", "1_4.tmx")), "completion_reqs": {}}
+            ,{"stage_main" :999, "stage_sub": 999, "tmx_map": load_pygame(os.path.join("..", "data", "levels", "test.tmx")), "completion_reqs": {}}
         ]
 
         self.secret_maps = [
@@ -52,6 +53,7 @@ class Game:
 
         self.game_state = MAIN_MENU
 
+        self.ui.game_state = self.game_state
         #self.run_level = Level(self.level_maps_test[self.curr_level], self.level_frames, self.data)
         self.run_level = Level(self.level_maps[self.curr_level], self.level_frames, self.data, self.level_complete)
 
@@ -92,7 +94,8 @@ class Game:
         self.ui_frames = {
             'heart': import_folder('..', 'graphics', 'ui', 'heart'),
             'kibble': import_folder('..', 'graphics', 'ui', 'kibble'),
-            'denta': import_folder('..', 'graphics', 'ui', 'denta')
+            'denta': import_folder('..', 'graphics', 'ui', 'denta'),
+            'weapons': import_folder_dict('..', 'graphics', 'ui', 'weapons')
         }
         self.overlay_frames = {
             'heart': import_folder('..', 'graphics', 'ui', 'heart'),
@@ -129,6 +132,8 @@ class Game:
                 print('Could not read save file.')
         else:
             print('No filename provided.')
+            self.curr_level = 0
+            self.load_level()
 
     def new_game(self):
         """
@@ -196,6 +201,8 @@ class Game:
                 self.game_active = False
             else:
                 self.game_state = LIVE
+
+            self.ui.game_state = self.game_state
 
             event_list = pygame.event.get()
             for event in event_list:
