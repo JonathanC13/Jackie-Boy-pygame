@@ -7,7 +7,7 @@ from support import *
 from data import Data
 from ui import UI
 from saves import Saves
-from overlay import MainMenuControl, PauseMainControl, GameCompleteOverlay
+from overlay import MainMenuControl, PauseMainControl, GameCompleteOverlay, SandwichTransition
 
 class Game:
     
@@ -20,8 +20,8 @@ class Game:
         self.import_assets()
         
         self.ui = UI(self.font, self.ui_frames)
-        self.data = Data(self.ui)   # todo, save info in like a plain text file, read and initilize Data. Save into text file only when level has been completed
-        self.curr_level = 5
+        self.data = Data(self.ui)
+        self.curr_level = 0
         self.game_active = True
 
         self.level_maps_test = [
@@ -35,7 +35,7 @@ class Game:
             {"stage_main" :1, "stage_sub": 2, "tmx_map": load_pygame(os.path.join("..", "data", "levels", "1_2.tmx")), "completion_reqs": {}},
             {"stage_main" :1, "stage_sub": 3, "tmx_map": load_pygame(os.path.join("..", "data", "levels", "1_3.tmx")), "completion_reqs": {}},
             {"stage_main" :1, "stage_sub": 4, "tmx_map": load_pygame(os.path.join("..", "data", "levels", "1_4.tmx")), "completion_reqs": {}}
-            ,{"stage_main" :999, "stage_sub": 999, "tmx_map": load_pygame(os.path.join("..", "data", "levels", "test.tmx")), "completion_reqs": {}}
+            #,{"stage_main" :999, "stage_sub": 999, "tmx_map": load_pygame(os.path.join("..", "data", "levels", "test.tmx")), "completion_reqs": {}}
         ]
 
         self.secret_maps = [
@@ -50,6 +50,7 @@ class Game:
         self.saves = Saves()
         self.pause_menu = PauseMainControl(self.font_title, self.font, self.overlay_frames, self.data, self.func_resume_game, self.to_main_menu, self.load_save_file, self.quit_game, self.level_names)
         self.game_complete_screen = GameCompleteOverlay(self.font_title, self.font, self.overlay_frames, self.to_main_menu, self.quit_game)
+        self.transition_screen = None
 
         self.game_state = MAIN_MENU
 
@@ -124,7 +125,7 @@ class Game:
                 #self.data.print_data()
 
                 self.curr_level = level_selected
-                self.load_level()
+                self.load_level_transition()
                 
                 if (not self.game_active):
                     self.game_active = True
@@ -133,7 +134,7 @@ class Game:
         else:
             print('No filename provided.')
             self.curr_level = 0
-            self.load_level()
+            self.load_level_transition()
 
     def new_game(self):
         """
@@ -144,8 +145,10 @@ class Game:
         # load into data.py
         self.load_save_file(filename, 1)
 
-    def load_level(self):
-        self.run_level = Level(self.level_maps[self.curr_level], self.level_frames, self.data, self.level_complete)
+    def load_level_transition(self):
+        if (self.game_state != GAME_COMPLETE):
+            self.game_state = TRANSITION_LEVEL
+        self.transition_screen = SandwichTransition(self.font_title, 'Main' if self.curr_level == 0 else self.level_names[self.curr_level])
 
     def quit_game(self):
         pygame.quit()
@@ -153,7 +156,8 @@ class Game:
 
     def to_main_menu(self):
         self.curr_level = 0
-        self.load_level()
+        self.game_state = TRANSITION_LEVEL
+        self.load_level_transition()
 
     def func_resume_game(self):
         self.game_active = True
@@ -176,7 +180,7 @@ class Game:
             self.game_state = GAME_COMPLETE
 
         self.save_data()
-        self.load_level()
+        self.load_level_transition()
 
     def draw_bg_tile(self, bg_tile_name):
         for row in range(int(WINDOW_HEIGHT / TILE_SIZE) + 1):
@@ -190,17 +194,19 @@ class Game:
         self.previous_time = time.time()
         while (True):
 
-            dt = (time.time() - self.previous_time) * FPS_TARGET
+            dt = (time.time() - self.previous_time) * FPS_TARGET    # reason why I multiply bt FPS_TARGET is so that the speed values do not have to be set very high. I prefer i.e. 5 rather that 500
             self.previous_time = time.time()
 
-            # if main menu level. Also display the main_menu
-            if (self.level_maps[self.curr_level]['stage_main'] == 0 and self.level_maps[self.curr_level]['stage_sub'] == 0):
+            if (self.game_state == TRANSITION_LEVEL):
+                self.game_active = False
+            elif (self.level_maps[self.curr_level]['stage_main'] == 0 and self.level_maps[self.curr_level]['stage_sub'] == 0):
                 self.game_state = MAIN_MENU
                 self.game_active = True
             elif (self.game_state == GAME_COMPLETE):
                 self.game_active = False
             else:
                 self.game_state = LIVE
+                # self.game_active may be T or F
 
             self.ui.game_state = self.game_state
 
@@ -235,6 +241,24 @@ class Game:
                 elif (self.game_state == GAME_COMPLETE):
                     self.draw_bg_tile('Brown')
                     self.game_complete_screen.update()
+                elif (self.game_state == TRANSITION_LEVEL):
+                    if (self.transition_screen is None):
+                        self.transition_screen = SandwichTransition(self.font_title, 'Main' if self.curr_level == 0 else self.level_names[self.curr_level])
+                    
+                    #self.run_level.run(0, event_list) # run level but with 0 dt so that when transition is reversing the background is re drawn
+
+                    if self.transition_screen.reverse and not self.transition_screen.bg_loaded:
+                        self.transition_screen.bg_loaded = True
+                        # transition requires new level background, load new level
+                        self.run_level = Level(self.level_maps[self.curr_level], self.level_frames, self.data, self.level_complete)
+                    if self.transition_screen.reverse:
+                        self.run_level.run(0, event_list) # run level but with 0 dt so that when transition is reversing the background is re drawn
+
+                    if self.transition_screen.update(dt):
+                        self.game_state = LIVE
+                        self.game_active = True
+                        
+
             else:
                 self.run_level.run(dt, event_list)
                 self.ui.update(dt, event_list)

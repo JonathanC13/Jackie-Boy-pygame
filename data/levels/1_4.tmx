@@ -142,7 +142,7 @@
     <property name="inverted" type="bool" value="false"/>
    </properties>
   </object>
-  <object id="340" name="flag" gid="11" x="4970" y="700" width="68" height="186"/>
+  <object id="340" name="flag" gid="11" x="294" y="628" width="68" height="186"/>
   <object id="355" name="husky" gid="14" x="490" y="630" width="66" height="48"/>
   <object id="362" name="rock" gid="42" x="2730" y="630" width="70" height="41"/>
  </objectgroup>

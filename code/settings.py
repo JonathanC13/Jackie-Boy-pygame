@@ -15,6 +15,7 @@ FPS_TARGET = 60
 # game states
 MAIN_MENU = "Main_menu"
 LIVE = "Live"
+TRANSITION_LEVEL = "Transition level"
 GAME_COMPLETE = "Complete complete"
 
 # saves
@@ -37,6 +38,7 @@ SAVES = "Saves"
 LEVEL_SELECTOR = "Level selector"
 CONTROL_HELP = "Control help"
 PAUSE_MAIN = "Pause main"
+CREDITS = "Credits"
 
 # names of layers and objects from Tiled.
 TRIGGERS = "Triggers"

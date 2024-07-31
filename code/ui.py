@@ -100,6 +100,8 @@ class UI:
             self.display_surface.blit(weapon_surf, (weapon_ui[i]['pos'].x - offset_to_center + self.weapon_bg_size[0]/2 - weapon_surf.get_width()/2, weapon_ui[i]['pos'].y + self.weapon_bg_size[1]/2 - weapon_surf.get_height()/2))
 
             # weapon key
+            key_num_surf = self.font.render(str(i + 1), False, "white", bgcolor=None, wraplength=0)
+            self.display_surface.blit(key_num_surf, (weapon_ui[i]['pos'].x - offset_to_center, weapon_ui[i]['pos'].y))
 
 
     def create_hearts(self, amount):

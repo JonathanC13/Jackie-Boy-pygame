@@ -94,6 +94,9 @@ class Player(pygame.sprite.Sprite):
         # modules
         self.movement = Movement(self)
 
+    def bound(self, val, val_min, val_max):
+        return max(min(val, val_max), val_min)
+
     def move_player_to_spawn(self):
         self.hitbox_rect.topleft = self.player_spawn_point
         self.rect.center = self.hitbox_rect.center
@@ -118,14 +121,7 @@ class Player(pygame.sprite.Sprite):
         else:
             new_weapon_index = self.current_weapon_index
 
-        if (self.current_weapon_index != new_weapon_index):
-            # clear prev weapon statues
-            self.is_attacking = False
-            self.current_attack = None
-            self.weapon_list[self.current_weapon_index]["weapon"].set_can_damage(False)
-            self.timers[self.weapon_list[self.current_weapon_index]["timer_cooldown"]].deactivate()
-            self.timers[self.weapon_list[self.current_weapon_index]["timer_attack"]].deactivate()
-            self.current_weapon_index = new_weapon_index
+        self.select_weapon(new_weapon_index)
             
         if (keys[pygame.K_SPACE]):
             self.jump()
@@ -151,6 +147,17 @@ class Player(pygame.sprite.Sprite):
             self.LEFT_KEY = False
         if (not keys[pygame.K_d]):
             self.RIGHT_KEY = False
+
+    def select_weapon(self, new_weapon_index):
+        new_weapon_index = new_weapon_index % len(self.weapon_list) # circular array
+        if (self.current_weapon_index != new_weapon_index):
+            # clear prev weapon statues
+            self.is_attacking = False
+            self.current_attack = None
+            self.weapon_list[self.current_weapon_index]["weapon"].set_can_damage(False)
+            self.timers[self.weapon_list[self.current_weapon_index]["timer_cooldown"]].deactivate()
+            self.timers[self.weapon_list[self.current_weapon_index]["timer_attack"]].deactivate()
+            self.current_weapon_index = new_weapon_index
 
     def get_current_weapon(self):
         if (len(self.weapon_list) > 0 and self.current_weapon_index < len(self.weapon_list)):
@@ -759,6 +766,8 @@ class Player(pygame.sprite.Sprite):
                 if (event.button == 1):
                     self.weapon_attack(event.pos)
                     #print(event.pos)
+            if (event.type == pygame.MOUSEWHEEL):
+                self.select_weapon(self.current_weapon_index + event.y)
 
             # later ball attack is a charge attack and only shoots when left button released
             # if (event.type == pygame.MOUSEBUTTONUP):
