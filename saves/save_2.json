@@ -4,8 +4,8 @@
     ],
     "player_health": 50,
     "kibble": 0,
-    "denta": 0,
-    "stick_level": 1,
+    "denta": 65,
+    "stick_level": 2,
     "lance_level": 1,
     "ball_level": 1,
     "highest_stage_level": 1

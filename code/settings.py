@@ -17,6 +17,7 @@ MAIN_MENU = "Main_menu"
 LIVE = "Live"
 TRANSITION_LEVEL = "Transition level"
 GAME_COMPLETE = "Complete complete"
+IN_STORE = "In store"
 
 # saves
 SAVES_DIR = os.path.join("..", "saves")
@@ -39,6 +40,7 @@ LEVEL_SELECTOR = "Level selector"
 CONTROL_HELP = "Control help"
 PAUSE_MAIN = "Pause main"
 CREDITS = "Credits"
+STORE = "Store"
 
 # names of layers and objects from Tiled.
 TRIGGERS = "Triggers"
@@ -94,6 +96,9 @@ GRAVITY_NORM = 0.33
 FRICTION = -0.12    # more negative = less slide
 AIR_RESISTANCE = 0
 
+# NPC
+HUSKY = "husky"
+
 # Enemies
 ENEMY_DOG = "Enemy_dog"
 ENEMY_BIRD = "Enemy_bird"
@@ -110,16 +115,19 @@ FLIGHT_NORMAL_SPEED = 3
 # Squirrel
 SQ_PROJECTILE_SPEED = 12   # max x range = (v0^2 sin(2θ0))/g = 390
 
-# Weapon types
-STICK = "Stick"
-BALL = "Ball"
-LANCE = "Lance"
+# Weapon types and names
+STICK = "stick"
+BALL = "ball"
+LANCE = "lance"
+UMBRELLA = "umbrella"
 
 DAMAGE_COLOUR = {
     STICK: 'red',
     BALL: 'green',
     LANCE: 'blue'
 }
+
+
 
 # image_orientation offset
 IMAGE_RIGHT = 90

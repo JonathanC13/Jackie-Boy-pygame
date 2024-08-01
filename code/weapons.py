@@ -149,6 +149,24 @@ class Ball(Weapon):
         # override class AnimatedSprite attr
         self.frames = frames
 
+    def change_level(self, index, level):
+        """
+        creates new weapon object
+        """
+        if (self.level != level):
+            new_ball = Ball(
+                    pos = (self.owner.hitbox_rect.centerx, self.owner.hitbox_rect.centery),
+                    groups = self.groups(),
+                    frames = self.frames,
+                    owner = self.owner,
+                    level = level,
+                    weapon_name = BALL
+                )
+            self.owner.weapon_list[index]["weapon"] = new_ball
+
+        # remove current sprite
+        self.kill()
+
     def check_in_range(self, player_sprite):
         # weapon range for enemy sprite
         self.check_within_circle(player_sprite)
@@ -183,6 +201,24 @@ class Lance(Weapon):
         self.frames = frames
 
         self.original_radius = self.radius
+
+    def change_level(self, index, level):
+        """
+        creates new weapon object
+        """
+        if (self.level != level):
+            new_lance = Lance(
+                    pos = (self.owner.hitbox_rect.centerx, self.owner.hitbox_rect.centery),
+                    groups = self.groups(),
+                    frames = self.frames,
+                    owner = self.owner,
+                    level = level,
+                    weapon_name = UMBRELLA
+                )
+            self.owner.weapon_list[index]["weapon"] = new_lance
+
+            # remove current sprite
+            self.kill()
 
     def check_in_range(self, player_sprite):
         # weapon range for enemy sprite
@@ -219,6 +255,24 @@ class Stick(Weapon):
         # override class AnimatedSprite attr
         self.frames = frames
         
+    def change_level(self, index, level):
+        """
+        creates new weapon object
+        """
+        if (self.level != level):
+            new_stick = Stick(
+                    pos = (self.owner.hitbox_rect.centerx, self.owner.hitbox_rect.centery),
+                    groups = self.groups(),
+                    frames = self.frames,
+                    owner = self.owner,
+                    level = level,
+                    weapon_name = STICK
+                )
+            self.owner.weapon_list[index]["weapon"] = new_stick
+
+            # remove current sprite
+            self.kill()
+
     def check_in_range(self, player_sprite):
         # weapon range for enemy sprite
         self.check_within_circle(player_sprite)

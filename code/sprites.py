@@ -4,7 +4,7 @@ from settings import *
 
 
 class Sprite(pygame.sprite.Sprite):
-	def __init__(self, pos, surf = pygame.Surface((TILE_SIZE,TILE_SIZE)), groups = None, type = None, z = Z_LAYERS["main"]):
+	def __init__(self, pos, surf = pygame.Surface((TILE_SIZE,TILE_SIZE)), groups = None, type = None, z = Z_LAYERS["main"], damage = 1, can_damage = False):
 		
 		super().__init__(groups)
 
@@ -16,15 +16,27 @@ class Sprite(pygame.sprite.Sprite):
 		self.type = type
 		self.z = z
 
+		self.damage = damage
+		self.can_damage = can_damage
+
+	def get_damage(self):
+		return self.damage
+
+	def get_can_damage(self):
+		return self.can_damage
+	
+	def get_type(self):
+		return self.type
+
 class AnimatedSprite(Sprite):
-	def __init__(self, pos, frames, groups, type = None, z = Z_LAYERS["main"], animation_speed = ANIMATION_SPEED):
+	def __init__(self, pos, frames, groups, type = None, z = Z_LAYERS["main"], animation_speed = ANIMATION_SPEED, damage = 1, can_damage = False):
 
 		self.frames, self.frame_index = frames, 0
 		self.len_frames = len(frames)
-		super().__init__(pos, self.frames[self.frame_index], groups, type, z)
+		super().__init__(pos, self.frames[self.frame_index], groups, type, z, damage, can_damage)
 
 		self.animation_speed = animation_speed
-
+		
 	def set_frames(self, frames):
 		self.frame_index = 0
 		self.frames = frames
@@ -149,7 +161,7 @@ class MovingSprite(AnimatedSprite):
 			self.image = pygame.transform.flip(self.image, self.reverse['x'], self.reverse['y'])
 
 class Orbit(AnimatedSprite):
-	def __init__(self, pos, frames, radius, speed, start_angle, end_angle, clockwise = True, groups = None, type = None,z = Z_LAYERS['main'], direction_changes = -1, rotate = False, image_orientation = IMAGE_RIGHT, **kwargs):
+	def __init__(self, pos, frames, radius, speed, start_angle, end_angle, clockwise = True, groups = None, type = None,z = Z_LAYERS['main'], direction_changes = -1, rotate = False, image_orientation = IMAGE_RIGHT, damage = 1, can_damage = False, **kwargs):
 		# note: Clockwise if want an end angle > 360. Do not offset, put the added degrees. I.e. 370, not 10
 		#	Counter Clockwise, if starting angle > end angle and start angle >= 0. use base 360. I.e. 370, not 10
 		self.center = pos
@@ -172,7 +184,13 @@ class Orbit(AnimatedSprite):
 		# cos(deg) = adj/hyp
 		x = self.center[0] + cos(radians(self.angle)) * self.radius
 
-		super().__init__(pos = (x,y), frames = frames, groups = groups, type = type, z = z, **kwargs)
+		super().__init__(pos = (x,y), frames = frames, groups = groups, type = type, z = z, damage = damage, can_damage = can_damage, **kwargs)
+
+	def get_damage(self):
+		return self.damage
+
+	def get_can_damage(self):
+		return self.can_damage
 
 	def rotate_image(self, image_orientation):
 		direction = pygame.math.Vector2(math.cos(radians(self.angle)), math.sin(radians(self.angle))).normalize()
@@ -280,6 +298,9 @@ class Orbit(AnimatedSprite):
 		self.update_angle(dt)
 
 		self.animate(dt)
+
+		if (self.direction > 0):
+			self.image = pygame.transform.flip(self.image, True, False)
 
 		if (self.rotate):
 			self.rotate_image(self.image_orientation)

@@ -82,12 +82,12 @@ class Player(pygame.sprite.Sprite):
         self.timers = {
             "wall_jump_move_block": Timer(200), # blocks the use of LEFT and RIGHT right after wall jump
             "unlock_semi_drop_down": Timer(100), # disables the floor collision for semi collision platforms so that the player can drop down through them
-            "Stick_attack_cooldown": Timer(1000),
-            "Stick_attack_active": Timer(400),
-            "Lance_attack_cooldown": Timer(750),
-            "Lance_attack_active": Timer(400),
-            "Ball_attack_cooldown": Timer(500),
-            "Ball_attack_active": Timer(1000),
+            "stick_attack_cooldown": Timer(1000),
+            "stick_attack_active": Timer(400),
+            "lance_attack_cooldown": Timer(750),
+            "lance_attack_active": Timer(400),
+            "ball_attack_cooldown": Timer(500),
+            "ball_attack_active": Timer(1000),
             "take_damage_cd": Timer(1000)
         }
 
@@ -652,12 +652,15 @@ class Player(pygame.sprite.Sprite):
             self.timers["take_damage_cd"].activate()
 
             if (self.data.player_health - damage <= 0):
-                self.move_player_to_spawn()
+                #self.move_player_to_spawn()
+                return DEAD
                 
             self.data.player_health = self.data.player_health - damage
 
             # stop current attack
             self.is_attacking = False
+
+            return ALIVE
 
     def flicker(self):
         if (self.timers["take_damage_cd"].active and sin(pygame.time.get_ticks() / 50) >= 0):

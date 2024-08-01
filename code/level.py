@@ -10,7 +10,7 @@ from timerClass import Timer
 
 class Level:
 
-    def __init__(self, level_data, level_frames, data, func_level_complete):
+    def __init__(self, level_data, level_frames, data, func_restart_level, func_level_complete, func_open_store, font):
 
         self.display_surface = pygame.display.get_surface()
 
@@ -20,7 +20,11 @@ class Level:
         self.tmx_map_max_width = self.tmx_map.width * TILE_SIZE
         self.tmx_map_max_height = self.tmx_map.height * TILE_SIZE
 
+        self.func_restart_level = func_restart_level
         self.func_level_complete = func_level_complete
+        self.func_open_store = func_open_store
+
+        self.font = font
 
         bg_tile = None
         tmx_level_properties = self.tmx_map.get_layer_by_name('Data')[0].properties
@@ -61,6 +65,10 @@ class Level:
         self.acorn_sprites = pygame.sprite.Group()
         self.damage_sprites = pygame.sprite.Group()
         self.item_sprites = pygame.sprite.Group()
+        self.npc_sprites = pygame.sprite.Group()
+        self.npc_interaction_prompt = pygame.sprite.Group()
+
+        self.npcs_in_contact = []
 
         self.level_finish_rect = None
 
@@ -138,7 +146,8 @@ class Level:
                     groups = (self.all_sprites, self.damage_sprites),
                     type = MOVING_OBJECTS,
                     direction_changes = -1,
-                    rotate = False)
+                    rotate = False,
+                    can_damage = True)
 
             elif (obj.name in ("platform", "boat")):
                 if (obj.width > obj.height):
@@ -206,12 +215,17 @@ class Level:
                 if (obj.name == "flag"):
                     self.level_finish_rect = pygame.Rect((obj.x, obj.y), (obj.width, obj.height))
 
+                can_damage = False
+
                 # groups 
                 groups = [self.all_sprites]
-                if obj.name in ("floor_spike"): 
+                if obj.name in ("floor_spikes"): 
+                    can_damage = True
                     groups.append(self.damage_sprites)
-                elif obj.name in ('husky'):
+                elif obj.name in (HUSKY):
+                    can_damage = False
                     groups.append(self.collision_sprites)
+                    groups.append(self.npc_sprites)
 
                 # z index
                 z = Z_LAYERS["main"] if not "bg" in obj.name else Z_LAYERS["bg_details"]
@@ -220,9 +234,10 @@ class Level:
                     pos = (obj.x, obj.y), 
                     frames = frames, 
                     groups = groups, 
-                    type = GENERAL_OBJECTS, 
+                    type = obj.name, 
                     z = z,
-                    animation_speed = ANIMATION_SPEED)
+                    animation_speed = ANIMATION_SPEED,
+                    can_damage = can_damage)
 
         # player objects
         for obj in self.tmx_map.get_layer_by_name(PLAYER_OBJECTS):
@@ -244,28 +259,28 @@ class Level:
                 stick_weapon = Stick(
                     pos = (self.player.hitbox_rect.centerx, self.player.hitbox_rect.centery),
                     groups = (self.all_sprites, self.player_weapon_sprites),
-                    frames = level_frames["stick"],
+                    frames = level_frames[STICK],
                     owner = self.player,
                     level = self.data.stick_level,
-                    weapon_name = 'stick'
+                    weapon_name = STICK
                 )
 
                 lance_weapon = Lance(
                     pos = (self.player.hitbox_rect.centerx, self.player.hitbox_rect.centery),
                     groups = (self.all_sprites, self.player_weapon_sprites),
-                    frames = level_frames["umbrella"],
+                    frames = level_frames[UMBRELLA],
                     owner = self.player,
                     level = self.data.lance_level,
-                    weapon_name = 'umbrella'
+                    weapon_name = UMBRELLA
                 )
 
                 ball_weapon = Ball(
                     pos = (self.player.hitbox_rect.centerx, self.player.hitbox_rect.centery),
                     groups = (self.all_sprites),
-                    frames = level_frames["ball"],
+                    frames = level_frames[BALL],
                     owner = self.player,
                     level = self.data.ball_level,
-                    weapon_name = 'ball'
+                    weapon_name = BALL
                 )
 
                 weapon_list = [{"weapon": stick_weapon}, {"weapon": lance_weapon}, {"weapon": ball_weapon}]
@@ -466,6 +481,7 @@ class Level:
         """
         If player collides with sprites that will do damage to the player
         """
+        player_status = ALIVE
         # better performance to check rect first and then mask, rather than always checking the mask
         if (pygame.sprite.spritecollide(self.player_sprite.sprite, self.damage_sprites, False)):
             #print('collide with rect')
@@ -485,17 +501,18 @@ class Level:
                         if (hasattr(sprite, "owner_id")):
                             if (sprite.get_owner_id() != self.player.get_id()):
                                 # if the owner of the projectile is NOT the player, then damage
-                                # todo
-                                self.player.evaluate_damage(sprite.get_damage(), sprite.get_type())
+                                player_status = self.player.evaluate_damage(sprite.get_damage(), sprite.get_type())
                     else:
                         # other damage sprite
                         if (hasattr(sprite, "can_damage")):
                             if (sprite.get_can_damage()):
                                 # only can damage the player if it is "active"
-                                self.player.evaluate_damage(sprite.get_damage(), sprite.get_type())
-                            
-                    
+                                player_status = self.player.evaluate_damage(sprite.get_damage(), sprite.get_type())
 
+                    if (player_status == DEAD):
+                        self.func_restart_level()
+                        break
+                            
                     
 
         # if performance is not impacted negatively enough to notice, then it would be less verbose
@@ -559,6 +576,40 @@ class Level:
                             else:
                                 print(f"User error, missing type in attack_collision: {hit.type}")
 
+    def npc_interation(self):
+        self.npcs_in_contact = []
+
+        # clear all prompts
+        for spr in self.npc_interaction_prompt:
+            spr.kill()
+
+        npcs = pygame.sprite.spritecollide(self.player, self.npc_sprites, False)
+        for npc in npcs:
+            if (npc.type == HUSKY):
+                self.npcs_in_contact.append(npc.type)
+
+                text = self.font.render('F', False, "white", bgcolor=None, wraplength=0)
+
+                text_bg = Sprite(
+                    pos = (npc.rect.centerx, npc.rect.top - 30),
+                    surf = pygame.Surface((text.get_width() + 10, text.get_height() + 10)),
+                    groups = (self.all_sprites, self.npc_interaction_prompt),
+                    type = "Text",
+                    z = Z_LAYERS["main"]
+                )
+                text_bg.image.fill('#28282B')
+                text_bg.image.set_alpha(85)
+
+                Sprite(
+                    pos = (text_bg.rect.left + text_bg.rect.size[0]/2 - text.get_width()/2, text_bg.rect.top + text_bg.rect.size[1]/2 - text.get_height()/2),
+                    surf = text,
+                    groups = (self.all_sprites, self.npc_interaction_prompt),
+                    type = "Text",
+                    z = Z_LAYERS["fg"]
+                )
+
+                #self.func_open_store()
+
     def check_constraint(self):
         # side constraints
         if (self.player.hitbox_rect.left <= 0):
@@ -570,11 +621,8 @@ class Level:
         if (self.player.hitbox_rect.bottom <= 0):
             self.player.hitbox_rect.top = 0
         elif (self.player.hitbox_rect.bottom >= self.tmx_map_max_height):
-            # reduce one heart
-            self.data.player_health -= 1
-
-            # move player to original spawn point
-            self.player.move_player_to_spawn()
+            # bottom constraint. Death, restart level.
+            self.func_restart_level()
 
         # completed level
         if (self.level_finish_rect is not None and self.player.hitbox_rect.colliderect(self.level_finish_rect)):
@@ -653,6 +701,7 @@ class Level:
         self.item_collision()
         self.attack_collision()
         self.check_constraint()
+        self.npc_interation()
         
         # draw all sprites
         #self.all_sprites.draw(self.display_surface)

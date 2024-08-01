@@ -767,6 +767,8 @@ class LevelSelectorOverlay(Overlay):
         test_text = self.font.render('hello, world!', False, "white", bgcolor=None, wraplength=0)
         self.container_size = vector(275, test_text.get_height() + 20)
 
+        self.content_surfaces['center']['content_col_x'] = WINDOW_WIDTH/2 - self.container_size.x/2
+
         self.populate_subtitle_surfaces()
         self.populate_content_surface_center()
         self.populate_left_col_1()
@@ -826,6 +828,114 @@ class LevelSelectorOverlay(Overlay):
 
     def update(self):
         self.display_title()
+        self.display_overlay(self.container_size, self.current_total_spacing_y, self.between_spacing_y)
+
+class StoreOverlay(Overlay):
+    def __init__(self, font_title, font, overlay_frames, data, func_resume_game):
+        super().__init__(STORE, font_title, font, overlay_frames)
+
+        self._data = data
+        self.func_resume_game = func_resume_game
+
+        self.shop_text = self.font.render('Shop', False, "white", bgcolor=None, wraplength=0)
+        self.container_size = vector(300, self.shop_text.get_width())
+
+        self.content_surfaces['center']['content_col_x'] = WINDOW_WIDTH/2 - self.container_size.x/2
+
+        self.populate_subtitle_surfaces()
+        self.populate_content_surface_center()
+        self.populate_left_col_1()
+
+    @property
+    def data(self):
+        return self._data
+    
+    @data.setter
+    def data(self, data):
+        self._data = data
+        # repop surfaces
+        self.populate_content_surface_center()
+
+    def populate_subtitle_surfaces(self):
+        self.subtitle_surfaces = []
+        container = []
+        # 'Saves' subtitle
+        level_selector_surf = self.shop_text
+        container.append({"name": "Shop_text", "surf": level_selector_surf, "layer": 1, "offset": vector(self.container_size.x/2 - level_selector_surf.get_width()/2, 10), "clickable": False, "func": None, "params": None})
+
+        level_selector_container_surf = pygame.Surface((self.container_size.x, level_selector_surf.get_height() + 20))
+        level_selector_container_surf.set_alpha(200)
+        level_selector_container_surf.fill('#28282B')
+        container.append({"name": "Shop_container", "surf": level_selector_container_surf, "layer": 0, "offset": vector(0, 0), "clickable": False, "func": None, "params": None})
+
+        self.subtitle_surfaces.append(container)
+    
+    def populate_content_surface_center(self):
+        self.content_surfaces['center']['surfaces'] = []
+        container = []
+        
+        # hearts
+        heart_container_surf = pygame.Surface((self.container_size.x, self.container_size.y))
+        heart_container_surf.set_alpha(85)
+        heart_container_surf.fill('#28282B')
+        container.append({"name": "heart_container_surf", "surf": heart_container_surf, "layer": 0, "offset": vector(0, 0), "clickable": True, "func": self.data.buy_heart, "params": None})
+
+        heart_surf = self.overlay_frames['heart'][0]
+        heart_buy_surf = self.font.render(' Buy with 20 treats', False, "white", bgcolor=None, wraplength=0)
+        total_len = heart_surf.get_width() + heart_buy_surf.get_width()
+
+        container.append({"name": "heart_surf", "surf": heart_surf, "layer": 1, "offset": vector(self.container_size.x/2 - total_len/2, 10), "clickable": False, "func": None, "params": None})
+        container.append({"name": "heart_buy_surf", "surf": heart_buy_surf, "layer": 1, "offset": vector(self.container_size.x/2 + heart_surf.get_width() - total_len/2, 10), "clickable": False, "func": None, "params": None})
+
+        self.content_surfaces['center']['surfaces'].append(container)
+        container = []
+
+        # weapons
+        for i in range(len(self.data.weapon_list)):
+            weapon_name = str(self.data.weapon_list[i]['weapon'].weapon_name)
+
+            container_surf = pygame.Surface((self.container_size.x, self.container_size.y))
+            container_surf.fill('#28282B')
+
+            surf = self.overlay_frames['weapons'][weapon_name]
+
+            if (self.data.check_if_max_level(i)):
+                container_surf.set_alpha(200)
+                container.append({"name": weapon_name + "_container_surf", "surf": container_surf, "layer": 0, "offset": vector(0, 0), "clickable": False, "func": None, "params": None})
+                text_surf = self.font.render(' At max level', False, "white", bgcolor=None, wraplength=0)
+            else:
+                container_surf.set_alpha(85)
+                container.append({"name": weapon_name + "_container_surf", "surf": container_surf, "layer": 0, "offset": vector(0, 0), "clickable": True, "func": self.data.upgrade_weapon, "params": [i]})
+                text_surf = self.font.render(' Upgrade with 30 treats', False, "white", bgcolor=None, wraplength=0)
+
+            total_len = surf.get_width() + text_surf.get_width()
+
+            container.append({"name": "stick_surf", "surf": surf, "layer": 1, "offset": vector(self.container_size.x/2 - total_len/2, 10), "clickable": False, "func": None, "params": None})
+            container.append({"name": "stick_text_surf", "surf": text_surf, "layer": 1, "offset": vector(self.container_size.x/2 + surf.get_width() - total_len/2, 10), "clickable": False, "func": None, "params": None})
+
+            self.content_surfaces['center']['surfaces'].append(container)
+            container = []
+
+    def populate_left_col_1(self):
+        self.content_surfaces['left_1']['surfaces'] = []
+        container = []
+        # Resume
+        back_surf = self.font.render('Exit', False, "white", bgcolor=None, wraplength=0)
+        container.append({"name": "Exit", "surf": back_surf, "layer": 1, "offset": vector(10, 10), "clickable": False, "func": None, "params": None})
+
+        back_container_surf = pygame.Surface((back_surf.get_width() + 20, back_surf.get_height() + 20))
+        back_container_surf.fill('#28282B')
+        back_container_surf.set_alpha(85)
+
+        container.append({"name": "Exit_container", "surf": back_container_surf, "layer": 0, "offset": vector(0, 0), "clickable": True, "func": self.func_resume_game, "params": None})
+        self.content_surfaces['left_1']['surfaces'].append(container)
+        container = []
+        
+        self.content_surfaces['left_1']['content_col_x'] = self.content_surfaces['center']['content_col_x'] - self.between_spacing_x - back_container_surf.get_width()
+
+    def update(self):
+        self.display_title()
+        self.populate_content_surface_center()
         self.display_overlay(self.container_size, self.current_total_spacing_y, self.between_spacing_y)
 
 class Transitions:

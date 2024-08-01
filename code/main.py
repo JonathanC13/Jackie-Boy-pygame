@@ -7,7 +7,7 @@ from support import *
 from data import Data
 from ui import UI
 from saves import Saves
-from overlay import MainMenuControl, PauseMainControl, GameCompleteOverlay, SandwichTransition
+from overlay import MainMenuControl, PauseMainControl, GameCompleteOverlay, SandwichTransition, StoreOverlay
 
 class Game:
     
@@ -51,12 +51,13 @@ class Game:
         self.pause_menu = PauseMainControl(self.font_title, self.font, self.overlay_frames, self.data, self.func_resume_game, self.to_main_menu, self.load_save_file, self.quit_game, self.level_names)
         self.game_complete_screen = GameCompleteOverlay(self.font_title, self.font, self.overlay_frames, self.to_main_menu, self.quit_game)
         self.transition_screen = None
+        self.store_screen = None
 
         self.game_state = MAIN_MENU
 
         self.ui.game_state = self.game_state
         #self.run_level = Level(self.level_maps_test[self.curr_level], self.level_frames, self.data)
-        self.run_level = Level(self.level_maps[self.curr_level], self.level_frames, self.data, self.level_complete)
+        self.run_level = Level(self.level_maps[self.curr_level], self.level_frames, self.data, self.restart_level, self.level_complete, self.open_store, self.font)
 
     def import_assets(self):
         self.level_frames = {
@@ -113,7 +114,7 @@ class Game:
 
         print("saves")
 
-    def load_save_file(self, filename, level_selected):
+    def load_save_file(self, filename, level_selected, text = None):
         # load into data.py
         print(f'chosen: {level_selected}')
         data = ''
@@ -125,7 +126,7 @@ class Game:
                 #self.data.print_data()
 
                 self.curr_level = level_selected
-                self.load_level_transition()
+                self.load_level_transition(text)
                 
                 if (not self.game_active):
                     self.game_active = True
@@ -134,7 +135,7 @@ class Game:
         else:
             print('No filename provided.')
             self.curr_level = 0
-            self.load_level_transition()
+            self.load_level_transition(text)
 
     def new_game(self):
         """
@@ -145,10 +146,11 @@ class Game:
         # load into data.py
         self.load_save_file(filename, 1)
 
-    def load_level_transition(self):
+    def load_level_transition(self, text = None):
         if (self.game_state != GAME_COMPLETE):
             self.game_state = TRANSITION_LEVEL
-        self.transition_screen = SandwichTransition(self.font_title, 'Main' if self.curr_level == 0 else self.level_names[self.curr_level])
+        text = text if text is not None else 'Main' if self.curr_level == 0 else self.level_names[self.curr_level]
+        self.transition_screen = SandwichTransition(self.font_title, text)
 
     def quit_game(self):
         pygame.quit()
@@ -162,11 +164,18 @@ class Game:
     def func_resume_game(self):
         self.game_active = True
 
+        if (self.game_state == IN_STORE):
+            self.game_state = LIVE
+
     def bound(self, val, val_min, val_max):
         return max(min(val, val_max), val_min)
     
     def save_data(self):
         self.saves.save_data(self.data)
+
+    def restart_level(self):
+        # nothing special, just load the save file again to get the original data
+        self.load_save_file(self.data.save_filename, self.curr_level, 'Reset')
 
     def level_complete(self):
         # save player data into save file
@@ -181,6 +190,10 @@ class Game:
 
         self.save_data()
         self.load_level_transition()
+
+    def open_store(self):
+        self.game_state = IN_STORE
+        self.store_screen = StoreOverlay(self.font_title, self.font, self.overlay_frames, self.data, self.func_resume_game)
 
     def draw_bg_tile(self, bg_tile_name):
         for row in range(int(WINDOW_HEIGHT / TILE_SIZE) + 1):
@@ -197,7 +210,9 @@ class Game:
             dt = (time.time() - self.previous_time) * FPS_TARGET    # reason why I multiply bt FPS_TARGET is so that the speed values do not have to be set very high. I prefer i.e. 5 rather that 500
             self.previous_time = time.time()
 
-            if (self.game_state == TRANSITION_LEVEL):
+            if (self.game_state == IN_STORE):
+                self.game_active = False
+            elif (self.game_state == TRANSITION_LEVEL):
                 self.game_active = False
             elif (self.level_maps[self.curr_level]['stage_main'] == 0 and self.level_maps[self.curr_level]['stage_sub'] == 0):
                 self.game_state = MAIN_MENU
@@ -221,6 +236,14 @@ class Game:
                             self.pause_menu.goto_pause_main()
                         elif (self.game_state == LIVE and not self.game_active):
                             self.game_active = True
+                    
+                    if (event.key == pygame.K_f):
+                        if (self.run_level.npcs_in_contact):
+                            for npc in self.run_level.npcs_in_contact:
+                                # for now just interact with first
+                                if (npc == HUSKY):
+                                    # store
+                                    self.open_store()
 
                 if (event.type == pygame.MOUSEBUTTONDOWN):
                     if (event.button == 1):
@@ -230,6 +253,8 @@ class Game:
                             self.pause_menu.get_current_menu().check_button_clicked(event.pos)
                         elif (self.game_state == GAME_COMPLETE):
                             self.game_complete_screen.check_button_clicked(event.pos)
+                        elif (self.game_state == IN_STORE):
+                            self.store_screen.check_button_clicked(event.pos)
 
             if (not self.game_active):
                 # game paused
@@ -250,14 +275,17 @@ class Game:
                     if self.transition_screen.reverse and not self.transition_screen.bg_loaded:
                         self.transition_screen.bg_loaded = True
                         # transition requires new level background, load new level
-                        self.run_level = Level(self.level_maps[self.curr_level], self.level_frames, self.data, self.level_complete)
+                        self.run_level = Level(self.level_maps[self.curr_level], self.level_frames, self.data, self.restart_level, self.level_complete, self.open_store, self.font)
                     if self.transition_screen.reverse:
                         self.run_level.run(0, event_list) # run level but with 0 dt so that when transition is reversing the background is re drawn
 
                     if self.transition_screen.update(dt):
                         self.game_state = LIVE
                         self.game_active = True
-                        
+                elif (self.game_state == IN_STORE):
+                    self.run_level.run(0, event_list)   # bg
+                    self.ui.update(dt, event_list)
+                    self.store_screen.update()
 
             else:
                 self.run_level.run(dt, event_list)
