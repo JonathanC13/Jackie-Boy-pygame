@@ -49,7 +49,7 @@ class Game:
         self.main_menus = MainMenuControl(self.font_title, self.font, self.overlay_frames, self.new_game, self.load_save_file, self.quit_game, self.level_names)
         self.saves = Saves()
         self.pause_menu = PauseMainControl(self.font_title, self.font, self.overlay_frames, self.data, self.func_resume_game, self.to_main_menu, self.load_save_file, self.quit_game, self.level_names)
-        self.game_complete_screen = GameCompleteOverlay(self.font_title, self.font, self.overlay_frames, self.to_main_menu, self.quit_game)
+        self.game_complete_screen = GameCompleteOverlay('Game completed!!!', self.font_title, self.font, self.overlay_frames, self.to_main_menu, self.quit_game)
         self.transition_screen = None
         self.store_screen = None
 
@@ -87,7 +87,8 @@ class Game:
             'items': import_sub_folders('..', 'graphics', 'items'),
             'effect_particle': import_folder('..', 'graphics', 'effects', 'particle'),
             'flag': import_folder('..', 'graphics', 'level', 'flag'),
-            'bg_tiles': import_folder_dict('..', 'graphics', 'level', 'bg', 'tiles')
+            'bg_tiles': import_folder_dict('..', 'graphics', 'level', 'bg', 'tiles'),
+            'boss_sign': import_sub_folders('..', 'graphics', 'enemies', 'boss', 'sign')
         }
 
         self.font_title = pygame.font.Font(join('..', 'graphics', 'ui', 'font', 'runescape_uf.ttf'), 45)
@@ -262,10 +263,10 @@ class Game:
                     # since the game is "paused", where the background is not updating, need to remove the previous menu's options or else they will still be visible in another menu
                     # my idea to "remove" previous menu options, just blit a surface to override the old before update to draw the new
                     self.draw_bg_tile('Green')
-                    self.pause_menu.get_current_menu().update()
+                    self.pause_menu.get_current_menu().update(dt)
                 elif (self.game_state == GAME_COMPLETE):
                     self.draw_bg_tile('Brown')
-                    self.game_complete_screen.update()
+                    self.game_complete_screen.update(dt)
                 elif (self.game_state == TRANSITION_LEVEL):
                     if (self.transition_screen is None):
                         self.transition_screen = SandwichTransition(self.font_title, 'Main' if self.curr_level == 0 else self.level_names[self.curr_level])
@@ -293,7 +294,7 @@ class Game:
 
                 # if main menu level. Also display the main_menu
                 if (self.game_state == MAIN_MENU):
-                    self.main_menus.get_current_menu().update()
+                    self.main_menus.get_current_menu().update(dt)
                 else:
                     # don't need to hold onto the saves while in the levels
                     self.current_saves = None

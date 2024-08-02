@@ -2,7 +2,7 @@ from settings import *
 from sprites import Sprite, AnimatedSprite, MovingSprite, Orbit, Item, ParticleEffectSprite
 from player import Player
 from groups import AllSprites
-from enemies import Dog, Bird, Squirrel
+from enemies import Dog, Bird, Squirrel, Sign
 from weapons import Stick, Lance, Ball
 from projectiles import AcornProjectile, BallProjectile
 from pathfinder import Pathfinder
@@ -67,6 +67,8 @@ class Level:
         self.item_sprites = pygame.sprite.Group()
         self.npc_sprites = pygame.sprite.Group()
         self.npc_interaction_prompt = pygame.sprite.Group()
+
+        self.boss_sprite = pygame.sprite.GroupSingle()
 
         self.npcs_in_contact = []
 
@@ -365,6 +367,20 @@ class Level:
                     level = 1
                 )
                 squirrel_idx += 1
+            elif (obj.name == "boss_1_sign"):
+                Sign(
+                    pos = (obj.x, obj.y),
+                    frames = level_frames["boss_sign"],
+                    groups = (self.all_sprites, self.enemy_sprites, self.boss_sprite, self.collision_sprites),
+                    collision_sprites = self.collision_sprites,
+                    semi_collision_sprites = self.semi_collision_sprites,
+                    ramp_collision_sprites = self.ramp_collision_sprites,
+                    player_sprite = self.player_sprite,
+                    enemy_sprites = self.enemy_sprites,
+                    type = ENEMY_SIGN,
+                    pathfinder = Pathfinder(self.tmx_map.width, self.tmx_map.height),
+                    id = "sign_0"
+                    )
 
         # for spr in self.enemy_sprites:
         #     print(spr.weapon.level)
@@ -536,8 +552,13 @@ class Level:
                             groups = self.all_sprites
                         )
                         if (sprite.get_item_type() == "skull"):
-                            # todo. trigger the levels boss, and lock the camera to the arena
-                            pass
+                            # lock the camera to the arena
+                            print('here')
+                            self.all_sprites.lock_camera_end()
+
+                            # todo. trigger the levels boss
+                            self.boss_sprite.sprite.active = True
+                            
                         else:
                             sprite.activate()
 

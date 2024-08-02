@@ -19,6 +19,8 @@ class AllSprites(pygame.sprite.Group):
             "bottom": -((tmx_map_height * TILE_SIZE) - WINDOW_HEIGHT)
         }
 
+        self.lock_camera_x = None
+
         self.tmx_map_width = tmx_map_width
         self.tmx_map_height = tmx_map_height
         self.top_limit = -top_limit
@@ -50,6 +52,13 @@ class AllSprites(pygame.sprite.Group):
         self.init_small_clouds()
         
         self.draw_bg()
+
+    def lock_camera_end(self):
+        # soft lock
+        self.lock_camera_x = self.camera_bounds['right'] + 350
+
+    def unlock_camera(self):
+        self.lock_camera_x = None
 
     def init_small_clouds(self):
         self.small_cloud_timer = Timer(5000, self.create_small_cloud, True) # 2500
@@ -110,7 +119,10 @@ class AllSprites(pygame.sprite.Group):
         self.offset.y = -(target_pos[1] - (WINDOW_HEIGHT / 2))
 
         # bounds
-        self.offset.x = max(min(self.offset.x, 0), self.camera_bounds["right"])    # - WINDOW_WIDTH to keep the last window at the upper limit one game screen wide
+        if (self.lock_camera_x is not None):
+            self.offset.x = max(min(self.offset.x, self.lock_camera_x), self.camera_bounds["right"])
+        else:
+            self.offset.x = max(min(self.offset.x, 0), self.camera_bounds["right"])    # - WINDOW_WIDTH to keep the last window at the upper limit one game screen wide
         self.offset.y = max(min(self.offset.y, self.camera_bounds["top"]), self.camera_bounds["bottom"])
 
         if self.sky:

@@ -9,6 +9,8 @@ class Enemy(pygame.sprite.Sprite):
     def __init__(self, pos, frames, groups, collision_sprites, semi_collision_sprites, ramp_collision_sprites, player_sprite, enemy_sprites, type = ENEMY_OBJECTS, jump_height = -DOG_VEL_Y, accel_x = DOG_ACCEL, vel_max_x = DOG_MAX_VEL_X, vel_max_y = DOG_MAX_VEL_Y, pathfinder = None, id = id):
         super().__init__(groups)
 
+        self.pos = pos
+
         self.animation_speed = ANIMATION_SPEED
         self.enemy = True
         self.id = id
@@ -128,6 +130,7 @@ class Enemy(pygame.sprite.Sprite):
             self.image = white_surface
 
     def animate(self, dt):
+
         self.frame_index += ANIMATION_SPEED * dt/FPS_TARGET
 
         if (self.frame_index >= len(self.frames[self.state])):
@@ -556,9 +559,259 @@ class Squirrel(Enemy):
 
         #pygame.draw.rect(pygame.display.get_surface(), "green", self.hitbox_rect)
 
-class Bird(Enemy):
-    def __init__(self, pos, frames, groups, collision_sprites, semi_collision_sprites, ramp_collision_sprites, player_sprite, enemy_sprites, type = ENEMY_BIRD, pathfinder = None, id = "bird_0"):
+class FlyingEnemy(Enemy):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
+        self.obstacles = None
+
+        self.flight_src = pygame.math.Vector2(self.pos)
+        self.flight_dest =  pygame.math.Vector2(self.pos)
+
+        self.flight_base_speed = FLIGHT_ATTACK_SPEED
+        self.flight_speed = self.flight_base_speed 
+        self.flight_velocity = pygame.math.Vector2(0, 0)
+
+    def setup_pathfinder(self):
+        self.pathfinder.build_matrix(self.obstacles)
+
+    def set_path_points(self, src, dest):
+        self.flight_src = src
+
+        # adjust destination if it is a collidable sprite
+        valid_dest = dest
+        valid_found = False
+        while (not valid_found):
+            valid_found = True
+            dest_rect = pygame.FRect((valid_dest), (1, 1))
+            for spr in self.obstacles:
+                if (spr.rect.colliderect(dest_rect)):
+                    valid_found = False
+                    if (src[0] < dest[0]):
+                        valid_dest = valid_dest - pygame.math.Vector2(TILE_SIZE, 0)
+                    else:
+                        valid_dest = valid_dest + pygame.math.Vector2(TILE_SIZE, 0)
+                    break
+
+        self.flight_dest = valid_dest
+
+    def determine_path(self):
+        # determine path
+        self.set_path(self.flight_src, self.flight_dest)
+        self.create_path_checkpoints()
+
+    def set_path(self, src, dest):
+        _, self.pathfinder.path = self.pathfinder.dijkstra(src, dest) # x, y
+
+    def create_path_checkpoints(self):
+        if (len(self.pathfinder.path) > 0):
+            self.pathfinder.path_checkpoints = []
+
+            for point in self.pathfinder.path:
+                x = point[0] * TILE_SIZE + (TILE_SIZE/2)
+                y = point[1] * TILE_SIZE + (TILE_SIZE/2)
+                self.pathfinder.path_checkpoints.append(pygame.FRect((x - (self.flight_speed/2), y - (self.flight_speed/2)), (self.flight_speed, self.flight_speed)))
+
+    def assess_path(self):
+        # re-evaluate flight_path. Currently giving me trouble
+        # self.flight_src = pygame.math.Vector2(self.hitbox_rect.topleft)
+        # self.determine_flight_vector(self.flight_src, self.flight_dest)
+        self.get_velocity()
+        self.check_checkpoint_collision()
+        if (self.weapon is not None):
+            self.weapon.point_image(self.hitbox_rect.center, self.flight_dest) 
+        else:
+            pass    
+            #**TODO** point head on sign
+
+    def get_velocity(self):
+        if (len(self.pathfinder.path_checkpoints) > 0):
+            start = pygame.math.Vector2(self.hitbox_rect.center)
+            end = pygame.math.Vector2(self.pathfinder.path_checkpoints[0].center)
+            if (end - start) != (0, 0):
+                self.velocity = (end - start).normalize() * self.flight_speed
+            else:
+                self.velocity = pygame.math.Vector2(0, -3)
+        else:
+            self.velocity = pygame.math.Vector2(0, 0)
+            self.pathfinder.empty_path()
+
+    def check_checkpoint_collision(self):
+        if (len(self.pathfinder.path_checkpoints) > 0):
+            #for rect in self.pathfinder.path_checkpoints:
+            if (self.pathfinder.path_checkpoints[0].collidepoint(self.hitbox_rect.center)):
+                del self.pathfinder.path_checkpoints[0]
+                self.get_velocity()
+        else:
+            self.pathfinder.empty_path()
+
+class Sign(FlyingEnemy):
+    def __init__(self, pos, frames, groups, collision_sprites, semi_collision_sprites, ramp_collision_sprites, player_sprite, enemy_sprites, type = ENEMY_SIGN, pathfinder = None, id = "sign_0"):
+
         super().__init__(pos = pos, frames = frames, groups = groups, collision_sprites = collision_sprites, semi_collision_sprites = semi_collision_sprites, ramp_collision_sprites = ramp_collision_sprites, player_sprite = player_sprite, enemy_sprites = enemy_sprites, type = type, jump_height = -DOG_VEL_Y, accel_x = DOG_ACCEL, vel_max_x = DOG_MAX_VEL_X, vel_max_y = DOG_MAX_VEL_Y, pathfinder = pathfinder, id = id)
+
+        self.obstacles = [spr for spr in self.collision_sprites if (not hasattr(spr, "id") or (hasattr(spr, "id") and spr.get_id() != self.get_id()))]
+
+        self._active = False
+
+        self.flight_base_speed = FLIGHT_ATTACK_SPEED
+        self.flight_speed = self.flight_base_speed
+
+        # attack patterns
+        self.attack_patterns.update(
+            {
+                "ram": [{"timer_name":"locked_on", "func": self.locked_on, "can_damage": False}, {"timer_name":"assess_path", "func": self.assess_path, "can_damage": True}]
+                # "ram": [{"timer_name":"locking_on", "func": self.locking_on, "can_damage": False}, {"timer_name":"locked_on", "func": self.locked_on, "can_damage": False}, {"timer_name":"assess_path", "func": self.assess_path, "can_damage": True}, {"timer_name":"idle", "func": self.idle, "can_damage": False}]
+            }
+        )
+        self.can_damage = False
+
+        # timer
+        self.timers.update(
+            {
+                "idle": Timer(600),
+                "locking_on": Timer(500),
+                "locked_on": Timer(150),
+                "assess_path": Timer(1500, None, True),  # repeat on incase bird did not get to destination yet.
+                "attack_cooldown": Timer(1000)
+            }
+        )
+
+        self.home_pos = vector(4305, 140)   # pos to start some attacks
+
+        self.setup_pathfinder()
+
+    @property
+    def active(self):
+        return self._active
+    
+    @active.setter
+    def active(self, bool):
+        self._active = bool
+
+    def set_can_damage(self, bool):
+        self.can_damage = bool
+
+    def locked_on(self):
+        """
+        save current position
+        get player position
+        keep image angle to same angle
+        """
+        self.set_path_points(self.get_rect_center(), pygame.math.Vector2(self.home_pos))   # self.player_location.x, self.player_location.y. for testing, put top middle of arena
+        self.determine_path()
+        #self.weapon.enemy_point_image(self.player_location, self.facing_right) #**TODO** rotate head
+        #self.determine_flight_vector(self.flight_src, self.flight_dest)
+
+    def perform_attack(self):
+        if (self.is_attacking):
+
+            if (self.current_attack["timer_name"] == "assess_path" and self.timers[self.current_attack["timer_name"]].active):
+                    # specific attack
+                    if (len(self.pathfinder.path_checkpoints) == 0):
+                        # end
+                        #print('fin_flight')
+                        self.pathfinder.empty_path()
+                        self.velocity = pygame.math.Vector2(0, 0)
+                        self.timers[self.current_attack["timer_name"]].kill()
+                    else:
+                        self.assess_path()
+                    # self.pathfinder.draw_path()
+                    # for rect in self.pathfinder.path_checkpoints:
+                    #     pygame.draw.rect(pygame.display.get_surface(), "blue", rect)
+
+            elif (self.current_attack["timer_name"] == "locking_on" and self.timers[self.current_attack["timer_name"]].active):
+                # specific attack
+                self.weapon.enemy_point_image(self.player_location, self.facing_right) # TODO** aim head at player
+
+            elif (self.attack_index < self.attack_seq_len):
+                # next attack in the sequence
+                if (not self.timers[self.current_attack["timer_name"]].active):
+
+                    if (self.attack_seq[self.attack_index]["timer_name"] == "assess_path"):
+                        self.timers[self.attack_seq[self.attack_index]["timer_name"]] = Timer(1500, None, True)
+
+                    self.timers[self.attack_seq[self.attack_index]["timer_name"]].activate()
+                    self.attack_seq[self.attack_index]["func"]()
+                    self.set_can_damage(self.attack_seq[self.attack_index]["can_damage"])
+                    #print(self.timers[self.attack_seq[self.attack_index]["timer_name"]].start_time)
+                    self.current_attack = self.attack_seq[self.attack_index]
+                    self.is_attacking = True
+
+                    self.attack_index += 1
+
+            else:
+                if (not self.timers[self.current_attack["timer_name"]].active):
+                    # disable is_attacking after last timer is finished
+                    self.is_attacking = False
+                    self.set_can_damage(False)
+                    self.current_attack = None
+                    #print(self.timers[self.attack_seq[self.attack_index - 1]["timer_name"]].ended_time)
+                    #print('fin')
+                    # start cooldown
+                    self.timers['attack_cooldown'] = Timer(5000)#Timer(randint(1000, 1500))
+                    self.timers['attack_cooldown'].activate()
+        else:
+            # select moves
+            # if the player is generally above the enemy
+            self.attack_seq = self.attack_patterns["ram"]
+
+            self.is_attacking = True
+            self.attack_index = 0
+            self.attack_seq_len = len(self.attack_seq)
+            self.current_attack = self.attack_seq[self.attack_index]
+
+    def enemy_input(self):
+        # if (self.is_hit):
+        #     self.is_attacking = False
+        #     self.velocity = pygame.math.Vector2(0, 0)
+        # else:
+        if (not self.timers['attack_cooldown'].active or self.is_attacking):
+            self.flight_speed = FLIGHT_ATTACK_SPEED
+            self.perform_attack()
+        else:
+            # move toward player
+            self.flight_speed = FLIGHT_NORMAL_SPEED
+            if (len(self.pathfinder.path) == 0):
+                self.set_path_points(self.get_rect_center(), self.player_sprite.sprite.hitbox_rect.center)
+                self.determine_path()
+
+            self.assess_path()
+
+    def get_state(self):
+        if (self.is_hit):
+            self.state = "hit"
+        else:
+            self.state = "idle"
+
+    def update(self, dt, event_list = None):
+        self.dt = dt
+        self.old_rect = self.hitbox_rect.copy()
+        self.update_timers()
+        
+        if (self._active):
+            #if (not self.is_attacking):
+            #    self.weapon.enemy_point_image(self.player_location, self.facing_right)  # **if not attacking, stand straight up
+            
+            self.enemy_input()
+            self.movement.flying_movement(dt, self.velocity)
+            # # recenter image rect with the hitbox rect
+            self.rect.center = self.hitbox_rect.center
+
+            self.flicker()
+
+        self.get_state()
+        self.animate(dt)
+        
+
+
+class Bird(FlyingEnemy):
+    def __init__(self, pos, frames, groups, collision_sprites, semi_collision_sprites, ramp_collision_sprites, player_sprite, enemy_sprites, type = ENEMY_BIRD, pathfinder = None, id = "bird_0"):
+
+        super().__init__(pos = pos, frames = frames, groups = groups, collision_sprites = collision_sprites, semi_collision_sprites = semi_collision_sprites, ramp_collision_sprites = ramp_collision_sprites, player_sprite = player_sprite, enemy_sprites = enemy_sprites, type = type, jump_height = -DOG_VEL_Y, accel_x = DOG_ACCEL, vel_max_x = DOG_MAX_VEL_X, vel_max_y = DOG_MAX_VEL_Y, pathfinder = pathfinder, id = id)
+
+        # for collision_sprites, ignore self object since it would cause the spawn position as an obstacle if not excluded
+        self.obstacles = [spr for spr in self.collision_sprites if (not hasattr(spr, "id") or (hasattr(spr, "id") and spr.get_id() != self.get_id()))] + self.semi_collision_sprites.sprites() + self.ramp_collision_sprites.sprites()
 
         self.hitbox_rect = self.rect.inflate(-10, 0)
         # previous rect in previous frame to know which direction this rect came from
@@ -581,9 +834,6 @@ class Bird(Enemy):
         self.flight_complete = True # for dive and return. Either this flag or timer
         self.pathing_rect = self.hitbox_rect.copy()
         
-        # for collision_sprites, ignore self object since it would cause the spawn position as an obstacle if not excluded
-        self.obstacles = [spr for spr in self.collision_sprites if (not hasattr(spr, "id") or (hasattr(spr, "id") and spr.get_id() != self.get_id()))] + self.semi_collision_sprites.sprites() + self.ramp_collision_sprites.sprites()
-
         self.dt = 1
 
         # attack patterns
@@ -604,9 +854,6 @@ class Bird(Enemy):
         )
 
         self.setup_pathfinder()
-        
-    def setup_pathfinder(self):
-        self.pathfinder.build_matrix(self.obstacles)
 
     def check_for_player(self):
         # detection zone
@@ -704,78 +951,12 @@ class Bird(Enemy):
         self.weapon.enemy_point_image(self.player_location, self.facing_right)
         #self.determine_flight_vector(self.flight_src, self.flight_dest)
 
-    def set_path_points(self, src, dest):
-        self.flight_src = src
-
-        # adjust destination if it is a collidable sprite
-        valid_dest = dest
-        valid_found = False
-        while (not valid_found):
-            valid_found = True
-            dest_rect = pygame.FRect((valid_dest), (1, 1))
-            for spr in self.obstacles:
-                if (spr.rect.colliderect(dest_rect)):
-                    valid_found = False
-                    if (src[0] < dest[0]):
-                        valid_dest = valid_dest - pygame.math.Vector2(TILE_SIZE, 0)
-                    else:
-                        valid_dest = valid_dest + pygame.math.Vector2(TILE_SIZE, 0)
-                    break
-
-        self.flight_dest = valid_dest
-
-    def set_path(self, src, dest):
-        _, self.pathfinder.path = self.pathfinder.dijkstra(src, dest) # x, y
-
-    def create_path_checkpoints(self):
-        if (len(self.pathfinder.path) > 0):
-            self.pathfinder.path_checkpoints = []
-
-            for point in self.pathfinder.path:
-                x = point[0] * TILE_SIZE + (TILE_SIZE/2)
-                y = point[1] * TILE_SIZE + (TILE_SIZE/2)
-                self.pathfinder.path_checkpoints.append(pygame.FRect((x - (self.flight_speed/2), y - (self.flight_speed/2)), (self.flight_speed, self.flight_speed)))
-
-    def determine_path(self):
-        # determine path
-        self.set_path(self.flight_src, self.flight_dest)
-        self.create_path_checkpoints()
-
-    def check_checkpoint_collision(self):
-        if (len(self.pathfinder.path_checkpoints) > 0):
-            #for rect in self.pathfinder.path_checkpoints:
-            if (self.pathfinder.path_checkpoints[0].collidepoint(self.hitbox_rect.center)):
-                del self.pathfinder.path_checkpoints[0]
-                self.get_velocity()
-        else:
-            self.pathfinder.empty_path()
-
     def set_if_home(self):
         if (self.home_rect is not None):
             self.is_home = self.home_rect.collidepoint(self.hitbox_rect.center)
             if (self.is_home):
                 self.home_rect = None
                 self.weapon.enemy_point_image(self.player_location, self.facing_right)
-
-    def get_velocity(self):
-        if (len(self.pathfinder.path_checkpoints) > 0):
-            start = pygame.math.Vector2(self.hitbox_rect.center)
-            end = pygame.math.Vector2(self.pathfinder.path_checkpoints[0].center)
-            if (end - start) != (0, 0):
-                self.velocity = (end - start).normalize() * self.flight_speed
-            else:
-                self.velocity = pygame.math.Vector2(0, 0)
-        else:
-            self.velocity = pygame.math.Vector2(0, 0)
-            self.pathfinder.empty_path()
-
-    def assess_path(self):
-        # re-evaluate flight_path. Currently giving me trouble
-        # self.flight_src = pygame.math.Vector2(self.hitbox_rect.topleft)
-        # self.determine_flight_vector(self.flight_src, self.flight_dest)
-        self.get_velocity()
-        self.check_checkpoint_collision()
-        self.weapon.point_image(self.hitbox_rect.center, self.flight_dest)
 
     # enemy patrol and attack commands
     def perform_attack(self):

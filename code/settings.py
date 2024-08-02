@@ -100,10 +100,12 @@ AIR_RESISTANCE = 0
 HUSKY = "husky"
 
 # Enemies
-ENEMY_DOG = "Enemy_dog"
-ENEMY_BIRD = "Enemy_bird"
-ENEMY_SQUIRREL = "Enemy_squirrel"
+ENEMY_DOG = "enemy_dog"
+ENEMY_BIRD = "enemy_bird"
+ENEMY_SQUIRREL = "enemy_squirrel"
 ENEMY_ACORN_PROJECTILE = "acorn_projectile"
+ENEMY_SIGN = "enemy_sign"
+
 # Dog
 DOG_ACCEL = 2
 DOG_MAX_VEL_X = 5
@@ -114,6 +116,10 @@ FLIGHT_ATTACK_SPEED = 6
 FLIGHT_NORMAL_SPEED = 3
 # Squirrel
 SQ_PROJECTILE_SPEED = 12   # max x range = (v0^2 sin(2θ0))/g = 390
+# SIGN
+SIGN_FLIGHT_SPEED = 3
+SIGN_ATTACK_SPEED = 8
+
 
 # Weapon types and names
 STICK = "stick"
