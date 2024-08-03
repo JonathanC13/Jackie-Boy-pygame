@@ -371,7 +371,7 @@ class Level:
                 Sign(
                     pos = (obj.x, obj.y),
                     frames = level_frames["boss_sign"],
-                    groups = (self.all_sprites, self.enemy_sprites, self.boss_sprite, self.collision_sprites),
+                    groups = (self.all_sprites, self.enemy_sprites, self.boss_sprite),  #, self.collision_sprites
                     collision_sprites = self.collision_sprites,
                     semi_collision_sprites = self.semi_collision_sprites,
                     ramp_collision_sprites = self.ramp_collision_sprites,

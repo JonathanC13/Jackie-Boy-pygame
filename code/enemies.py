@@ -4,6 +4,7 @@ from math import atan2, degrees, radians, sin, cos
 from settings import *
 from timerClass import Timer
 from movement import Movement
+from sprites import Orbit
 
 class Enemy(pygame.sprite.Sprite):
     def __init__(self, pos, frames, groups, collision_sprites, semi_collision_sprites, ramp_collision_sprites, player_sprite, enemy_sprites, type = ENEMY_OBJECTS, jump_height = -DOG_VEL_Y, accel_x = DOG_ACCEL, vel_max_x = DOG_MAX_VEL_X, vel_max_y = DOG_MAX_VEL_Y, pathfinder = None, id = id):
@@ -138,6 +139,7 @@ class Enemy(pygame.sprite.Sprite):
 
         self.image = self.frames[self.state][int(self.frame_index)]
         self.image = self.image if self.facing_right else pygame.transform.flip(self.image, True, False)
+        self.mask = pygame.mask.from_surface(self.image)
 
     def update_timers(self):
         for timer in self.timers.values():
@@ -610,7 +612,7 @@ class FlyingEnemy(Enemy):
             for point in self.pathfinder.path:
                 x = point[0] * TILE_SIZE + (TILE_SIZE/2)
                 y = point[1] * TILE_SIZE + (TILE_SIZE/2)
-                self.pathfinder.path_checkpoints.append(pygame.FRect((x - (self.flight_speed/2), y - (self.flight_speed/2)), (self.flight_speed, self.flight_speed)))
+                self.pathfinder.path_checkpoints.append(pygame.FRect((x - 10, y - 10), (20, 20)))   # inflated checkpoint to ensure collision of flying sprite
 
     def assess_path(self):
         # re-evaluate flight_path. Currently giving me trouble
@@ -621,15 +623,20 @@ class FlyingEnemy(Enemy):
         if (self.weapon is not None):
             self.weapon.point_image(self.hitbox_rect.center, self.flight_dest) 
         else:
-            pass    
-            #**TODO** point head on sign
+            self.point_top(self.player_location, False) # for testing, remove later
 
     def get_velocity(self):
         if (len(self.pathfinder.path_checkpoints) > 0):
             start = pygame.math.Vector2(self.hitbox_rect.center)
             end = pygame.math.Vector2(self.pathfinder.path_checkpoints[0].center)
             if (end - start) != (0, 0):
-                self.velocity = (end - start).normalize() * self.flight_speed
+                vec = end - start
+                if (vec.magnitude() < self.flight_speed):
+                    # reduce velocity so the next movemnet step will collide with the checkpoint
+                    self.velocity = vec
+                else:
+                    # fly at speed
+                    self.velocity = (end - start).normalize() * self.flight_speed
             else:
                 self.velocity = pygame.math.Vector2(0, -3)
         else:
@@ -681,6 +688,11 @@ class Sign(FlyingEnemy):
 
         self.setup_pathfinder()
 
+        self.start_angle = -90
+        self.end_angle = -90
+        self.angle = self.start_angle
+        self.image_orientation = IMAGE_UP
+
     @property
     def active(self):
         return self._active
@@ -692,6 +704,40 @@ class Sign(FlyingEnemy):
     def set_can_damage(self, bool):
         self.can_damage = bool
 
+    def point_top(self, player_location, default = True):
+        # point weapon for enemy sprite
+        if (default):
+            self.start_angle = self.end_angle = self.angle = -90
+        elif (self.is_attacking):
+            # move to angle
+            self.point_image(self.hitbox_rect.center, player_location)
+            #print(f'{self.rect.center} : {self.player_location}')
+        else:
+            # reset
+            #self.start_angle = self.end_angle = self.angle = -90
+            self.point_image(self.hitbox_rect.center, player_location) # for testing
+
+    def point_image(self, source, location):
+        source = pygame.math.Vector2(source)
+        location = pygame.math.Vector2(location)
+        angle = degrees(atan2(location.y - source.y, location.x - source.x))
+        self.set_angle(angle)
+        #print(f'{angle}')
+
+    def set_angle(self, angle):
+        new_end_angle = angle
+        self.start_angle = self.end_angle = self.angle = new_end_angle
+
+    def rotate_image(self):
+        direction = pygame.math.Vector2(math.cos(radians(self.angle)), math.sin(radians(self.angle))).normalize()
+        
+        angle = degrees(atan2(direction.x, direction.y)) - self.image_orientation		#atan2(y, x). y = x and x = y and then - image_orientation (this also requires user to start the image in the correct position relative to the center of the object orbiting) for correct angle of rotation
+        #print(f'{self.angle} : {math.cos(radians(self.angle))} : {math.sin(radians(self.angle))} : {degrees(atan2(direction.x, direction.y))} : {angle}')
+        self.image = pygame.transform.rotozoom(self.image, angle, 1)
+        self.mask = pygame.mask.from_surface(self.image)
+        
+        self.rect = self.image.get_frect(center = self.hitbox_rect.center)
+
     def locked_on(self):
         """
         save current position
@@ -700,8 +746,7 @@ class Sign(FlyingEnemy):
         """
         self.set_path_points(self.get_rect_center(), pygame.math.Vector2(self.home_pos))   # self.player_location.x, self.player_location.y. for testing, put top middle of arena
         self.determine_path()
-        #self.weapon.enemy_point_image(self.player_location, self.facing_right) #**TODO** rotate head
-        #self.determine_flight_vector(self.flight_src, self.flight_dest)
+        self.point_top(self.player_location, False)
 
     def perform_attack(self):
         if (self.is_attacking):
@@ -722,7 +767,7 @@ class Sign(FlyingEnemy):
 
             elif (self.current_attack["timer_name"] == "locking_on" and self.timers[self.current_attack["timer_name"]].active):
                 # specific attack
-                self.weapon.enemy_point_image(self.player_location, self.facing_right) # TODO** aim head at player
+                self.point_top(self.player_location, False)
 
             elif (self.attack_index < self.attack_seq_len):
                 # next attack in the sequence
@@ -771,12 +816,9 @@ class Sign(FlyingEnemy):
             self.perform_attack()
         else:
             # move toward player
+            self.point_top(self.player_location, False)
             self.flight_speed = FLIGHT_NORMAL_SPEED
-            if (len(self.pathfinder.path) == 0):
-                self.set_path_points(self.get_rect_center(), self.player_sprite.sprite.hitbox_rect.center)
-                self.determine_path()
-
-            self.assess_path()
+            self.velocity = (self.player_location - pygame.Vector2(self.hitbox_rect.center)).normalize() * self.flight_speed
 
     def get_state(self):
         if (self.is_hit):
@@ -785,23 +827,25 @@ class Sign(FlyingEnemy):
             self.state = "idle"
 
     def update(self, dt, event_list = None):
+        self.player_location = pygame.Vector2(self.player_sprite.sprite.hitbox_rect.center)
+
         self.dt = dt
         self.old_rect = self.hitbox_rect.copy()
         self.update_timers()
         
         if (self._active):
-            #if (not self.is_attacking):
-            #    self.weapon.enemy_point_image(self.player_location, self.facing_right)  # **if not attacking, stand straight up
             
             self.enemy_input()
             self.movement.flying_movement(dt, self.velocity)
-            # # recenter image rect with the hitbox rect
+            # recenter image rect with the hitbox rect
             self.rect.center = self.hitbox_rect.center
 
             self.flicker()
 
         self.get_state()
         self.animate(dt)
+
+        self.rotate_image()
         
 
 
