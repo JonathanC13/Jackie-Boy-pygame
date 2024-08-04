@@ -4,7 +4,7 @@ from player import Player
 from groups import AllSprites
 from enemies import Dog, Bird, Squirrel, Sign
 from weapons import Stick, Lance, Ball
-from projectiles import AcornProjectile, BallProjectile
+from projectiles import AcornProjectile, BallProjectile, PoleProjectile
 from pathfinder import Pathfinder
 from timerClass import Timer
 
@@ -37,6 +37,7 @@ class Level:
         self.particle_frames = level_frames["effect_particle"]
         self.ball_frames = level_frames["ball_projectile"]
         self.denta_frames = level_frames["items"]["denta"]
+        self.pole_frames = level_frames["pole_projectile"]
 
         self._current_window_offset = vector(0, 0)
 
@@ -69,6 +70,7 @@ class Level:
         self.npc_interaction_prompt = pygame.sprite.Group()
 
         self.boss_sprite = pygame.sprite.GroupSingle()
+        self.pole_sprites = pygame.sprite.Group()
 
         self.npcs_in_contact = []
 
@@ -379,7 +381,8 @@ class Level:
                     enemy_sprites = self.enemy_sprites,
                     type = ENEMY_SIGN,
                     pathfinder = Pathfinder(self.tmx_map.width, self.tmx_map.height),
-                    id = "sign_0"
+                    id = "sign_0",
+                    func_create_pole = self.create_pole
                     )
 
         # for spr in self.enemy_sprites:
@@ -416,6 +419,9 @@ class Level:
 
     def create_acorn(self, pos, angle_fired, owner_id):
         AcornProjectile(pos, self.acorn_frames, (self.all_sprites, self.damage_sprites, self.acorn_sprites), SQ_PROJECTILE_SPEED, angle_fired, owner_id, self.particle_frames, self.all_sprites)
+
+    def create_pole(self, pos, angle_fired, owner_id):
+        PoleProjectile(pos, self.pole_frames, (self.all_sprites, self.damage_sprites, self.pole_sprites), SIGN_POLE_PROJECTILE_SPEED, angle_fired, owner_id, self.particle_frames, self.all_sprites, IMAGE_UP)
 
     def check_projectile_owner(self, sprite, group_sprite):
         """

@@ -612,7 +612,7 @@ class FlyingEnemy(Enemy):
             for point in self.pathfinder.path:
                 x = point[0] * TILE_SIZE + (TILE_SIZE/2)
                 y = point[1] * TILE_SIZE + (TILE_SIZE/2)
-                self.pathfinder.path_checkpoints.append(pygame.FRect((x - 10, y - 10), (20, 20)))   # inflated checkpoint to ensure collision of flying sprite
+                self.pathfinder.path_checkpoints.append(pygame.FRect((x - self.flight_speed * 2, y - self.flight_speed * 2), (self.flight_speed * 4, self.flight_speed * 4)))   # inflated checkpoint to ensure collision of flying sprite
 
     def assess_path(self):
         # re-evaluate flight_path. Currently giving me trouble
@@ -622,8 +622,7 @@ class FlyingEnemy(Enemy):
         self.check_checkpoint_collision()
         if (self.weapon is not None):
             self.weapon.point_image(self.hitbox_rect.center, self.flight_dest) 
-        else:
-            self.point_top(self.player_location, False) # for testing, remove later
+        
 
     def get_velocity(self):
         if (len(self.pathfinder.path_checkpoints) > 0):
@@ -653,21 +652,32 @@ class FlyingEnemy(Enemy):
             self.pathfinder.empty_path()
 
 class Sign(FlyingEnemy):
-    def __init__(self, pos, frames, groups, collision_sprites, semi_collision_sprites, ramp_collision_sprites, player_sprite, enemy_sprites, type = ENEMY_SIGN, pathfinder = None, id = "sign_0"):
+    def __init__(self, pos, frames, groups, collision_sprites, semi_collision_sprites, ramp_collision_sprites, player_sprite, enemy_sprites, type = ENEMY_SIGN, pathfinder = None, id = "sign_0", func_create_pole = None):
 
         super().__init__(pos = pos, frames = frames, groups = groups, collision_sprites = collision_sprites, semi_collision_sprites = semi_collision_sprites, ramp_collision_sprites = ramp_collision_sprites, player_sprite = player_sprite, enemy_sprites = enemy_sprites, type = type, jump_height = -DOG_VEL_Y, accel_x = DOG_ACCEL, vel_max_x = DOG_MAX_VEL_X, vel_max_y = DOG_MAX_VEL_Y, pathfinder = pathfinder, id = id)
+
+        self.health = 20
+        
+        self.func_create_pole = func_create_pole
 
         self.obstacles = [spr for spr in self.collision_sprites if (not hasattr(spr, "id") or (hasattr(spr, "id") and spr.get_id() != self.get_id()))]
 
         self._active = False
 
-        self.flight_base_speed = FLIGHT_ATTACK_SPEED
+        self.flight_base_speed = SIGN_FLIGHT_SPEED
         self.flight_speed = self.flight_base_speed
 
         # attack patterns
         self.attack_patterns.update(
-            {
-                "ram": [{"timer_name":"locked_on", "func": self.locked_on, "can_damage": False}, {"timer_name":"assess_path", "func": self.assess_path, "can_damage": True}]
+            {   
+                # {"timer_name":"", "func": , "can_damage": }
+                "dive": [{"timer_name":"set_home_top", "func": self.set_home_top, "can_damage": False}, {"timer_name":"assess_path", "func": self.assess_path, "can_damage": True}, {"timer_name":"locking_on", "func": self.locking_on, "can_damage": False}, {"timer_name":"locked_on", "func": self.locked_on, "can_damage": False}, {"timer_name":"assess_path", "func": self.assess_path, "can_damage": True}, {"timer_name":"idle", "func": self.idle, "can_damage": False}],
+
+                "parabola": [{"timer_name":"set_home_side", "func": self.set_home_side, "can_damage": False}, {"timer_name":"assess_path", "func": self.assess_path, "can_damage": False}, {"timer_name":"start_spinning", "func": self.start_spinning, "can_damage": True}, {"timer_name":"set_parabola", "func": self.set_parabola, "can_damage": True}, {"timer_name":"assess_path", "func": self.assess_path, "can_damage": True}, {"timer_name":"stop_spinning", "func": self.stop_spinning, "can_damage": False}, {"timer_name":"idle", "func": self.idle, "can_damage": False}],
+
+                "fire_poles_cross": [{"timer_name":"set_home_center", "func": self.set_home_center, "can_damage": False}, {"timer_name":"assess_path", "func": self.assess_path, "can_damage": False}, {"timer_name":"locking_on", "func": self.locking_on, "can_damage": False}, {"timer_name":"locked_on", "func": self.locked_on, "can_damage": False}, {"timer_name":"fire_poles_cross", "func": self.fire_poles_cross, "can_damage": False}, {"timer_name":"idle", "func": self.idle, "can_damage": False}]
+                
+                #"spin": [{"timer_name":"start_spinning", "func": self.start_spinning, "can_damage": True}, {"timer_name":"idle", "func": self.idle, "can_damage": False}, {"timer_name":"stop_spinning", "func": self.stop_spinning, "can_damage": False}, {"timer_name":"idle", "func": self.idle, "can_damage": False}]
                 # "ram": [{"timer_name":"locking_on", "func": self.locking_on, "can_damage": False}, {"timer_name":"locked_on", "func": self.locked_on, "can_damage": False}, {"timer_name":"assess_path", "func": self.assess_path, "can_damage": True}, {"timer_name":"idle", "func": self.idle, "can_damage": False}]
             }
         )
@@ -677,14 +687,24 @@ class Sign(FlyingEnemy):
         self.timers.update(
             {
                 "idle": Timer(600),
-                "locking_on": Timer(500),
+                "set_home_top": Timer(50),
+                "set_home_side": Timer(50),
+                "set_home_center": Timer(50),
+                "fire_poles_cross": Timer(100),
+                "set_parabola": Timer(50),
+                "start_spinning": Timer(1000),
+                "stop_spinning": Timer(50),
+                "locking_on": Timer(750),
                 "locked_on": Timer(150),
                 "assess_path": Timer(1500, None, True),  # repeat on incase bird did not get to destination yet.
                 "attack_cooldown": Timer(1000)
             }
         )
 
-        self.home_pos = vector(4305, 140)   # pos to start some attacks
+        self.home_top_pos = vector(4305, 140)   # pos to start some attacks
+        self.home_left_pos = vector(3605, 595)
+        self.home_right_pos = vector(4865, 595)
+        self.home_center_pos = vector(4305, 315)
 
         self.setup_pathfinder()
 
@@ -692,6 +712,8 @@ class Sign(FlyingEnemy):
         self.end_angle = -90
         self.angle = self.start_angle
         self.image_orientation = IMAGE_UP
+
+        self.is_spinning = False
 
     @property
     def active(self):
@@ -738,15 +760,76 @@ class Sign(FlyingEnemy):
         
         self.rect = self.image.get_frect(center = self.hitbox_rect.center)
 
+    def set_home_top(self):
+        self.point_top(self.player_location, True)
+        self.set_destination(pygame.math.Vector2(self.home_top_pos))
+        self.flight_speed = SIGN_FLIGHT_SPEED
+
+    def set_home_side(self):
+        self.point_top(self.player_location, True)
+        self.set_destination(pygame.math.Vector2(choice([self.home_left_pos, self.home_right_pos])))
+        self.flight_speed = SIGN_FLIGHT_SPEED
+
+    def set_home_center(self):
+        self.point_top(self.player_location, True)
+        self.set_destination(pygame.math.Vector2(self.home_center_pos))
+        self.flight_speed = SIGN_FLIGHT_SPEED
+
+    def set_destination(self, dest):
+        self.set_path_points(self.get_rect_center(), dest)
+        self.determine_path()
+
+    def locking_on(self):
+        self.point_top(self.player_sprite.sprite.hitbox_rect.center, False)
+
     def locked_on(self):
         """
         save current position
         get player position
         keep image angle to same angle
         """
-        self.set_path_points(self.get_rect_center(), pygame.math.Vector2(self.home_pos))   # self.player_location.x, self.player_location.y. for testing, put top middle of arena
-        self.determine_path()
-        self.point_top(self.player_location, False)
+        self.player_location = self.player_sprite.sprite.hitbox_rect.center
+        self.pathfinder.empty_path()
+        self.pathfinder.path.append((self.player_location[0] / TILE_SIZE, self.player_location[1] / TILE_SIZE))
+        self.create_path_checkpoints()
+        self.flight_speed = SIGN_ATTACK_FLIGHT_SPEED
+
+    def fire_poles_cross(self):
+        # top
+        # pos, angle_fired, owner_id
+        self.func_create_pole((self.hitbox_rect.center), self.angle, self.id)
+
+        # left
+        self.func_create_pole((self.hitbox_rect.center), self.angle - 90, self.id)
+
+        # right
+        self.func_create_pole((self.hitbox_rect.center), self.angle + 90, self.id)
+
+        # bottom
+        self.func_create_pole((self.hitbox_rect.center), self.angle + 180, self.id)
+
+    def start_spinning(self):
+        self.is_spinning = True
+
+    def stop_spinning(self):
+        self.is_spinning = False
+        self.point_top(self.player_sprite.sprite.hitbox_rect.center, True)
+
+    def set_parabola(self):
+        self.pathfinder.create_parabola_path(pygame.Vector2(self.hitbox_rect.centerx / TILE_SIZE, self.hitbox_rect.centery / TILE_SIZE), pygame.Vector2(self.player_sprite.sprite.hitbox_rect.centerx / TILE_SIZE, self.player_sprite.sprite.hitbox_rect.centery / TILE_SIZE))
+        self.create_path_checkpoints()
+        self.flight_speed = SIGN_ATTACK_FLIGHT_SPEED
+
+        # print('===')
+        # print((self.hitbox_rect.centerx / TILE_SIZE, self.hitbox_rect.centery / TILE_SIZE))
+        # print((self.player_sprite.sprite.hitbox_rect.centerx / TILE_SIZE, self.player_sprite.sprite.hitbox_rect.centery / TILE_SIZE))
+        # print(self.pathfinder.path)
+        # print(self.pathfinder.path_checkpoints)
+
+    def spin(self, dt):
+        if (self.is_spinning):
+            self.angle -= SIGN_SPIN_ATTACK_SPEED * dt
+            self.angle = self.angle % 360
 
     def perform_attack(self):
         if (self.is_attacking):
@@ -764,10 +847,9 @@ class Sign(FlyingEnemy):
                     # self.pathfinder.draw_path()
                     # for rect in self.pathfinder.path_checkpoints:
                     #     pygame.draw.rect(pygame.display.get_surface(), "blue", rect)
-
             elif (self.current_attack["timer_name"] == "locking_on" and self.timers[self.current_attack["timer_name"]].active):
                 # specific attack
-                self.point_top(self.player_location, False)
+                self.point_top(self.player_sprite.sprite.hitbox_rect.center, False)
 
             elif (self.attack_index < self.attack_seq_len):
                 # next attack in the sequence
@@ -794,12 +876,12 @@ class Sign(FlyingEnemy):
                     #print(self.timers[self.attack_seq[self.attack_index - 1]["timer_name"]].ended_time)
                     #print('fin')
                     # start cooldown
-                    self.timers['attack_cooldown'] = Timer(5000)#Timer(randint(1000, 1500))
+                    self.timers['attack_cooldown'] = Timer(randint(1000, 1500))
                     self.timers['attack_cooldown'].activate()
         else:
             # select moves
             # if the player is generally above the enemy
-            self.attack_seq = self.attack_patterns["ram"]
+            self.attack_seq = self.attack_patterns["fire_poles_cross"]
 
             self.is_attacking = True
             self.attack_index = 0
@@ -812,13 +894,14 @@ class Sign(FlyingEnemy):
         #     self.velocity = pygame.math.Vector2(0, 0)
         # else:
         if (not self.timers['attack_cooldown'].active or self.is_attacking):
-            self.flight_speed = FLIGHT_ATTACK_SPEED
+            self.flight_speed = SIGN_ATTACK_FLIGHT_SPEED
             self.perform_attack()
         else:
+            pass
             # move toward player
-            self.point_top(self.player_location, False)
-            self.flight_speed = FLIGHT_NORMAL_SPEED
-            self.velocity = (self.player_location - pygame.Vector2(self.hitbox_rect.center)).normalize() * self.flight_speed
+            # self.point_top(self.player_location, True)
+            # self.flight_speed = SIGN_FLIGHT_SPEED
+            # self.velocity = (self.player_sprite.sprite.hitbox_rect.center - pygame.Vector2(self.hitbox_rect.center)).normalize() * self.flight_speed
 
     def get_state(self):
         if (self.is_hit):
@@ -827,8 +910,6 @@ class Sign(FlyingEnemy):
             self.state = "idle"
 
     def update(self, dt, event_list = None):
-        self.player_location = pygame.Vector2(self.player_sprite.sprite.hitbox_rect.center)
-
         self.dt = dt
         self.old_rect = self.hitbox_rect.copy()
         self.update_timers()
@@ -837,6 +918,7 @@ class Sign(FlyingEnemy):
             
             self.enemy_input()
             self.movement.flying_movement(dt, self.velocity)
+            self.spin(dt)
             # recenter image rect with the hitbox rect
             self.rect.center = self.hitbox_rect.center
 

@@ -67,7 +67,7 @@ class Game:
             'platform': import_folder('..', 'graphics', 'level', 'platform'),
 			'boat': import_folder('..',  'graphics', 'objects', 'boat'),
             'floor_spikes': import_folder('..', 'graphics','enemies', 'floor_spikes'),
-            'thorn_bush': import_folder('..', 'graphics','enemies', 'thorn_bush'),
+            'thorn_abush': import_folder('..', 'graphics','enemies', 'thorn_bush'),
             'bats': import_folder('..', 'graphics','enemies', 'bats'),
             'water_top': import_folder('..', 'graphics', 'level', 'water', 'top'),
 			'water_body': import_image('..', 'graphics', 'level', 'water', 'body'),
@@ -88,7 +88,8 @@ class Game:
             'effect_particle': import_folder('..', 'graphics', 'effects', 'particle'),
             'flag': import_folder('..', 'graphics', 'level', 'flag'),
             'bg_tiles': import_folder_dict('..', 'graphics', 'level', 'bg', 'tiles'),
-            'boss_sign': import_sub_folders('..', 'graphics', 'enemies', 'boss', 'sign')
+            'boss_sign': import_sub_folders('..', 'graphics', 'enemies', 'boss', 'sign'),
+            'pole_projectile': import_sub_folders('..', 'graphics', 'projectile', 'pole')
         }
 
         self.font_title = pygame.font.Font(join('..', 'graphics', 'ui', 'font', 'runescape_uf.ttf'), 45)

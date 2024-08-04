@@ -87,6 +87,25 @@ class Pathfinder:
         #self.print_matrix(distances)
         #self.print_matrix(predecessors)
         return distances, self.get_path(predecessors, adj_start_coord, adj_end_coord)
+    
+    def parabola_func(self, a, x1, x2, x_target):
+        return a * (x_target - x1)*(x_target - x2)
+    
+    def create_parabola_path(self, start_pos, end_pos):
+        dir = ((start_pos.x - end_pos.x) / 10) * -1    # number of points = 10
+        x_target = start_pos.x
+
+        while (True):
+            x_target += dir
+            if ((dir >= 0 and x_target >= end_pos.x) or (dir < 0 and x_target <= end_pos.x)):
+                # additional point
+                y_offset = self.parabola_func(-0.25, start_pos.x, end_pos.x, x_target)
+                self.path.append((x_target, start_pos.y - y_offset))
+                break
+
+            y_offset = self.parabola_func(-0.25, start_pos.x, end_pos.x, x_target)
+            self.path.append((x_target, start_pos.y - y_offset))
+
         
     def get_path(self, predecessors, adj_start_coord, adj_end_coord):
 

@@ -1,4 +1,4 @@
-from math import radians, sin, cos
+from math import radians, sin, cos, atan2, degrees
 
 from settings import *
 from sprites import AnimatedSprite, ParticleEffectSprite
@@ -142,3 +142,42 @@ class AcornProjectile(Projectiles):
             self.velocity.y = sin(radians(angle)) * speed
 
             self.timers["reverse"].activate()
+
+class PoleProjectile(Projectiles):
+    def __init__(self, pos, frames, groups, projectile_speed, angle_fired, owner_id, particle_frames, particle_group, damage = 1, level = 1, image_orientation = IMAGE_RIGHT):
+
+        super().__init__(pos = pos, frames = frames, groups = groups, type = POLE_PROJECTILE, projectile_speed = projectile_speed, angle_fired = angle_fired, owner_id = owner_id, particle_frames = particle_frames, particle_group = particle_group, damage = damage, level = level)
+
+        self.angle = angle_fired
+        self.image_orientation = image_orientation
+
+        # timer
+        self.timers.update(
+            {
+                "active": Timer(6000)
+            }
+        )
+        
+        self.timers["active"].activate()
+
+        self.rotate_image()
+
+    def rotate_image(self):
+        direction = pygame.math.Vector2(math.cos(radians(self.angle)), math.sin(radians(self.angle))).normalize()
+        
+        angle = degrees(atan2(direction.x, direction.y))# - self.image_orientation
+        self.image = pygame.transform.rotozoom(self.image, angle, 1)
+        self.mask = pygame.mask.from_surface(self.image)
+        
+        self.rect = self.image.get_frect(center = self.hitbox_rect.center)
+
+    def update(self, dt, event_list):
+        self.old_rect = self.hitbox_rect.copy()
+        self.update_timers()   # timer for active
+        
+        self.movement.flying_movement(dt, self.velocity)
+        # recenter image rect with the hitbox rect
+        self.rect.center = self.hitbox_rect.center
+
+        self.manage_state()
+        #self.animate(dt)
