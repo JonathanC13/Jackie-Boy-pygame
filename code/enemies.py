@@ -660,7 +660,7 @@ class Sign(FlyingEnemy):
         
         self.func_create_pole = func_create_pole
 
-        self.obstacles = [spr for spr in self.collision_sprites if (not hasattr(spr, "id") or (hasattr(spr, "id") and spr.get_id() != self.get_id()))]
+        self.obstacles = []#[spr for spr in self.collision_sprites if (not hasattr(spr, "id") or (hasattr(spr, "id") and spr.get_id() != self.get_id()))]
 
         self._active = False
 
@@ -673,15 +673,18 @@ class Sign(FlyingEnemy):
                 # {"timer_name":"", "func": , "can_damage": }
                 "dive": [{"timer_name":"set_home_top", "func": self.set_home_top, "can_damage": False}, {"timer_name":"assess_path", "func": self.assess_path, "can_damage": True}, {"timer_name":"locking_on", "func": self.locking_on, "can_damage": False}, {"timer_name":"locked_on", "func": self.locked_on, "can_damage": False}, {"timer_name":"assess_path", "func": self.assess_path, "can_damage": True}, {"timer_name":"idle", "func": self.idle, "can_damage": False}],
 
-                "parabola": [{"timer_name":"set_home_side", "func": self.set_home_side, "can_damage": False}, {"timer_name":"assess_path", "func": self.assess_path, "can_damage": False}, {"timer_name":"start_spinning", "func": self.start_spinning, "can_damage": True}, {"timer_name":"set_parabola", "func": self.set_parabola, "can_damage": True}, {"timer_name":"assess_path", "func": self.assess_path, "can_damage": True}, {"timer_name":"stop_spinning", "func": self.stop_spinning, "can_damage": False}, {"timer_name":"idle", "func": self.idle, "can_damage": False}],
+                "parabola": [{"timer_name":"set_home_side", "func": self.set_home_side, "can_damage": False}, {"timer_name":"assess_path", "func": self.assess_path, "can_damage": False}, {"timer_name":"set_spin_attr", "func": self.set_spin_attr, "params": [1, -1],"can_damage": False}, {"timer_name":"start_spinning", "func": self.start_spinning, "can_damage": True}, {"timer_name":"set_parabola", "func": self.set_parabola, "can_damage": True}, {"timer_name":"assess_path", "func": self.assess_path, "can_damage": True}, {"timer_name":"stop_spinning", "func": self.stop_spinning, "can_damage": False}, {"timer_name":"idle", "func": self.idle, "can_damage": False}],
 
-                "fire_poles_cross": [{"timer_name":"set_home_center", "func": self.set_home_center, "can_damage": False}, {"timer_name":"assess_path", "func": self.assess_path, "can_damage": False}, {"timer_name":"locking_on", "func": self.locking_on, "can_damage": False}, {"timer_name":"locked_on", "func": self.locked_on, "can_damage": False}, {"timer_name":"fire_poles_cross", "func": self.fire_poles_cross, "can_damage": False}, {"timer_name":"idle", "func": self.idle, "can_damage": False}]
+                "fire_poles_cross": [{"timer_name":"set_home_center", "func": self.set_home_center, "can_damage": False}, {"timer_name":"assess_path", "func": self.assess_path, "can_damage": False}, {"timer_name":"locking_on", "func": self.locking_on, "can_damage": False}, {"timer_name":"locked_on", "func": self.locked_on, "can_damage": False}, {"timer_name":"fire_poles_cross", "func": self.fire_poles_cross, "can_damage": False}, {"timer_name":"idle", "func": self.idle, "can_damage": False}],
                 
-                #"spin": [{"timer_name":"start_spinning", "func": self.start_spinning, "can_damage": True}, {"timer_name":"idle", "func": self.idle, "can_damage": False}, {"timer_name":"stop_spinning", "func": self.stop_spinning, "can_damage": False}, {"timer_name":"idle", "func": self.idle, "can_damage": False}]
-                # "ram": [{"timer_name":"locking_on", "func": self.locking_on, "can_damage": False}, {"timer_name":"locked_on", "func": self.locked_on, "can_damage": False}, {"timer_name":"assess_path", "func": self.assess_path, "can_damage": True}, {"timer_name":"idle", "func": self.idle, "can_damage": False}]
+                "spin": [{"timer_name":"set_down_slash", "func": self.set_down_slash, "can_damage": False}, {"timer_name":"start_spinning", "func": self.start_spinning, "can_damage": True}, {"timer_name":"set_up_slash", "func": self.set_up_slash, "can_damage": False}, {"timer_name":"start_spinning", "func": self.start_spinning, "can_damage": True}, {"timer_name":"stop_spinning", "func": self.stop_spinning, "can_damage": False}, {"timer_name":"idle", "func": self.idle, "can_damage": False}]
             }
         )
         self.can_damage = False
+        self.spin_direction = 1 # 1 is clockwise
+        self.spin_num_rotations = -1 # -1 is infinite
+        self.curr_rotations = 0
+        self.rotation_flag = False
 
         # timer
         self.timers.update(
@@ -692,8 +695,11 @@ class Sign(FlyingEnemy):
                 "set_home_center": Timer(50),
                 "fire_poles_cross": Timer(100),
                 "set_parabola": Timer(50),
+                "set_spin_attr": Timer(50),
                 "start_spinning": Timer(1000),
                 "stop_spinning": Timer(50),
+                "set_down_slash": Timer(50),
+                "set_up_slash": Timer(50),
                 "locking_on": Timer(750),
                 "locked_on": Timer(150),
                 "assess_path": Timer(1500, None, True),  # repeat on incase bird did not get to destination yet.
@@ -722,6 +728,14 @@ class Sign(FlyingEnemy):
     @active.setter
     def active(self, bool):
         self._active = bool
+
+    def check_for_player_within_melee(self):
+        # detection zone
+        self.detection_rect = self.hitbox_rect.inflate(150, 150)
+        self.player_proximity["detected"] = self.detection_rect.colliderect(self.player_sprite.sprite.hitbox_rect)
+        if (self.player_proximity["detected"]):
+            self.player_sprite_detected = self.player_sprite.sprite
+            self.player_location = self.player_sprite.sprite.hitbox_rect.center
 
     def set_can_damage(self, bool):
         self.can_damage = bool
@@ -776,6 +790,7 @@ class Sign(FlyingEnemy):
         self.flight_speed = SIGN_FLIGHT_SPEED
 
     def set_destination(self, dest):
+        print(f'{self.get_rect_center()}, {dest}')
         self.set_path_points(self.get_rect_center(), dest)
         self.determine_path()
 
@@ -808,12 +823,27 @@ class Sign(FlyingEnemy):
         # bottom
         self.func_create_pole((self.hitbox_rect.center), self.angle + 180, self.id)
 
+    def set_down_slash(self):
+        arr = [-1 if self.player_sprite.sprite.hitbox_rect.x > self.get_rect_center().x else 1, 1]
+        self.set_spin_attr(arr)
+
+    def set_up_slash(self):
+        arr = [1 if self.player_sprite.sprite.hitbox_rect.x > self.get_rect_center().x else -1, 1]
+        self.set_spin_attr(arr)
+
+    def set_spin_attr(self, params):
+        self.spin_direction = params[0]
+        self.spin_num_rotations = params[1]
+
     def start_spinning(self):
         self.is_spinning = True
 
     def stop_spinning(self):
         self.is_spinning = False
         self.point_top(self.player_sprite.sprite.hitbox_rect.center, True)
+        self.spin_direction = 1
+        self.spin_num_rotations = -1
+        self.curr_rotations = 0
 
     def set_parabola(self):
         self.pathfinder.create_parabola_path(pygame.Vector2(self.hitbox_rect.centerx / TILE_SIZE, self.hitbox_rect.centery / TILE_SIZE), pygame.Vector2(self.player_sprite.sprite.hitbox_rect.centerx / TILE_SIZE, self.player_sprite.sprite.hitbox_rect.centery / TILE_SIZE))
@@ -828,13 +858,32 @@ class Sign(FlyingEnemy):
 
     def spin(self, dt):
         if (self.is_spinning):
-            self.angle -= SIGN_SPIN_ATTACK_SPEED * dt
+            self.angle -= SIGN_SPIN_ATTACK_SPEED * dt * self.spin_direction 
             self.angle = self.angle % 360
+
+            if (self.spin_direction >= 0):
+                if (self.rotation_flag and abs(self.angle) <= 270 and abs(self.angle) >= 180):
+                    self.curr_rotations += 1
+                    self.rotation_flag = False
+                elif (abs(self.angle) > 270 and abs(self.angle) < 360):
+                    self.rotation_flag = True
+            elif (self.spin_direction < 0):
+                if (self.rotation_flag and abs(self.angle) >= 270 and abs(self.angle) <= 360):
+                    self.curr_rotations += 1
+                    self.rotation_flag = False
+                elif (abs(self.angle) > 180 and abs(self.angle) < 270):
+                    self.rotation_flag = True
+
+            if (self.curr_rotations == self.spin_num_rotations):
+                self.stop_spinning()
 
     def perform_attack(self):
         if (self.is_attacking):
 
-            if (self.current_attack["timer_name"] == "assess_path" and self.timers[self.current_attack["timer_name"]].active):
+            if (self.current_attack["timer_name"] == "start_spinning" and self.timers[self.current_attack["timer_name"]].active):
+                if (not self.is_spinning):
+                    self.timers[self.current_attack["timer_name"]].deactivate()
+            elif (self.current_attack["timer_name"] == "assess_path" and self.timers[self.current_attack["timer_name"]].active):
                     # specific attack
                     if (len(self.pathfinder.path_checkpoints) == 0):
                         # end
@@ -859,7 +908,12 @@ class Sign(FlyingEnemy):
                         self.timers[self.attack_seq[self.attack_index]["timer_name"]] = Timer(1500, None, True)
 
                     self.timers[self.attack_seq[self.attack_index]["timer_name"]].activate()
-                    self.attack_seq[self.attack_index]["func"]()
+
+                    if (self.attack_seq[self.attack_index]["timer_name"] == "set_spin_attr"):
+                        self.attack_seq[self.attack_index]["func"](self.attack_seq[self.attack_index]["params"])
+                    else:
+                        self.attack_seq[self.attack_index]["func"]()
+
                     self.set_can_damage(self.attack_seq[self.attack_index]["can_damage"])
                     #print(self.timers[self.attack_seq[self.attack_index]["timer_name"]].start_time)
                     self.current_attack = self.attack_seq[self.attack_index]
@@ -880,8 +934,14 @@ class Sign(FlyingEnemy):
                     self.timers['attack_cooldown'].activate()
         else:
             # select moves
-            # if the player is generally above the enemy
-            self.attack_seq = self.attack_patterns["fire_poles_cross"]
+            moves = ['dive', 'parabola', 'fire_poles_cross']
+
+            self.check_for_player_within_melee()
+            if (self.player_proximity["detected"]):
+                # if within melee range, add and increase the odds of close range spin move
+                moves = moves + ['spin', 'spin', 'spin']
+
+            self.attack_seq = self.attack_patterns[choice(moves)]
 
             self.is_attacking = True
             self.attack_index = 0
@@ -897,11 +957,10 @@ class Sign(FlyingEnemy):
             self.flight_speed = SIGN_ATTACK_FLIGHT_SPEED
             self.perform_attack()
         else:
-            pass
             # move toward player
-            # self.point_top(self.player_location, True)
-            # self.flight_speed = SIGN_FLIGHT_SPEED
-            # self.velocity = (self.player_sprite.sprite.hitbox_rect.center - pygame.Vector2(self.hitbox_rect.center)).normalize() * self.flight_speed
+            self.point_top(self.player_location, True)
+            self.flight_speed = SIGN_FLIGHT_SPEED
+            self.velocity = (self.player_sprite.sprite.hitbox_rect.center - pygame.Vector2(self.hitbox_rect.center)).normalize() * self.flight_speed
 
     def get_state(self):
         if (self.is_hit):
@@ -1273,7 +1332,7 @@ class Dog(Enemy):
     def check_for_player(self):
         # detection zone
         self.detection_rect = self.hitbox_rect.inflate(300, self.weapon.range * 2)
-        pygame.draw.rect(self.display_surface, "yellow", self.detection_rect)
+        #pygame.draw.rect(self.display_surface, "yellow", self.detection_rect)
 
         self.check_for_player_gen(self.detection_rect)
 

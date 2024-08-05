@@ -3,6 +3,8 @@ from settings import *
 class Pathfinder:
     def __init__(self, tmx_map_w, tmx_map_h):
         # flip w and h so that x = rows and y = cols
+        self.max_width = tmx_map_w
+        self.max_height = tmx_map_h
         self.matrix = [[1] * (tmx_map_h) for _ in range((tmx_map_w))]
         self.path = []
         self.path_checkpoints = []
@@ -26,22 +28,33 @@ class Pathfinder:
         for r in range(len(self.matrix)):
             for c in range(len(self.matrix[r])):
                 if (self.matrix[r][c] == 0):
-                    pygame.draw.rect(pygame.display.get_surface(), "red", Tile((c * TILE_SIZE, r * TILE_SIZE)).create_rect())   
+                    pygame.draw.rect(pygame.display.get_surface(), "red", Tile((c * TILE_SIZE, r * TILE_SIZE)).create_rect())
+
+    def bound(self, val, min_val, max_val):
+        return max(min(val, max_val), min_val)
 
     def dijkstra(self, start_coord, end_coord):
         
         # have to resize for index
         start_coord = list([int(z // TILE_SIZE) for z in start_coord])
         end_coord = list([int(z // TILE_SIZE) for z in end_coord])
+
+        start_coord[0] = self.bound(start_coord[0], 0, self.max_width - 1) #self.max_width - 1 if start_coord[0] >= self.max_width else start_coord[0]
+        start_coord[1] = self.bound(start_coord[1], 0, self.max_height - 1) #self.max_height - 1 if start_coord[1] >= self.max_height else start_coord[1]
+
+        end_coord[0] = self.bound(end_coord[0], 0, self.max_width - 1)#self.max_width - 1 if end_coord[0] >= self.max_width else end_coord[0]
+        end_coord[1] = self.bound(end_coord[1], 0, self.max_height - 1)#self.max_height - 1 if end_coord[1] >= self.max_height else end_coord[1]
+        #print(f'{start_coord}, {end_coord}')
+
         #print(start_coord, " => ", end_coord)
         adj_start_coord = start_coord#[start_coord[1], start_coord[0]] and then flip since x = col and y = row
         adj_end_coord = end_coord#[end_coord[1], end_coord[0]]
-
+        
         rows = len(self.matrix)
         cols = len(self.matrix[0])
 
         size = rows * cols
-
+        # [4564.08, 877.869], [3605, 595]
         distances = [[float('inf')] * cols for _ in range(rows)]
         distances[adj_start_coord[0]][adj_start_coord[1]] = 0
         visited = [[False] * cols for _ in range(rows)]

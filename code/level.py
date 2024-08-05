@@ -732,7 +732,6 @@ class Level:
         
         # draw all sprites
         #self.all_sprites.draw(self.display_surface)
-        
         self.all_sprites.draw(self.player.hitbox_rect.center, dt)
 
         # give player the window offset
@@ -741,3 +740,12 @@ class Level:
         
         self.data.current_weapon_index = self.player.current_weapon_index
         self.blit_enemy_weakness()
+
+        if (self.boss_sprite.sprite is not None):
+            sign_melee_range_rect = self.boss_sprite.sprite.hitbox_rect.inflate(150, 150)
+            sign_melee_range_rect.topleft = sign_melee_range_rect.topleft + self.current_window_offset
+            pygame.draw.rect(self.display_surface, "red", sign_melee_range_rect)
+
+            self.display_surface.blit(self.boss_sprite.sprite.image, (self.boss_sprite.sprite.rect.topleft + self.current_window_offset))
+
+
