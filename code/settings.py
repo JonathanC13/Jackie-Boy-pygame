@@ -135,6 +135,8 @@ DAMAGE_COLOUR = {
     LANCE: 'blue'
 }
 
+HITBOX_RECT = "hitbox_rect"
+
 
 
 # image_orientation offset

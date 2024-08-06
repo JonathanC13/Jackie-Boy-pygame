@@ -294,20 +294,20 @@ class Enemy(pygame.sprite.Sprite):
         self.movement.collision("vertical", dt)
 
     def evaluate_damage(self, damage, damage_type):
-        # later check if match damage type
-        if (not self.timers["take_damage_cd"].active):
-            self.timers["take_damage_cd"].activate()
-            self.frame_index = 0
-            self.is_hit = True
+        # if not correct damage type, no reaction.
+        if (damage_type == self._weakness):
+            if (not self.timers["take_damage_cd"].active):
+                self.timers["take_damage_cd"].activate()
+                self.frame_index = 0
+                self.is_hit = True
 
-            print('hit with ' + str(damage_type))
-            if (damage_type == self._weakness):
-                print('correct weakness')
                 self._health -= damage
 
-            if (self._health <= 0):
-                self.kill_weapon()
-                return DEAD
+                if (self._health <= 0):
+                    self.kill_weapon()
+                    return DEAD
+                    
+                    # for common enemy, weakness stays the same if has more HP
             
         return ALIVE
 
@@ -677,10 +677,12 @@ class Sign(FlyingEnemy):
 
                 "fire_poles_cross": [{"timer_name":"set_home_center", "func": self.set_home_center, "can_damage": False}, {"timer_name":"assess_path", "func": self.assess_path, "can_damage": False}, {"timer_name":"locking_on", "func": self.locking_on, "can_damage": False}, {"timer_name":"locked_on", "func": self.locked_on, "can_damage": False}, {"timer_name":"fire_poles_cross", "func": self.fire_poles_cross, "can_damage": False}, {"timer_name":"idle", "func": self.idle, "can_damage": False}],
                 
-                "spin": [{"timer_name":"set_down_slash", "func": self.set_down_slash, "can_damage": False}, {"timer_name":"start_spinning", "func": self.start_spinning, "can_damage": True}, {"timer_name":"set_up_slash", "func": self.set_up_slash, "can_damage": False}, {"timer_name":"start_spinning", "func": self.start_spinning, "can_damage": True}, {"timer_name":"stop_spinning", "func": self.stop_spinning, "can_damage": False}, {"timer_name":"idle", "func": self.idle, "can_damage": False}]
+                "spin": [{"timer_name":"set_down_slash", "func": self.set_down_slash, "can_damage": False}, {"timer_name":"spin_for_rotations", "func": self.start_spinning, "can_damage": True}, {"timer_name":"set_up_slash", "func": self.set_up_slash, "can_damage": False}, {"timer_name":"spin_for_rotations", "func": self.start_spinning, "can_damage": True}, {"timer_name":"idle", "func": self.idle, "can_damage": False}]#,
+
+                #"spin_test": [{"timer_name":"set_spin_attr", "func": self.set_spin_attr, "params": [1, -1],"can_damage": False}, {"timer_name":"start_spinning", "func": self.start_spinning, "can_damage": True}]
             }
         )
-        self.can_damage = False
+
         self.spin_direction = 1 # 1 is clockwise
         self.spin_num_rotations = -1 # -1 is infinite
         self.curr_rotations = 0
@@ -703,6 +705,7 @@ class Sign(FlyingEnemy):
                 "locking_on": Timer(750),
                 "locked_on": Timer(150),
                 "assess_path": Timer(1500, None, True),  # repeat on incase bird did not get to destination yet.
+                "spin_for_rotations": Timer(2000, None, True),
                 "attack_cooldown": Timer(1000)
             }
         )
@@ -728,6 +731,24 @@ class Sign(FlyingEnemy):
     @active.setter
     def active(self, bool):
         self._active = bool
+    
+    def evaluate_damage(self, damage, damage_type):
+        # override
+        if (damage_type == self._weakness):
+            if (not self.timers["take_damage_cd"].active and self._active):
+                self.timers["take_damage_cd"].activate()
+                self.frame_index = 0
+                self.is_hit = True
+
+                self._health -= damage
+
+                if (self._health <= 0):
+                    return DEAD
+                else:
+                    # if has more HP, change weakness type
+                    self.weakness = choice([STICK, LANCE, BALL])
+
+        return ALIVE
 
     def check_for_player_within_melee(self):
         # detection zone
@@ -736,9 +757,6 @@ class Sign(FlyingEnemy):
         if (self.player_proximity["detected"]):
             self.player_sprite_detected = self.player_sprite.sprite
             self.player_location = self.player_sprite.sprite.hitbox_rect.center
-
-    def set_can_damage(self, bool):
-        self.can_damage = bool
 
     def point_top(self, player_location, default = True):
         # point weapon for enemy sprite
@@ -750,8 +768,8 @@ class Sign(FlyingEnemy):
             #print(f'{self.rect.center} : {self.player_location}')
         else:
             # reset
-            #self.start_angle = self.end_angle = self.angle = -90
-            self.point_image(self.hitbox_rect.center, player_location) # for testing
+            self.start_angle = self.end_angle = self.angle = -90
+            #self.point_image(self.hitbox_rect.center, player_location) # for testing
 
     def point_image(self, source, location):
         source = pygame.math.Vector2(source)
@@ -765,14 +783,28 @@ class Sign(FlyingEnemy):
         self.start_angle = self.end_angle = self.angle = new_end_angle
 
     def rotate_image(self):
+
+
+        # vector of the angle
         direction = pygame.math.Vector2(math.cos(radians(self.angle)), math.sin(radians(self.angle))).normalize()
-        
+
+        # angle of rotation based on original image orientation
         angle = degrees(atan2(direction.x, direction.y)) - self.image_orientation		#atan2(y, x). y = x and x = y and then - image_orientation (this also requires user to start the image in the correct position relative to the center of the object orbiting) for correct angle of rotation
         #print(f'{self.angle} : {math.cos(radians(self.angle))} : {math.sin(radians(self.angle))} : {degrees(atan2(direction.x, direction.y))} : {angle}')
-        self.image = pygame.transform.rotozoom(self.image, angle, 1)
+
+        # bug fix where rotating image would fill the newly sized image to hold the rotated image with the colour.
+        """
+        Unless rotating by 90 degree increments, the image will be padded larger to hold the new size. If the image has pixel alphas, the padded area will be transparent. Otherwise pygame will pick a color that matches the Surface colorkey or the topleft pixel value.
+
+        https://www.reddit.com/r/pygame/comments/24mrx5/rect_filled_with_colour_when_rotating_image/
+        """
+        self.image = pygame.transform.rotozoom(self.image, angle, 1).convert_alpha()    # needed to convert_alpha again since it is creating a new image.
         self.mask = pygame.mask.from_surface(self.image)
         
         self.rect = self.image.get_frect(center = self.hitbox_rect.center)
+
+        # align weapon hit box
+        self.weapon.set_angle_info(direction, angle)
 
     def set_home_top(self):
         self.point_top(self.player_location, True)
@@ -858,6 +890,7 @@ class Sign(FlyingEnemy):
 
     def spin(self, dt):
         if (self.is_spinning):
+            self.weapon.set_can_damage(True)
             self.angle -= SIGN_SPIN_ATTACK_SPEED * dt * self.spin_direction 
             self.angle = self.angle % 360
 
@@ -875,12 +908,18 @@ class Sign(FlyingEnemy):
                     self.rotation_flag = True
 
             if (self.curr_rotations == self.spin_num_rotations):
+                self.weapon.set_can_damage(False)
                 self.stop_spinning()
 
     def perform_attack(self):
         if (self.is_attacking):
 
-            if (self.current_attack["timer_name"] == "start_spinning" and self.timers[self.current_attack["timer_name"]].active):
+            if (self.current_attack["timer_name"] == "spin_for_rotations" and self.timers[self.current_attack["timer_name"]].active):
+                # infintie until rotations complete
+                if (not self.is_spinning):
+                    self.timers[self.current_attack["timer_name"]].kill()
+            elif (self.current_attack["timer_name"] == "start_spinning" and self.timers[self.current_attack["timer_name"]].active):
+                # usually infinite here, but if ever chosen rotation limit end it if reached within timer
                 if (not self.is_spinning):
                     self.timers[self.current_attack["timer_name"]].deactivate()
             elif (self.current_attack["timer_name"] == "assess_path" and self.timers[self.current_attack["timer_name"]].active):
@@ -906,6 +945,8 @@ class Sign(FlyingEnemy):
 
                     if (self.attack_seq[self.attack_index]["timer_name"] == "assess_path"):
                         self.timers[self.attack_seq[self.attack_index]["timer_name"]] = Timer(1500, None, True)
+                    elif (self.attack_seq[self.attack_index]["timer_name"] == "spin_for_rotations"):
+                        self.timers[self.attack_seq[self.attack_index]["timer_name"]] = Timer(2000, None, True)
 
                     self.timers[self.attack_seq[self.attack_index]["timer_name"]].activate()
 
@@ -914,7 +955,7 @@ class Sign(FlyingEnemy):
                     else:
                         self.attack_seq[self.attack_index]["func"]()
 
-                    self.set_can_damage(self.attack_seq[self.attack_index]["can_damage"])
+                    self.weapon.set_can_damage(self.attack_seq[self.attack_index]["can_damage"])
                     #print(self.timers[self.attack_seq[self.attack_index]["timer_name"]].start_time)
                     self.current_attack = self.attack_seq[self.attack_index]
                     self.is_attacking = True
@@ -925,7 +966,7 @@ class Sign(FlyingEnemy):
                 if (not self.timers[self.current_attack["timer_name"]].active):
                     # disable is_attacking after last timer is finished
                     self.is_attacking = False
-                    self.set_can_damage(False)
+                    self.weapon.set_can_damage(False)
                     self.current_attack = None
                     #print(self.timers[self.attack_seq[self.attack_index - 1]["timer_name"]].ended_time)
                     #print('fin')
@@ -935,6 +976,7 @@ class Sign(FlyingEnemy):
         else:
             # select moves
             moves = ['dive', 'parabola', 'fire_poles_cross']
+            #moves = ['spin_test']
 
             self.check_for_player_within_melee()
             if (self.player_proximity["detected"]):
@@ -957,10 +999,32 @@ class Sign(FlyingEnemy):
             self.flight_speed = SIGN_ATTACK_FLIGHT_SPEED
             self.perform_attack()
         else:
+            
             # move toward player
             self.point_top(self.player_location, True)
             self.flight_speed = SIGN_FLIGHT_SPEED
             self.velocity = (self.player_sprite.sprite.hitbox_rect.center - pygame.Vector2(self.hitbox_rect.center)).normalize() * self.flight_speed
+
+    def animate(self, dt):
+        self.frame_index += self.animation_speed * dt/FPS_TARGET
+
+        if (self.state == "hit"):
+            # when timer is finished then toggle off is_hit
+            if (self.timers["take_damage_cd"].active):
+                if (self.frame_index >= len(self.frames[self.state])):
+                    # first frame is the initial knockback
+                    self.frame_index = len(self.frames[self.state]) - 1
+            else:
+                self.frame_index = 0
+                self.is_hit = False
+                self.get_state()
+
+        if (self.frame_index >= len(self.frames[self.state])):
+            self.frame_index = 0
+
+        self.image = self.frames[self.state][int(self.frame_index)]
+        self.image = self.image if self.facing_right else pygame.transform.flip(self.image, True, False)
+        self.mask = pygame.mask.from_surface(self.image)
 
     def get_state(self):
         if (self.is_hit):
@@ -981,10 +1045,9 @@ class Sign(FlyingEnemy):
             # recenter image rect with the hitbox rect
             self.rect.center = self.hitbox_rect.center
 
-            self.flicker()
-
-        self.get_state()
-        self.animate(dt)
+        self.get_state()    
+        self.animate(dt)    # change frame
+        self.flicker()      # flicker the frame
 
         self.rotate_image()
         

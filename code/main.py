@@ -89,7 +89,8 @@ class Game:
             'flag': import_folder('..', 'graphics', 'level', 'flag'),
             'bg_tiles': import_folder_dict('..', 'graphics', 'level', 'bg', 'tiles'),
             'boss_sign': import_sub_folders('..', 'graphics', 'enemies', 'boss', 'sign'),
-            'pole_projectile': import_sub_folders('..', 'graphics', 'projectile', 'pole')
+            'pole_projectile': import_sub_folders('..', 'graphics', 'projectile', 'pole'),
+            'sign_hitbox': import_sub_folders('..', 'graphics', 'weapons', 'sign_hitbox')
         }
 
         self.font_title = pygame.font.Font(join('..', 'graphics', 'ui', 'font', 'runescape_uf.ttf'), 45)

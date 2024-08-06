@@ -3,7 +3,7 @@ from sprites import Sprite, AnimatedSprite, MovingSprite, Orbit, Item, ParticleE
 from player import Player
 from groups import AllSprites
 from enemies import Dog, Bird, Squirrel, Sign
-from weapons import Stick, Lance, Ball
+from weapons import Stick, Lance, Ball, HitboxWeapon
 from projectiles import AcornProjectile, BallProjectile, PoleProjectile
 from pathfinder import Pathfinder
 from timerClass import Timer
@@ -370,7 +370,7 @@ class Level:
                 )
                 squirrel_idx += 1
             elif (obj.name == "boss_1_sign"):
-                Sign(
+                sign_obj = Sign(
                     pos = (obj.x, obj.y),
                     frames = level_frames["boss_sign"],
                     groups = (self.all_sprites, self.enemy_sprites, self.boss_sprite),  #, self.collision_sprites
@@ -384,6 +384,14 @@ class Level:
                     id = "sign_0",
                     func_create_pole = self.create_pole
                     )
+                # weapon
+                sign_obj.weapon = HitboxWeapon(
+                    pos = (sign_obj.hitbox_rect.centerx, sign_obj.hitbox_rect.centery),
+                    groups = (self.all_sprites, self.damage_sprites),
+                    frames = level_frames["sign_hitbox"],
+                    owner = sign_obj,
+                    level = 1
+                )
 
         # for spr in self.enemy_sprites:
         #     print(spr.weapon.level)
@@ -451,7 +459,7 @@ class Level:
         projectiles hitting eachother should also remove from game
         """
         projectile_sprite_groups = [self.acorn_sprites, self.ball_sprites]
-        sprites = self.collision_sprites.sprites() + self.ramp_collision_sprites.sprites() + self.acorn_sprites.sprites() + self.ball_sprites.sprites()
+        sprites = self.enemy_sprites.sprites() + self.collision_sprites.sprites() + self.ramp_collision_sprites.sprites() + self.acorn_sprites.sprites() + self.ball_sprites.sprites()
         for sprite in sprites:
             #pygame.sprite.spritecollide(sprite, self.acorn_sprites, True, pygame.sprite.collide_mask)  # need to use mask if image surface is larger than the actual image
             for projectile_grp in projectile_sprite_groups:
@@ -472,7 +480,7 @@ class Level:
                         if (hasattr(collided_sprite, "owner_id") and hasattr(sprite, "enemy")):
                             if (collided_sprite.get_owner_id() == self.player.get_id()):
                                 # if the owner of the projectile is the player, then it can damage the enemy
-                                if (sprite.type in [ENEMY_DOG, ENEMY_BIRD, ENEMY_SQUIRREL]):
+                                if (sprite.type in [ENEMY_DOG, ENEMY_BIRD, ENEMY_SQUIRREL, ENEMY_SIGN]):
                                     type = BALL if collided_sprite.get_type() in [BALL, BALL_PROJECTILE, ENEMY_ACORN_PROJECTILE] else collided_sprite.get_type()
                                     status = sprite.evaluate_damage(collided_sprite.get_damage(), type)
                                     if (status == DEAD):
@@ -580,7 +588,7 @@ class Level:
                     targets_hit = pygame.sprite.spritecollide(player_current_weapon, grp, False, pygame.sprite.collide_mask)
                     if (targets_hit):
                         for hit in targets_hit:
-                            if (hit.type in [ENEMY_DOG, ENEMY_BIRD, ENEMY_SQUIRREL]):
+                            if (hit.type in [ENEMY_DOG, ENEMY_BIRD, ENEMY_SQUIRREL, ENEMY_SIGN]):
                                 # damage to enemey
                                 # since there can be multiple collisions within one attack, within enemy sprites have internal timer for cooldown to receive damage so only one instance of damage
                                 status = hit.evaluate_damage(player_current_weapon.get_damage(), player_current_weapon.type)
@@ -741,11 +749,45 @@ class Level:
         self.data.current_weapon_index = self.player.current_weapon_index
         self.blit_enemy_weakness()
 
-        if (self.boss_sprite.sprite is not None):
-            sign_melee_range_rect = self.boss_sprite.sprite.hitbox_rect.inflate(150, 150)
-            sign_melee_range_rect.topleft = sign_melee_range_rect.topleft + self.current_window_offset
-            pygame.draw.rect(self.display_surface, "red", sign_melee_range_rect)
+        
+        
 
-            self.display_surface.blit(self.boss_sprite.sprite.image, (self.boss_sprite.sprite.rect.topleft + self.current_window_offset))
+        if (self.boss_sprite.sprite is not None):
+        #     sign_melee_range_rect = self.boss_sprite.sprite.hitbox_rect.inflate(150, 150)
+        #     sign_melee_range_rect.topleft = sign_melee_range_rect.topleft + self.current_window_offset
+        #     pygame.draw.rect(self.display_surface, "red", sign_melee_range_rect)
+
+        #     self.display_surface.blit(self.boss_sprite.sprite.image, (self.boss_sprite.sprite.rect.topleft + self.current_window_offset))
+
+            # Sign hitbox check
+            if self.boss_sprite.sprite.weapon is not None:
+
+                # have to blit the image again so that it is on top on the sign
+                self.display_surface.blit(self.boss_sprite.sprite.weapon.image, (self.boss_sprite.sprite.weapon.rect.topleft + self.current_window_offset))
+
+                # tl = self.boss_sprite.sprite.weapon.rect.topleft + self.current_window_offset
+                # tr = self.boss_sprite.sprite.weapon.rect.topright + self.current_window_offset
+                # bl = self.boss_sprite.sprite.weapon.rect.bottomleft + self.current_window_offset
+                # br = self.boss_sprite.sprite.weapon.rect.bottomright + self.current_window_offset
+
+                # pygame.draw.rect(self.display_surface, "red", (tl, (5,5)))
+                # pygame.draw.rect(self.display_surface, "red", (tr, (5,5)))
+                # pygame.draw.rect(self.display_surface, "green", (bl, (5,5)))
+                # pygame.draw.rect(self.display_surface, "green", (br, (5,5)))
+
+                # center = (self.boss_sprite.sprite.weapon.rect.centerx, self.boss_sprite.sprite.rect.centery - 49) + self.current_window_offset
+                # pygame.draw.rect(self.display_surface, "green", (center, (5,5)))
+
+
+                # bt = (self.boss_sprite.sprite.hitbox_rect.centerx, self.boss_sprite.sprite.rect.top) + self.current_window_offset
+                # bc = (self.boss_sprite.sprite.weapon.rect.centerx, self.boss_sprite.sprite.rect.centery) + self.current_window_offset
+                # pygame.draw.rect(self.display_surface, "blue", (bt, (5,5)))
+                # pygame.draw.rect(self.display_surface, "green", (bc, (5,5)))
+
+                # print('---')
+                # print(self.boss_sprite.sprite.hitbox_rect.centery)
+                # print(self.boss_sprite.sprite.weapon.rect.centery)
+
+
 
 

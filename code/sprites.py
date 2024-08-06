@@ -197,9 +197,9 @@ class Orbit(AnimatedSprite):
 		angle = degrees(atan2(direction.x, direction.y)) - image_orientation		#atan2(y, x). y = x and x = y and then - image_orientation (this also requires user to start the image in the correct position relative to the center of the object orbiting) for correct angle of rotation
 
 		if (direction.x > 0 or (image_orientation in [IMAGE_UP, IMAGE_DOWN])):
-			self.image = pygame.transform.rotozoom(self.image, angle, 1)	# must apply rotozoom to the original image (surface). Since inherit from class AnimatedSprite, the self.image is refreshed with the image load
+			self.image = pygame.transform.rotozoom(self.image, angle, 1).convert_alpha()	# must apply rotozoom to the original image (surface). Since inherit from class AnimatedSprite, the self.image is refreshed with the image load
 		else:
-			self.image = pygame.transform.rotozoom(self.image, abs(angle), 1)
+			self.image = pygame.transform.rotozoom(self.image, abs(angle), 1).convert_alpha()
 			self.image = pygame.transform.flip(self.image, False, True)
 		
 		self.rect = self.image.get_frect(center = self.center + direction * self.radius)

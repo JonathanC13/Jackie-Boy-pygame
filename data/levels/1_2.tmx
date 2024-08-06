@@ -191,7 +191,7 @@
     <property name="white" type="bool" value="false"/>
    </properties>
   </object>
-  <object id="439" name="squirrel" gid="8" x="2244.67" y="636.667" width="52" height="52"/>
+  <object id="439" name="squirrel" gid="8" x="2246" y="624.667" width="52" height="52"/>
   <object id="440" name="bird" gid="2" x="2949.33" y="193.333" width="32" height="32">
    <properties>
     <property name="white" type="bool" value="false"/>
@@ -211,7 +211,7 @@
    </properties>
   </object>
   <object id="446" name="dog" gid="3" x="4533" y="415" width="87" height="54"/>
-  <object id="447" name="squirrel" gid="8" x="3999.33" y="144.667" width="52" height="52"/>
+  <object id="447" name="squirrel" gid="8" x="3998" y="127.334" width="52" height="52"/>
  </objectgroup>
  <objectgroup id="18" name="Item_objects">
   <object id="399" name="kibble" gid="106" x="1260" y="420" width="64" height="64"/>

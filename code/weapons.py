@@ -1,5 +1,8 @@
+from math import radians
+
 from settings import *
 from sprites import Orbit
+
 
 class Weapon(Orbit):
     def __init__(self, owner, range, weapon_range_rect, damage, damage_type, level, weapon_name, damage_colour, **kwargs):
@@ -148,6 +151,7 @@ class Ball(Weapon):
         
         # override class AnimatedSprite attr
         self.frames = frames
+        print(self.z)
 
     def change_level(self, index, level):
         """
@@ -286,4 +290,65 @@ class Stick(Weapon):
         self.get_state()
         self.animate(dt)
         self.rotate_image(self.image_orientation)
+
+class HitboxWeapon(Weapon):
+    def __init__(self, pos, groups, frames, owner, level, weapon_name = HITBOX_RECT):
+
+        self.frame_index = 0
+        self.state = "level1_idle"
+
+        rect = frames[self.state][self.frame_index].get_rect()
+
+        # owner sprite
+        self.owner = owner
+        self.owner_offset = rect.height/2 + ((self.owner.hitbox_rect.height/2) - rect.height)
+        
+        self.image_orientation = IMAGE_UP
+
+        super().__init__(owner = owner, range = 0, weapon_range_rect = 0, damage = 1, damage_type = STICK, level = level, weapon_name = weapon_name, damage_colour = DAMAGE_COLOUR[STICK],
+                         pos = pos, frames = frames[self.state], radius = self.owner_offset, speed = 0, start_angle = -90, end_angle = -90, clockwise = True, groups = groups, type = STICK, z = Z_LAYERS['fg'], direction_changes = 0, rotate = True, image_orientation = self.image_orientation
+                         )
+        
+        self.state = self.states["idle"]
+        
+        # override class AnimatedSprite attr
+        self.frames = frames
+
+        self.direction = pygame.math.Vector2(0, 0)
+
+    def set_angle_info(self,direction, angle):
+        self.direction = direction
+        self.angle = angle
+        
+    def rotate_image(self):
+        self.image = pygame.transform.rotozoom(self.image, self.angle, 1).convert_alpha()    # needed to convert_alpha again since it is creating a new image.
+        self.mask = pygame.mask.from_surface(self.image)
+        
+        self.rect = self.image.get_frect(center = self.center + self.direction * self.radius)
+
+    def damage_active_mask(self):
+
+        if (self.can_damage):
+            surface = self.mask.to_surface()
+            surface.set_colorkey('black')
+
+            surf_w, surf_h = surface.get_size()
+            for x in range(surf_w):
+                for y in range(surf_h):
+                    if surface.get_at((x, y))[0] != 0:
+                        surface.set_at((x, y), 'red')
+
+            self.image = surface
+        else:
+            self.image.set_alpha(0)
+        
+    # update for draw.
+    # for test, draw it so I know where it is. For live, do not draw it. maybe on active damage, draw polygon
+    def update(self, dt, event_list = None):
+        self.get_state()
+        self.animate(dt)
+
+        self.rotate_image()
+
+        self.damage_active_mask()
 
