@@ -63,7 +63,7 @@ class MainMenuControl:
 
         # callback triggers to main
         self.func_new_save_file = func_new_save_file
-        self.func_load_save_file = func_load_save_file  # todo, in level selector overlay callback to this
+        self.func_load_save_file = func_load_save_file  # in level selector overlay callback to this
         self.func_quit = func_quit
 
         self.saves = None
@@ -87,7 +87,7 @@ class MainMenuControl:
 
         #self.main_menu_list.append({'menu_name': CONTROL_HELP, 'obj': SavesOverlay(self.font_title, self.font, self.overlay_frames, True if (self.saves.get_all_saves) else False, self.goto_save_menu, self.func_new_save_file, self.goto_control_help, self.func_quit, self.go_back)})
 
-        self.main_menu_list.append({'menu_name': CREDITS, 'obj': GameCompleteOverlay('Thank you!!!', self.font_title, self.font, self.overlay_frames, self.go_back, self.func_quit)})
+        self.main_menu_list.append({'menu_name': CREDITS, 'obj': GameCompleteOverlay('Game completed!!! Thank you for playing!', self.font_title, self.font, self.overlay_frames, self.go_back, self.func_quit)}) #Thank you!!!
 
     def find_menu(self, name):
         for menu in self.main_menu_list:
@@ -307,8 +307,8 @@ class GameCompleteOverlay(Overlay):
         self.func_to_main_menu = func_to_main_menu
         self.func_quit = func_quit
 
-        test_text = self.font.render('hello, world!', False, "white", bgcolor=None, wraplength=0)
-        self.container_size = vector(275, test_text.get_height() + 20)
+        test_text = self.font.render(subtitle_text, False, "white", bgcolor=None, wraplength=0)
+        self.container_size = vector(test_text.get_width() + 20, test_text.get_height() + 20)
 
         self.container_size_credits = vector(500, 450)
 
@@ -916,7 +916,7 @@ class StoreOverlay(Overlay):
         container.append({"name": "heart_container_surf", "surf": heart_container_surf, "layer": 0, "offset": vector(0, 0), "clickable": True, "func": self.data.buy_heart, "params": None})
 
         heart_surf = self.overlay_frames['heart'][0]
-        heart_buy_surf = self.font.render(' Buy with 20 treats', False, "white", bgcolor=None, wraplength=0)
+        heart_buy_surf = self.font.render(f' Buy with {self.data.shop_prices["heart"]} treats', False, "white", bgcolor=None, wraplength=0)
         total_len = heart_surf.get_width() + heart_buy_surf.get_width()
 
         container.append({"name": "heart_surf", "surf": heart_surf, "layer": 1, "offset": vector(self.container_size.x/2 - total_len/2, 10), "clickable": False, "func": None, "params": None})
@@ -941,7 +941,7 @@ class StoreOverlay(Overlay):
             else:
                 container_surf.set_alpha(85)
                 container.append({"name": weapon_name + "_container_surf", "surf": container_surf, "layer": 0, "offset": vector(0, 0), "clickable": True, "func": self.data.upgrade_weapon, "params": [i]})
-                text_surf = self.font.render(' Upgrade with 30 treats', False, "white", bgcolor=None, wraplength=0)
+                text_surf = self.font.render(f' Upgrade with {self.data.shop_prices[weapon_name]} treats', False, "white", bgcolor=None, wraplength=0)
 
             total_len = surf.get_width() + text_surf.get_width()
 

@@ -94,6 +94,21 @@ class Player(pygame.sprite.Sprite):
         # modules
         self.movement = Movement(self)
 
+        #sounds
+        self.jump_sound = pygame.mixer.Sound(os.path.join("..", "audio", "sound_effects", "SFX_Jump_50.mp3"))
+        self.jump_sound.set_volume(0.1)
+
+        self.stick_swing1 = pygame.mixer.Sound(os.path.join("..", "audio", "sound_effects", "stick_swing.wav"))
+        self.stick_swing1.set_volume(0.5)
+        self.stick_swing2 = pygame.mixer.Sound(os.path.join("..", "audio", "sound_effects", "stick_swing2.wav"))
+        self.stick_swing2.set_volume(0.5)
+
+        self.lance_jab = pygame.mixer.Sound(os.path.join("..", "audio", "sound_effects", "lance_jab.wav"))
+        self.lance_jab.set_volume(0.25)
+
+        self.ball_throw = pygame.mixer.Sound(os.path.join("..", "audio", "sound_effects", "ball_throw.wav"))
+        self.ball_throw.set_volume(0.5)
+
     def bound(self, val, val_min, val_max):
         return max(min(val, val_max), val_min)
 
@@ -241,6 +256,7 @@ class Player(pygame.sprite.Sprite):
                 attack_choice()
 
     def weapon_slash(self):
+        
         self.current_attack = "slash"
         self.frame_index = 0
         player_angle = degrees(atan2(self.attack_pos[1] - self.hitbox_rect.centery, self.attack_pos[0] - self.hitbox_rect.centerx))
@@ -259,12 +275,20 @@ class Player(pygame.sprite.Sprite):
         self.weapon_list[self.current_weapon_index]["weapon"].swing(start_angle, end_angle, speed, clockwise, direction_changes)
         self.weapon_list[self.current_weapon_index]["weapon"].set_can_damage(True)
 
+        sound = choice([self.stick_swing1, self.stick_swing2])
+        sound.play()
+
     def weapon_thrust(self):
         self.current_attack = "thrust"
         new_radius = 0
         if (self.frame_index < len(self.thrust_offset)):
+            if (self.frame_index == 0):
+                # need it to play the sound once
+                self.lance_jab.play()
+
             if (int(self.frame_index) == 0):
                 self.weapon_list[self.current_weapon_index]["weapon"].set_can_damage(False)
+                
             else:
                 self.weapon_list[self.current_weapon_index]["weapon"].set_can_damage(True)
             new_radius = self.weapon_list[self.current_weapon_index]["original_radius"] + self.thrust_offset[int(self.frame_index)]
@@ -274,11 +298,15 @@ class Player(pygame.sprite.Sprite):
 
         self.weapon_list[self.current_weapon_index]["weapon"].set_radius(new_radius)
 
+
+
     def weapon_throw(self):
         self.current_attack = "throw"
         #getting angle of attack
         self.angle_to_fire = self.weapon_list[self.current_weapon_index]["weapon"].angle
         # ball then thrown on certain frame in method animation
+
+        self.ball_throw.play()
 
     def horizontal_movement(self, dt):
         """
@@ -350,6 +378,8 @@ class Player(pygame.sprite.Sprite):
             self.is_jumping = True
             self.velocity.y -= PLAYER_VEL_Y
             #self.collision_side["bot"] = False
+            self.jump_sound.play()
+
         elif (not self.collision_side["bot"] and any((self.collision_side["left"], self.collision_side["right"])) and not self.is_jumping and not self.timers["wall_jump_move_block"].active):
             self.is_jumping = True
             self.velocity.y -= PLAYER_VEL_Y * 0.7
@@ -360,6 +390,8 @@ class Player(pygame.sprite.Sprite):
             self.timers["wall_jump_move_block"].activate()
             self.LEFT_KEY = False
             self.RIGHT_KEY = False
+
+            self.jump_sound.play()
 
     # def platform_move(self, dt):
     #     """

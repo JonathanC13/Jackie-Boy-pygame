@@ -94,6 +94,13 @@ class Enemy(pygame.sprite.Sprite):
         self.movement = Movement(self)
         self.pathfinder = pathfinder
 
+        # sounds. For now, all enemies have the same sounds 
+        self.enemy_norm_hit_1 = pygame.mixer.Sound(os.path.join("..", "audio", "sound_effects", "enemy_norm_hit_1.wav"))
+        self.enemy_norm_hit_1.set_volume(0.25)
+
+        self.enemy_norm_hit_2 = pygame.mixer.Sound(os.path.join("..", "audio", "sound_effects", "enemy_norm_hit_2.wav"))
+        self.enemy_norm_hit_2.set_volume(0.25)
+
     @property
     def health(self):
         return self._health
@@ -298,6 +305,10 @@ class Enemy(pygame.sprite.Sprite):
         if (damage_type == self._weakness):
             if (not self.timers["take_damage_cd"].active):
                 self.timers["take_damage_cd"].activate()
+
+                sound = choice([self.enemy_norm_hit_1, self.enemy_norm_hit_2])
+                sound.play()
+
                 self.frame_index = 0
                 self.is_hit = True
 
@@ -656,7 +667,7 @@ class Sign(FlyingEnemy):
 
         super().__init__(pos = pos, frames = frames, groups = groups, collision_sprites = collision_sprites, semi_collision_sprites = semi_collision_sprites, ramp_collision_sprites = ramp_collision_sprites, player_sprite = player_sprite, enemy_sprites = enemy_sprites, type = type, jump_height = -DOG_VEL_Y, accel_x = DOG_ACCEL, vel_max_x = DOG_MAX_VEL_X, vel_max_y = DOG_MAX_VEL_Y, pathfinder = pathfinder, id = id)
 
-        self.health = 20
+        self.health = 10
         
         self.func_create_pole = func_create_pole
 
@@ -724,6 +735,16 @@ class Sign(FlyingEnemy):
 
         self.is_spinning = False
 
+        # sounds
+        self.enemy_sign_hit_1 = pygame.mixer.Sound(os.path.join("..", "audio", "sound_effects", "enemy_sign_hit_1.wav"))
+        self.enemy_sign_hit_1.set_volume(0.25)
+
+        self.enemy_sign_hit_2 = pygame.mixer.Sound(os.path.join("..", "audio", "sound_effects", "enemy_sign_hit_2.wav"))
+        self.enemy_sign_hit_2.set_volume(0.25)
+
+        self.boss_defeated = pygame.mixer.Sound(os.path.join("..", "audio", "sound_effects", "Victory!.wav"))
+        self.boss_defeated.set_volume(0.25)
+
     @property
     def active(self):
         return self._active
@@ -735,14 +756,20 @@ class Sign(FlyingEnemy):
     def evaluate_damage(self, damage, damage_type):
         # override
         if (damage_type == self._weakness):
-            if (not self.timers["take_damage_cd"].active and self._active):
+            if (not self.timers["take_damage_cd"].active and self._active):                
                 self.timers["take_damage_cd"].activate()
+
+                sound = choice([self.enemy_sign_hit_1, self.enemy_sign_hit_2])
+                sound.play()
+
                 self.frame_index = 0
                 self.is_hit = True
 
                 self._health -= damage
 
                 if (self._health <= 0):
+                    # play victory music
+                    self.boss_defeated.play()
                     return DEAD
                 else:
                     # if has more HP, change weakness type
@@ -856,14 +883,17 @@ class Sign(FlyingEnemy):
         self.func_create_pole((self.hitbox_rect.center), self.angle + 180, self.id)
 
     def set_down_slash(self):
+        self.curr_rotations = 0
         arr = [-1 if self.player_sprite.sprite.hitbox_rect.x > self.get_rect_center().x else 1, 1]
         self.set_spin_attr(arr)
 
     def set_up_slash(self):
+        self.curr_rotations = 0
         arr = [1 if self.player_sprite.sprite.hitbox_rect.x > self.get_rect_center().x else -1, 1]
         self.set_spin_attr(arr)
 
     def set_spin_attr(self, params):
+        self.curr_rotations = 0
         self.spin_direction = params[0]
         self.spin_num_rotations = params[1]
 
@@ -976,7 +1006,7 @@ class Sign(FlyingEnemy):
         else:
             # select moves
             moves = ['dive', 'parabola', 'fire_poles_cross']
-            #moves = ['spin_test']
+            #moves = ['spin']
 
             self.check_for_player_within_melee()
             if (self.player_proximity["detected"]):
@@ -999,7 +1029,6 @@ class Sign(FlyingEnemy):
             self.flight_speed = SIGN_ATTACK_FLIGHT_SPEED
             self.perform_attack()
         else:
-            
             # move toward player
             self.point_top(self.player_location, True)
             self.flight_speed = SIGN_FLIGHT_SPEED
@@ -1050,6 +1079,8 @@ class Sign(FlyingEnemy):
         self.flicker()      # flicker the frame
 
         self.rotate_image()
+
+        self.weapon.update_weapon_center(self.hitbox_rect)
         
 
 

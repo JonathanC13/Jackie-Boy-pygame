@@ -1,3 +1,4 @@
+
 from settings import *
 from sprites import Sprite, AnimatedSprite, MovingSprite, Orbit, Item, ParticleEffectSprite
 from player import Player
@@ -10,7 +11,7 @@ from timerClass import Timer
 
 class Level:
 
-    def __init__(self, level_data, level_frames, data, func_restart_level, func_level_complete, func_open_store, font):
+    def __init__(self, level_data, level_frames, data, func_restart_level, func_level_complete, func_open_store, font, func_set_boss_state):
 
         self.display_surface = pygame.display.get_surface()
 
@@ -23,6 +24,7 @@ class Level:
         self.func_restart_level = func_restart_level
         self.func_level_complete = func_level_complete
         self.func_open_store = func_open_store
+        self.func_set_boss_state = func_set_boss_state
 
         self.font = font
 
@@ -79,6 +81,14 @@ class Level:
         self.timers = {"flag_timer": Timer(250)}
 
         self.setup(level_frames)
+
+        # sounds
+        self.player_death = pygame.mixer.Sound(os.path.join("..", "audio", "sound_effects", "player_death.wav"))
+        self.player_death.set_volume(0.5)
+
+        self.round_end = pygame.mixer.Sound(os.path.join("..", "audio", "sound_effects", "round_end.wav"))
+        self.round_end.set_volume(0.05)
+        
 
     @property
     def current_window_offset(self):
@@ -459,11 +469,12 @@ class Level:
         projectiles hitting eachother should also remove from game
         """
         projectile_sprite_groups = [self.acorn_sprites, self.ball_sprites]
-        sprites = self.enemy_sprites.sprites() + self.collision_sprites.sprites() + self.ramp_collision_sprites.sprites() + self.acorn_sprites.sprites() + self.ball_sprites.sprites()
+        sprites = self.enemy_sprites.sprites() + self.collision_sprites.sprites() + self.ramp_collision_sprites.sprites() + self.acorn_sprites.sprites() + self.ball_sprites.sprites() + self.pole_sprites.sprites()
         for sprite in sprites:
             #pygame.sprite.spritecollide(sprite, self.acorn_sprites, True, pygame.sprite.collide_mask)  # need to use mask if image surface is larger than the actual image
             for projectile_grp in projectile_sprite_groups:
-                if (sprite.type in [BALL_PROJECTILE, ENEMY_ACORN_PROJECTILE]):
+                if (sprite.type in [BALL_PROJECTILE, ENEMY_ACORN_PROJECTILE, POLE_PROJECTILE]):
+                    # Ignore the collision between the projectile and the owner. This is due to if the projectile's owner is in the collision_sprites and the projectile is created within collision range
                     collided_list = pygame.sprite.spritecollide(sprite, projectile_grp, True, collided=self.check_projectile_owner)
                 else:
                     # specifically use mask for the ramps so there is no collision on the non ramp part of the image.
@@ -520,7 +531,7 @@ class Level:
             if(hit_sprites):
                 for sprite in hit_sprites:
                     #print('hit with mask')
-                    if (sprite.type == ENEMY_ACORN_PROJECTILE):
+                    if (sprite.type in [ENEMY_ACORN_PROJECTILE, POLE_PROJECTILE]):
                         sprite.kill()
                         ParticleEffectSprite(
                             pos = sprite.rect.center, 
@@ -540,6 +551,7 @@ class Level:
                                 player_status = self.player.evaluate_damage(sprite.get_damage(), sprite.get_type())
 
                     if (player_status == DEAD):
+                        self.player_death.play()
                         self.func_restart_level()
                         break
                             
@@ -567,12 +579,11 @@ class Level:
                         )
                         if (sprite.get_item_type() == "skull"):
                             # lock the camera to the arena
-                            print('here')
+                            
                             self.all_sprites.lock_camera_end()
 
-                            # todo. trigger the levels boss
                             self.boss_sprite.sprite.active = True
-                            
+                            self.func_set_boss_state(self.boss_sprite.sprite.active)
                         else:
                             sprite.activate()
 
@@ -592,6 +603,7 @@ class Level:
                                 # damage to enemey
                                 # since there can be multiple collisions within one attack, within enemy sprites have internal timer for cooldown to receive damage so only one instance of damage
                                 status = hit.evaluate_damage(player_current_weapon.get_damage(), player_current_weapon.type)
+
                                 if (status == DEAD):
                                     hit.kill()
                                     ParticleEffectSprite(
@@ -602,7 +614,12 @@ class Level:
 
                                     # spawn loot
                                     self.create_loot(hit.rect.center)
-                                    
+
+                                    if (hit.type == ENEMY_SIGN):
+                                        # boss dead, set status in main so it will cut the boss music.
+                                        self.func_set_boss_state(False)
+                                
+                                           
                             elif (hit.type in [ENEMY_ACORN_PROJECTILE]):
                                 # reflect projectile
                                 hit.reverse(PLAYER_THROW_SPEED, player_current_weapon.angle)
@@ -657,6 +674,7 @@ class Level:
             self.player.hitbox_rect.top = 0
         elif (self.player.hitbox_rect.bottom >= self.tmx_map_max_height):
             # bottom constraint. Death, restart level.
+            self.player_death.play()
             self.func_restart_level()
 
         # completed level
@@ -670,6 +688,7 @@ class Level:
             if (not self.timers['flag_timer'].active):
                 self.timers['flag_timer'].activate()
                 if (requirements_met):
+                    self.round_end.play()
                     self.func_level_complete()
                 else:
                     print('not all requirements met')
@@ -681,7 +700,8 @@ class Level:
             return True if self.data.kibble >= value else False
         elif (key == "boss"):
             # check the boss's object and if it has been defeated
-            return True
+            return True if self.boss_sprite.sprite is None else False
+        
         else:
             return False
         

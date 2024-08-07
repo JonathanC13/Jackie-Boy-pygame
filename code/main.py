@@ -34,7 +34,7 @@ class Game:
             {"stage_main" :1, "stage_sub": 1, "tmx_map": load_pygame(os.path.join("..", "data", "levels", "1_1.tmx")), "completion_reqs": {}},
             {"stage_main" :1, "stage_sub": 2, "tmx_map": load_pygame(os.path.join("..", "data", "levels", "1_2.tmx")), "completion_reqs": {}},
             {"stage_main" :1, "stage_sub": 3, "tmx_map": load_pygame(os.path.join("..", "data", "levels", "1_3.tmx")), "completion_reqs": {}},
-            {"stage_main" :1, "stage_sub": 4, "tmx_map": load_pygame(os.path.join("..", "data", "levels", "1_4.tmx")), "completion_reqs": {}}
+            {"stage_main" :1, "stage_sub": 4, "tmx_map": load_pygame(os.path.join("..", "data", "levels", "1_4.tmx")), "completion_reqs": {"boss": None}}
             #,{"stage_main" :999, "stage_sub": 999, "tmx_map": load_pygame(os.path.join("..", "data", "levels", "test.tmx")), "completion_reqs": {}}
         ]
 
@@ -49,7 +49,7 @@ class Game:
         self.main_menus = MainMenuControl(self.font_title, self.font, self.overlay_frames, self.new_game, self.load_save_file, self.quit_game, self.level_names)
         self.saves = Saves()
         self.pause_menu = PauseMainControl(self.font_title, self.font, self.overlay_frames, self.data, self.func_resume_game, self.to_main_menu, self.load_save_file, self.quit_game, self.level_names)
-        self.game_complete_screen = GameCompleteOverlay('Game completed!!!', self.font_title, self.font, self.overlay_frames, self.to_main_menu, self.quit_game)
+        self.game_complete_screen = GameCompleteOverlay('Game completed!!! Thank you for playing!', self.font_title, self.font, self.overlay_frames, self.to_main_menu, self.quit_game)
         self.transition_screen = None
         self.store_screen = None
 
@@ -57,7 +57,32 @@ class Game:
 
         self.ui.game_state = self.game_state
         #self.run_level = Level(self.level_maps_test[self.curr_level], self.level_frames, self.data)
-        self.run_level = Level(self.level_maps[self.curr_level], self.level_frames, self.data, self.restart_level, self.level_complete, self.open_store, self.font)
+        self.run_level = Level(self.level_maps[self.curr_level], self.level_frames, self.data, self.restart_level, self.level_complete, self.open_store, self.font, self.set_boss_state)
+
+        # music
+        self.music_state = MUSIC_MAIN
+
+        self.main_menu_music = pygame.mixer.Sound(os.path.join("..", "audio", "music", "TownTheme.mp3"))
+        self.main_menu_music.set_volume(0.1)
+        self.main_menu_music.play(-1)
+
+        self.game_music = pygame.mixer.Sound(os.path.join("..", "audio", "music", "Sunny paradise act 1.mp3"))
+        self.game_music.set_volume(0.1)
+
+        self.boss_music = pygame.mixer.Sound(os.path.join("..", "audio", "music", "battleThemeA.mp3"))
+        self.boss_music.set_volume(0.1)
+
+        self.credits_music = pygame.mixer.Sound(os.path.join("..", "audio", "music", "End Theme.wav"))
+        self.credits_music.set_volume(0.1)
+
+        self.music_dict = {
+            MUSIC_MAIN: self.main_menu_music,
+            MUSIC_GAME: self.game_music,
+            MUSIC_CRED: self.credits_music,
+            MUSIC_BOSS: self.boss_music
+        }
+
+        self.boss_state = False
 
     def import_assets(self):
         self.level_frames = {
@@ -108,6 +133,42 @@ class Game:
             'denta': import_folder('..', 'graphics', 'ui', 'denta'),
             'weapons': import_folder_dict('..', 'graphics', 'ui', 'weapons')
         }
+
+    def set_boss_state(self, bool):
+        self.boss_state = bool
+
+    def turn_off_all_music(self):
+        for music in self.music_dict.values():
+            music.stop()
+
+    def manage_music(self):
+        
+        if (self.boss_state):
+            if (self.music_state != MUSIC_BOSS):
+                self.turn_off_all_music()
+                self.music_dict[MUSIC_BOSS].play(-1)
+                self.music_state = MUSIC_BOSS
+        else:
+            if (self.game_state == MAIN_MENU):
+                if (self.main_menus.get_current_menu().overlay == CREDITS and self.music_state != MUSIC_CRED):
+                    self.turn_off_all_music()
+                    self.music_dict[MUSIC_CRED].play(-1, fade_ms=1000)
+                    self.music_state = MUSIC_CRED
+                elif (self.main_menus.get_current_menu().overlay != CREDITS and self.music_state != MUSIC_MAIN):
+                    self.turn_off_all_music()
+                    self.music_dict[MUSIC_MAIN].play(-1, fade_ms=1000)
+                    self.music_state = MUSIC_MAIN
+            elif (self.game_state in [IN_STORE, LIVE] and self.music_state != MUSIC_GAME):
+                self.turn_off_all_music()
+                self.music_dict[MUSIC_GAME].play(-1, fade_ms=1000)
+                self.music_state = MUSIC_GAME
+            elif (self.game_state == GAME_COMPLETE and self.music_state != MUSIC_CRED):
+                self.turn_off_all_music()
+                self.music_dict[MUSIC_CRED].play(-1, fade_ms=1000)
+                self.music_state = MUSIC_CRED
+            elif (self.game_state == TRANSITION_LEVEL and self.music_state != MUSIC_TRANS):
+                self.music_dict[self.music_state].fadeout(250)
+                self.music_state = MUSIC_TRANS
 
     def get_save_files(self):
         if (self.current_saves == None):
@@ -278,7 +339,7 @@ class Game:
                     if self.transition_screen.reverse and not self.transition_screen.bg_loaded:
                         self.transition_screen.bg_loaded = True
                         # transition requires new level background, load new level
-                        self.run_level = Level(self.level_maps[self.curr_level], self.level_frames, self.data, self.restart_level, self.level_complete, self.open_store, self.font)
+                        self.run_level = Level(self.level_maps[self.curr_level], self.level_frames, self.data, self.restart_level, self.level_complete, self.open_store, self.font, self.set_boss_state)
                     if self.transition_screen.reverse:
                         self.run_level.run(0, event_list) # run level but with 0 dt so that when transition is reversing the background is re drawn
 
@@ -304,6 +365,7 @@ class Game:
                         # ensure next time returning to main menu, starts at the primary main menu
                         self.main_menus.goto_main_menu()
 
+            self.manage_music()
             pygame.display.update()
 
             self.clock.tick(FPS_MAX)

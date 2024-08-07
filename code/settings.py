@@ -42,6 +42,13 @@ PAUSE_MAIN = "Pause main"
 CREDITS = "Credits"
 STORE = "Store"
 
+# music keys
+MUSIC_MAIN = "main"
+MUSIC_GAME = "game"
+MUSIC_CRED = "credits"
+MUSIC_BOSS = "boss"
+MUSIC_TRANS = "trans"
+
 # names of layers and objects from Tiled.
 TRIGGERS = "Triggers"
 FG = "FG"

@@ -1,10 +1,1 @@
-{
-	"secret_levels_unlocked":[1], 
-	"player_health":5, 
-	"kibble":1,
-	"denta":2,
-	"stick_level":2,
-	"lance_level":1,
-	"ball_level":2,
-	"highest_stage_level": 4
-}
+{"secret_levels_unlocked": [1], "player_health": 46, "kibble": 13, "denta": 21, "stick_level": 2, "lance_level": 1, "ball_level": 2, "highest_stage_level": 4}

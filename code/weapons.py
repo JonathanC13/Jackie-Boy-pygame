@@ -341,7 +341,10 @@ class HitboxWeapon(Weapon):
             self.image = surface
         else:
             self.image.set_alpha(0)
-        
+
+    def update_weapon_center(self, owner_rect):
+        self.center = owner_rect.center
+
     # update for draw.
     # for test, draw it so I know where it is. For live, do not draw it. maybe on active damage, draw polygon
     def update(self, dt, event_list = None):
