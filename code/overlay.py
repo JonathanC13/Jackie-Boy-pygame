@@ -1,3 +1,5 @@
+from collections import deque
+
 from settings import *
 from saves import Saves
 from timerClass import Timer
@@ -317,9 +319,10 @@ class GameCompleteOverlay(Overlay):
         self.content_surfaces['center']['content_col_x'] = WINDOW_WIDTH/2 - 25
         self.content_surfaces['right_1']['content_col_x'] = self.content_surfaces['center']['content_col_x'] + 50 + self.between_spacing_x
 
-        self.credits_text = ['cred1', 'cred2', 'cred3', 'cred4', 'cred5', 'cred6']
-        self.credits = []
-        self.credit_roll_speed = -0.5
+        self.credits_text = ['cred1', 'cred2', 'cred3', 'cred4', 'cred5', 'cred6', 'cred7', 'cred8', 'cred9', 'cred10', 'cred11', 'cred12', 'cred13', 'cred14', 'cred15']
+        #self.credits = []
+        self.credit_roll_speed = -0.25
+        self.credits_q = deque()
 
         self.populate_subtitle_surfaces()
         self.populate_content_surfaces()
@@ -373,7 +376,8 @@ class GameCompleteOverlay(Overlay):
         y_spacing = 10
         for credit in self.credits_text:
             surf = self.font.render(credit, False, "white", bgcolor=None, wraplength=0)
-            self.credits.append({"surf": surf, "offset": vector(10, y_spacing)})
+            #self.credits.append({"surf": surf, "offset": vector(10, y_spacing)})
+            self.credits_q.append({"surf": surf, "offset": vector(10, y_spacing)})
             y_spacing += surf.get_height() + 10
 
     def populate_content_surfaces(self):
@@ -392,15 +396,39 @@ class GameCompleteOverlay(Overlay):
     def roll_credits(self, dt):
 
         start_y = self.content_y + self.subtitle_container_surf.get_height() + self.between_spacing_y
-        for credit in self.credits:
-            self.display_surface.blit(credit['surf'], (self.content_surfaces['left_1']['content_col_x'] + credit['offset'].x, start_y + credit['offset'].y))
+        y_max = start_y + self.container_size_credits.y
+
+        # self.credits.sort(key = lambda credit: credit['offset'].y)
+        # print('---')
+        # print(self.credits)
+        # print(self.credits[-1::])
+        len_q = len(self.credits_q)
+        # since there can only be one credit exiting the container at one time, indicate to pop the first element and add back to the end of the q to maintain the natural order of the credit roll
+        to_pop = False
+
+        for credit in self.credits_q:
+            
+            y_blit = start_y + credit['offset'].y
+
+            if (y_blit + credit['surf'].get_height() < y_max):
+                self.display_surface.blit(credit['surf'], (self.content_surfaces['left_1']['content_col_x'] + credit['offset'].x + self.container_size_credits.x/2 - credit['surf'].get_width()/2, y_blit))
+            # do not break, need to update offset of the remaining credits
 
             credit['offset'].y += self.credit_roll_speed * dt
             y = start_y + credit['offset'].y
             # roll over
             # offset is top left
             if (y < start_y):
-                credit['offset'].y = self.container_size_credits.y - credit['surf'].get_height()
+                if (self.credits_q[len_q - 1]['offset'].y < self.container_size_credits.y):
+                    # if the last credit is within the container, just stick the rollover credit at the bottom of the container
+                    credit['offset'].y = self.container_size_credits.y - credit['surf'].get_height()
+                else:
+                    # must stick the rollover credit to the end of the line of credits.
+                    credit['offset'].y = self.credits_q[len_q - 1]['offset'].y + self.credits_q[len_q - 1]['surf'].get_height() + 10 + self.credit_roll_speed * dt    # add speed again since the offset this credit is based on will also be subject to the speed in this loop
+                    to_pop = True
+
+        if (to_pop):
+            self.credits_q.append(self.credits_q.popleft())
 
     def update(self, dt):
         self.display_title()
