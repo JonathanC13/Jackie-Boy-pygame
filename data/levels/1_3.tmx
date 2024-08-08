@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.10" tiledversion="1.10.2" orientation="orthogonal" renderorder="right-down" width="73" height="11" tilewidth="70" tileheight="70" infinite="0" nextlayerid="20" nextobjectid="351">
+<map version="1.10" tiledversion="1.10.2" orientation="orthogonal" renderorder="right-down" width="73" height="11" tilewidth="70" tileheight="70" infinite="0" nextlayerid="20" nextobjectid="356">
  <tileset firstgid="1" source="../tilesets/objects_characters.tsx"/>
  <tileset firstgid="17" source="../tilesets/objects_env.tsx"/>
  <tileset firstgid="78" source="../tilesets/tiles_terrain.tsx"/>
@@ -247,11 +247,6 @@
   <object id="345" name="dog" gid="3" x="4623.67" y="623" width="87" height="54"/>
  </objectgroup>
  <objectgroup id="18" name="Item_objects">
-  <object id="308" name="denta" gid="106" x="700" y="560" width="64" height="64"/>
-  <object id="309" name="denta" gid="106" x="1857.33" y="346.667" width="64" height="64"/>
-  <object id="310" name="denta" gid="106" x="982.667" y="112" width="64" height="64"/>
-  <object id="311" name="denta" gid="106" x="2838.33" y="56.6667" width="64" height="64"/>
-  <object id="312" name="denta" gid="106" x="4270" y="280" width="64" height="64"/>
   <object id="313" name="kibble" gid="107" x="1305.33" y="277.333" width="64" height="64"/>
   <object id="314" name="kibble" gid="107" x="1470" y="350" width="64" height="64"/>
   <object id="315" name="kibble" gid="107" x="1122.67" y="514.667" width="64" height="64"/>
@@ -265,6 +260,11 @@
   <object id="323" name="kibble" gid="107" x="4760" y="560" width="64" height="64"/>
   <object id="324" name="kibble" gid="107" x="4309.33" y="521.333" width="64" height="64"/>
   <object id="325" name="kibble" gid="107" x="4033.33" y="377.333" width="64" height="64"/>
+  <object id="351" name="denta" gid="106" x="719" y="541" width="28" height="28"/>
+  <object id="352" name="denta" gid="106" x="4292" y="260" width="28" height="28"/>
+  <object id="353" name="denta" gid="106" x="2886" y="58" width="28" height="28"/>
+  <object id="354" name="denta" gid="106" x="1002" y="115" width="28" height="28"/>
+  <object id="355" name="denta" gid="106" x="1907" y="333" width="28" height="28"/>
  </objectgroup>
  <objectgroup id="17" name="Water_objects">
   <object id="253" name="water" x="910" y="569.333" width="1890" height="210"/>

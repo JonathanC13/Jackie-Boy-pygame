@@ -83,11 +83,17 @@ class Level:
         self.setup(level_frames)
 
         # sounds
-        self.player_death = pygame.mixer.Sound(os.path.join("..", "audio", "sound_effects", "player_death.wav"))
+        self.player_death = pygame.mixer.Sound(os.path.join("..", "audio", "sound_effects", "player_death", "player_death.wav"))
         self.player_death.set_volume(0.5)
 
         self.round_end = pygame.mixer.Sound(os.path.join("..", "audio", "sound_effects", "round_end.wav"))
         self.round_end.set_volume(0.05)
+
+        self.collect_kibble = pygame.mixer.Sound(os.path.join("..", "audio", "sound_effects", "player_collect", "Collect_Point_00.wav"))
+        self.collect_kibble.set_volume(0.25)
+
+        self.collect_denta = pygame.mixer.Sound(os.path.join("..", "audio", "sound_effects", "player_collect", "Collect_Point_01.wav"))
+        self.collect_denta.set_volume(0.25)
         
 
     @property
@@ -505,6 +511,10 @@ class Level:
                                         # spawn loot
                                         self.create_loot(sprite.rect.center)
 
+                                        if (sprite.type == ENEMY_SIGN):
+                                            # boss dead, set status in main so it will cut the boss music.
+                                            self.func_set_boss_state(False)
+
     # def acorn_collision(self):
     #     # collision with terrain should remove the acorn from game
     #     sprites = [spr for spr in self.collision_sprites.sprites() if spr.type != "squirrel"] + self.ramp_collision_sprites.sprites()
@@ -584,7 +594,11 @@ class Level:
 
                             self.boss_sprite.sprite.active = True
                             self.func_set_boss_state(self.boss_sprite.sprite.active)
-                        else:
+                        elif (sprite.get_item_type() == "kibble"):
+                            self.collect_kibble.play()
+                            sprite.activate()
+                        elif (sprite.get_item_type() == "denta"):
+                            self.collect_denta.play()
                             sprite.activate()
 
     def attack_collision(self):

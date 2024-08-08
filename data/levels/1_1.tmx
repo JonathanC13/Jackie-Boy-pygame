@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.10" tiledversion="1.10.2" orientation="orthogonal" renderorder="right-down" width="73" height="11" tilewidth="70" tileheight="70" infinite="0" nextlayerid="20" nextobjectid="342">
+<map version="1.10" tiledversion="1.10.2" orientation="orthogonal" renderorder="right-down" width="73" height="11" tilewidth="70" tileheight="70" infinite="0" nextlayerid="20" nextobjectid="347">
  <tileset firstgid="1" source="../tilesets/objects_characters.tsx"/>
  <tileset firstgid="17" source="../tilesets/objects_env.tsx"/>
  <tileset firstgid="78" source="../tilesets/tiles_terrain.tsx"/>
@@ -212,11 +212,11 @@
   <object id="305" name="kibble" gid="107" x="3850" y="210" width="64" height="64"/>
   <object id="306" name="kibble" gid="107" x="4200" y="560" width="64" height="64"/>
   <object id="307" name="kibble" gid="107" x="4690" y="560" width="64" height="64"/>
-  <object id="308" name="denta" gid="106" x="420" y="630" width="64" height="64"/>
-  <object id="309" name="denta" gid="106" x="2940" y="280" width="64" height="64"/>
-  <object id="310" name="denta" gid="106" x="3360" y="560" width="64" height="64"/>
-  <object id="311" name="denta" gid="106" x="4480" y="630" width="64" height="64"/>
-  <object id="312" name="denta" gid="106" x="1540" y="560" width="64" height="64"/>
+  <object id="342" name="denta" gid="106" x="2960" y="263" width="28" height="28"/>
+  <object id="343" name="denta" gid="106" x="1562" y="545" width="28" height="28"/>
+  <object id="344" name="denta" gid="106" x="4501" y="614" width="28" height="28"/>
+  <object id="345" name="denta" gid="106" x="3453" y="543" width="28" height="28"/>
+  <object id="346" name="denta" gid="106" x="441" y="614" width="28" height="28"/>
  </objectgroup>
  <objectgroup id="17" name="Water_objects"/>
  <layer id="11" name="FG" width="73" height="11">

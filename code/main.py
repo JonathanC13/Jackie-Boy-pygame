@@ -67,7 +67,7 @@ class Game:
         self.main_menu_music.play(-1)
 
         self.game_music = pygame.mixer.Sound(os.path.join("..", "audio", "music", "Sunny paradise act 1.mp3"))
-        self.game_music.set_volume(0.1)
+        self.game_music.set_volume(0.2)
 
         self.boss_music = pygame.mixer.Sound(os.path.join("..", "audio", "music", "battleThemeA.mp3"))
         self.boss_music.set_volume(0.1)

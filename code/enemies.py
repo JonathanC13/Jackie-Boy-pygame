@@ -95,11 +95,20 @@ class Enemy(pygame.sprite.Sprite):
         self.pathfinder = pathfinder
 
         # sounds. For now, all enemies have the same sounds 
-        self.enemy_norm_hit_1 = pygame.mixer.Sound(os.path.join("..", "audio", "sound_effects", "enemy_norm_hit_1.wav"))
+        self.enemy_norm_hit_1 = pygame.mixer.Sound(os.path.join("..", "audio", "sound_effects", "enemy_hit", "enemy_dead_01.wav"))
         self.enemy_norm_hit_1.set_volume(0.25)
 
-        self.enemy_norm_hit_2 = pygame.mixer.Sound(os.path.join("..", "audio", "sound_effects", "enemy_norm_hit_2.wav"))
+        self.enemy_norm_hit_2 = pygame.mixer.Sound(os.path.join("..", "audio", "sound_effects", "enemy_hit", "enemy_dead_02.wav"))
         self.enemy_norm_hit_2.set_volume(0.25)
+
+        self.enemy_norm_hit_3 = pygame.mixer.Sound(os.path.join("..", "audio", "sound_effects", "enemy_hit", "enemy_dead_03.wav"))
+        self.enemy_norm_hit_3.set_volume(0.25)
+
+        self.enemy_norm_hit_4 = pygame.mixer.Sound(os.path.join("..", "audio", "sound_effects", "enemy_hit", "enemy_dead_04.wav"))
+        self.enemy_norm_hit_4.set_volume(0.25)
+
+        self.enemy_norm_hit_5 = pygame.mixer.Sound(os.path.join("..", "audio", "sound_effects", "enemy_hit", "enemy_dead_05.wav"))
+        self.enemy_norm_hit_5.set_volume(0.25)
 
     @property
     def health(self):
@@ -306,7 +315,7 @@ class Enemy(pygame.sprite.Sprite):
             if (not self.timers["take_damage_cd"].active):
                 self.timers["take_damage_cd"].activate()
 
-                sound = choice([self.enemy_norm_hit_1, self.enemy_norm_hit_2])
+                sound = choice([self.enemy_norm_hit_1, self.enemy_norm_hit_2, self.enemy_norm_hit_3, self.enemy_norm_hit_4, self.enemy_norm_hit_5])
                 sound.play()
 
                 self.frame_index = 0
@@ -736,14 +745,64 @@ class Sign(FlyingEnemy):
         self.is_spinning = False
 
         # sounds
-        self.enemy_sign_hit_1 = pygame.mixer.Sound(os.path.join("..", "audio", "sound_effects", "enemy_sign_hit_1.wav"))
-        self.enemy_sign_hit_1.set_volume(0.25)
+        #self.loop_channel = pygame.mixer.Channel(0)
 
-        self.enemy_sign_hit_2 = pygame.mixer.Sound(os.path.join("..", "audio", "sound_effects", "enemy_sign_hit_2.wav"))
-        self.enemy_sign_hit_2.set_volume(0.25)
+        self.enemy_sign_hit_1 = pygame.mixer.Sound(os.path.join("..", "audio", "sound_effects", "sign_hit", "enemy_sign_hit_1.wav"))
+        self.enemy_sign_hit_1.set_volume(0.5)
+
+        self.enemy_sign_hit_2 = pygame.mixer.Sound(os.path.join("..", "audio", "sound_effects", "sign_hit", "enemy_sign_hit_2.wav"))
+        self.enemy_sign_hit_2.set_volume(0.5)
 
         self.boss_defeated = pygame.mixer.Sound(os.path.join("..", "audio", "sound_effects", "Victory!.wav"))
         self.boss_defeated.set_volume(0.25)
+
+        # parabola
+        self.swish_1 = pygame.mixer.Sound(os.path.join("..", "audio", "sound_effects", "sign_spin", "swish-5.wav"))
+        self.swish_1.set_volume(0.5)
+
+        self.swish_2 = pygame.mixer.Sound(os.path.join("..", "audio", "sound_effects", "sign_spin", "swish-6.wav"))
+        self.swish_2.set_volume(0.5)
+
+        self.swish_3 = pygame.mixer.Sound(os.path.join("..", "audio", "sound_effects", "sign_spin", "swish-7.wav"))
+        self.swish_3.set_volume(0.5)
+
+        self.swish_4 = pygame.mixer.Sound(os.path.join("..", "audio", "sound_effects", "sign_spin", "swish-8.wav"))
+        self.swish_4.set_volume(0.5)
+
+        self.swish_5 = pygame.mixer.Sound(os.path.join("..", "audio", "sound_effects", "sign_spin", "swish-9.wav"))
+        self.swish_5.set_volume(0.5)
+
+        self.swish_6 = pygame.mixer.Sound(os.path.join("..", "audio", "sound_effects", "sign_spin", "swish-10.wav"))
+        self.swish_6.set_volume(0.5)
+
+        self.swish_7 = pygame.mixer.Sound(os.path.join("..", "audio", "sound_effects", "sign_spin", "swish-11.wav"))
+        self.swish_7.set_volume(0.5)
+
+        self.swish_8 = pygame.mixer.Sound(os.path.join("..", "audio", "sound_effects", "sign_spin", "swish-12.wav"))
+        self.swish_8.set_volume(0.5)
+
+        self.swish_9 = pygame.mixer.Sound(os.path.join("..", "audio", "sound_effects", "sign_spin", "swish-13.wav"))
+        self.swish_9.set_volume(0.5)
+
+        self.arr_swish = [self.swish_1, self.swish_2, self.swish_3, self.swish_4, self.swish_5, self.swish_6, self.swish_7, self.swish_8, self.swish_9]
+
+        # fire poles
+        self.boom_1 = pygame.mixer.Sound(os.path.join("..", "audio", "sound_effects", "sign_fire_poles", "boom1.wav"))
+        self.boom_1.set_volume(0.4)
+
+        self.boom_2 = pygame.mixer.Sound(os.path.join("..", "audio", "sound_effects", "sign_fire_poles", "boom2.wav"))
+        self.boom_2.set_volume(0.4)
+
+        self.boom_3 = pygame.mixer.Sound(os.path.join("..", "audio", "sound_effects", "sign_fire_poles", "boom3.wav"))
+        self.boom_3.set_volume(0.4)
+
+        self.boom_4 = pygame.mixer.Sound(os.path.join("..", "audio", "sound_effects", "sign_fire_poles", "boom4.wav"))
+        self.boom_4.set_volume(0.4)
+
+        self.arr_boom = [self.boom_1, self.boom_2, self.boom_3, self.boom_4]
+
+        self.woosh = pygame.mixer.Sound(os.path.join("..", "audio", "sound_effects", "sign_moving", "whoosh2.wav"))
+        self.woosh.set_volume(0.1)
 
     @property
     def active(self):
@@ -770,6 +829,7 @@ class Sign(FlyingEnemy):
                 if (self._health <= 0):
                     # play victory music
                     self.boss_defeated.play()
+                    self.kill_weapon()
                     return DEAD
                 else:
                     # if has more HP, change weakness type
@@ -872,15 +932,19 @@ class Sign(FlyingEnemy):
         # top
         # pos, angle_fired, owner_id
         self.func_create_pole((self.hitbox_rect.center), self.angle, self.id)
+        choice(self.arr_boom).play()
 
         # left
         self.func_create_pole((self.hitbox_rect.center), self.angle - 90, self.id)
+        choice(self.arr_boom).play()
 
         # right
         self.func_create_pole((self.hitbox_rect.center), self.angle + 90, self.id)
+        choice(self.arr_boom).play()
 
         # bottom
         self.func_create_pole((self.hitbox_rect.center), self.angle + 180, self.id)
+        choice(self.arr_boom).play()
 
     def set_down_slash(self):
         self.curr_rotations = 0
@@ -900,7 +964,11 @@ class Sign(FlyingEnemy):
     def start_spinning(self):
         self.is_spinning = True
 
+        choice(self.arr_swish).play()
+
     def stop_spinning(self):
+        self.swish_idx = 0
+
         self.is_spinning = False
         self.point_top(self.player_sprite.sprite.hitbox_rect.center, True)
         self.spin_direction = 1
@@ -920,6 +988,7 @@ class Sign(FlyingEnemy):
 
     def spin(self, dt):
         if (self.is_spinning):
+
             self.weapon.set_can_damage(True)
             self.angle -= SIGN_SPIN_ATTACK_SPEED * dt * self.spin_direction 
             self.angle = self.angle % 360
@@ -928,14 +997,19 @@ class Sign(FlyingEnemy):
                 if (self.rotation_flag and abs(self.angle) <= 270 and abs(self.angle) >= 180):
                     self.curr_rotations += 1
                     self.rotation_flag = False
+
+                    choice(self.arr_swish).play()
                 elif (abs(self.angle) > 270 and abs(self.angle) < 360):
                     self.rotation_flag = True
             elif (self.spin_direction < 0):
                 if (self.rotation_flag and abs(self.angle) >= 270 and abs(self.angle) <= 360):
                     self.curr_rotations += 1
                     self.rotation_flag = False
+
+                    choice(self.arr_swish).play()
                 elif (abs(self.angle) > 180 and abs(self.angle) < 270):
                     self.rotation_flag = True
+
 
             if (self.curr_rotations == self.spin_num_rotations):
                 self.weapon.set_can_damage(False)
@@ -974,6 +1048,7 @@ class Sign(FlyingEnemy):
                 if (not self.timers[self.current_attack["timer_name"]].active):
 
                     if (self.attack_seq[self.attack_index]["timer_name"] == "assess_path"):
+                        self.woosh.play()
                         self.timers[self.attack_seq[self.attack_index]["timer_name"]] = Timer(1500, None, True)
                     elif (self.attack_seq[self.attack_index]["timer_name"] == "spin_for_rotations"):
                         self.timers[self.attack_seq[self.attack_index]["timer_name"]] = Timer(2000, None, True)

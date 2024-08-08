@@ -95,19 +95,34 @@ class Player(pygame.sprite.Sprite):
         self.movement = Movement(self)
 
         #sounds
-        self.jump_sound = pygame.mixer.Sound(os.path.join("..", "audio", "sound_effects", "SFX_Jump_50.mp3"))
+        self.jump_sound = pygame.mixer.Sound(os.path.join("..", "audio", "sound_effects", "player_jump", "SFX_Jump_50.mp3"))
         self.jump_sound.set_volume(0.1)
 
-        self.stick_swing1 = pygame.mixer.Sound(os.path.join("..", "audio", "sound_effects", "stick_swing.wav"))
+        self.stick_swing1 = pygame.mixer.Sound(os.path.join("..", "audio", "sound_effects", "player_attacks", "stick_swing.wav"))
         self.stick_swing1.set_volume(0.5)
-        self.stick_swing2 = pygame.mixer.Sound(os.path.join("..", "audio", "sound_effects", "stick_swing2.wav"))
+        self.stick_swing2 = pygame.mixer.Sound(os.path.join("..", "audio", "sound_effects", "player_attacks", "stick_swing2.wav"))
         self.stick_swing2.set_volume(0.5)
 
-        self.lance_jab = pygame.mixer.Sound(os.path.join("..", "audio", "sound_effects", "lance_jab.wav"))
+        self.lance_jab = pygame.mixer.Sound(os.path.join("..", "audio", "sound_effects", "player_attacks", "lance_jab.wav"))
         self.lance_jab.set_volume(0.25)
 
-        self.ball_throw = pygame.mixer.Sound(os.path.join("..", "audio", "sound_effects", "ball_throw.wav"))
+        self.ball_throw = pygame.mixer.Sound(os.path.join("..", "audio", "sound_effects", "player_attacks", "ball_throw.wav"))
         self.ball_throw.set_volume(0.5)
+
+        self.hit_sound_1 = pygame.mixer.Sound(os.path.join("..", "audio", "sound_effects", "player_hit", "pain1.wav"))
+        self.hit_sound_1.set_volume(0.5)
+
+        self.hit_sound_2 = pygame.mixer.Sound(os.path.join("..", "audio", "sound_effects", "player_hit", "pain2.wav"))
+        self.hit_sound_2.set_volume(0.5)
+
+        self.hit_sound_3 = pygame.mixer.Sound(os.path.join("..", "audio", "sound_effects", "player_hit", "pain3.wav"))
+        self.hit_sound_3.set_volume(0.5)
+
+        self.hit_sound_4 = pygame.mixer.Sound(os.path.join("..", "audio", "sound_effects", "player_hit", "pain4.wav"))
+        self.hit_sound_4.set_volume(0.5)
+
+        self.hit_sound_5 = pygame.mixer.Sound(os.path.join("..", "audio", "sound_effects", "player_hit", "pain5.wav"))
+        self.hit_sound_5.set_volume(0.5)
 
     def bound(self, val, val_min, val_max):
         return max(min(val, val_max), val_min)
@@ -678,10 +693,13 @@ class Player(pygame.sprite.Sprite):
     def evaluate_damage(self, damage, damage_type):
         # later check if match damage type
         if (not self.timers["take_damage_cd"].active):
-            
-            self.frame_index = 0
-            self.is_hit = True
             self.timers["take_damage_cd"].activate()
+
+            sound = choice([self.hit_sound_1, self.hit_sound_2, self.hit_sound_3, self.hit_sound_4, self.hit_sound_5])
+            sound.play()
+            self.frame_index = 0
+
+            self.is_hit = True
 
             if (self.data.player_health - damage <= 0):
                 #self.move_player_to_spawn()
