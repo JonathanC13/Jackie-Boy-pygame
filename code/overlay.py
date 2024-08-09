@@ -241,7 +241,7 @@ class Overlay:
         container = []
         # container
         container_surf = pygame.Surface((self.container_size.x, self.container_size.y))
-        container_surf.set_alpha(85)
+        container_surf.set_alpha(105)
         container_surf.fill('#28282B')
         container.append({'name': text + str('_container'), "surf": container_surf, "layer": 0, "offset": vector(0, 0), "clickable": True, "func": func, "params": params, "click_sound": click_sound})  
         # text
@@ -682,7 +682,7 @@ class SavesOverlay(Overlay):
         if (self.content_surfaces['center']['start_idx'] > 0):
             clickable = True
             up_surf.set_alpha(255)
-            up_container_surf.set_alpha(85)
+            up_container_surf.set_alpha(105)
 
         container.append({"name": "UP", "surf": up_container_surf, "layer": 0, "offset": vector(0, 0), "clickable": clickable, "func": self.change_start_idx, "params": [-1], "click_sound": self.select_sound})
         self.content_surfaces['right_1']['surfaces'].append(container)
@@ -700,7 +700,7 @@ class SavesOverlay(Overlay):
         if (self.content_surfaces['center']['start_idx'] < len(self.content_surfaces['center']['surfaces']) - 1):   # -1 so that at least one save is in the column
             clickable = True
             down_surf.set_alpha(255)
-            down_container_surf.set_alpha(85)
+            down_container_surf.set_alpha(105)
         container.append({"name": "DOWN", "surf": down_container_surf, "layer": 0, "offset": vector(0, 0), "clickable": True, "func": self.change_start_idx, "params": [1], 'click_sound': self.select_sound})
         self.content_surfaces['right_1']['surfaces'].append(container)
 
@@ -713,7 +713,7 @@ class SavesOverlay(Overlay):
 
         back_container_surf = pygame.Surface((back_surf.get_width() + 20, back_surf.get_height() + 20))
         back_container_surf.fill('#28282B')
-        back_container_surf.set_alpha(85)
+        back_container_surf.set_alpha(105)
 
         container.append({"name": "BACK_container", "surf": back_container_surf, "layer": 0, "offset": vector(0, 0), "clickable": True, "func": self.func_go_back, "params": None, 'click_sound': self.back_sound})
         self.content_surfaces['left_1']['surfaces'].append(container)
@@ -734,7 +734,7 @@ class SavesOverlay(Overlay):
 
         # container
         container_surf = pygame.Surface((self.container_size.x, self.container_size.y))
-        container_surf.set_alpha(85)
+        container_surf.set_alpha(105)
         container_surf.fill('#28282B')
         container.append({"name": str(save['stem']), "surf": container_surf, "layer": 0, "offset": vector(0, 0), "clickable": False, "func": None, "params": None, 'click_sound': None})
         
@@ -812,7 +812,7 @@ class SavesOverlay(Overlay):
 
         container.append({"name": 'level_sel_surf', "surf": level_select_surf, "layer": 2, "offset": vector(level_select_container_surf.get_width()/2 - level_select_surf.get_width()/2, bottom_of_row_y - level_select_surf.get_height()), "clickable": False, "func": None, "params": None, "click_sound": None})
 
-        level_select_container_surf.set_alpha(85)
+        level_select_container_surf.set_alpha(105)
         level_select_container_surf.fill('#28282B')
         container.append({"name": 'level_sel_container_surf', "surf": level_select_container_surf, "layer": 1, "offset": vector(x_offset, bottom_of_row_y - level_select_container_surf.get_height() + 10), "clickable": True, "func": self.func_goto_level_selector, "params": [str(save['filename'])], "click_sound": self.select_sound})
         x_offset += level_select_container_surf.get_width()
@@ -823,7 +823,7 @@ class SavesOverlay(Overlay):
 
         container.append({"name": 'delete_surf', "surf": delete_surf, "layer": 2, "offset": vector(x_offset + x_spacing + delete_container_surf.get_width()/2 - delete_surf.get_width()/2, bottom_of_row_y - delete_surf.get_height()), "clickable": False, "func": None, "params": None, "click_sound": None})
         
-        delete_container_surf.set_alpha(85)
+        delete_container_surf.set_alpha(105)
         delete_container_surf.fill('#28282B')
         container.append({"name": 'delete_container_surf', "surf": delete_container_surf, "layer": 1, "offset": vector(x_offset + x_spacing, bottom_of_row_y - delete_container_surf.get_height() + 10), "clickable": True, "func": self.delete_save_file, "params": [str(save['filename'])], "click_sound": self.select_sound})
 
@@ -914,7 +914,7 @@ class LevelSelectorOverlay(Overlay):
 
         back_container_surf = pygame.Surface((back_surf.get_width() + 20, back_surf.get_height() + 20))
         back_container_surf.fill('#28282B')
-        back_container_surf.set_alpha(85)
+        back_container_surf.set_alpha(105)
 
         container.append({"name": "BACK_container", "surf": back_container_surf, "layer": 0, "offset": vector(0, 0), "clickable": True, "func": self.func_go_back, "params": None, "click_sound": self.back_sound})
         self.content_surfaces['left_1']['surfaces'].append(container)
@@ -944,6 +944,16 @@ class StoreOverlay(Overlay):
 
         self.content_surfaces['center']['content_col_x'] = WINDOW_WIDTH/2 - self.container_size.x/2
 
+        # sounds
+        self.buy_sound = pygame.mixer.Sound(os.path.join("..", "audio", "sound_effects", "shop", "buy_coin.wav"))
+        self.buy_sound.set_volume(0.05)
+
+        self.sell_sound = pygame.mixer.Sound(os.path.join("..", "audio", "sound_effects", "shop", "sell_coin3.wav"))
+        self.sell_sound.set_volume(0.05)
+
+        self.back_sound = pygame.mixer.Sound(os.path.join("..", "audio", "sound_effects", "shop", "open_shop_cloth-heavy.wav"))
+        self.back_sound.set_volume(0.5)
+
         self.populate_subtitle_surfaces()
         self.populate_content_surface_center()
         self.populate_left_col_1()
@@ -963,12 +973,12 @@ class StoreOverlay(Overlay):
         container = []
         # 'Saves' subtitle
         level_selector_surf = self.shop_text
-        container.append({"name": "Shop_text", "surf": level_selector_surf, "layer": 1, "offset": vector(self.container_size.x/2 - level_selector_surf.get_width()/2, 10), "clickable": False, "func": None, "params": None})
+        container.append({"name": "Shop_text", "surf": level_selector_surf, "layer": 1, "offset": vector(self.container_size.x/2 - level_selector_surf.get_width()/2, 10), "clickable": False, "func": None, "params": None, 'click_sound':None})
 
         level_selector_container_surf = pygame.Surface((self.container_size.x, level_selector_surf.get_height() + 20))
         level_selector_container_surf.set_alpha(200)
         level_selector_container_surf.fill('#28282B')
-        container.append({"name": "Shop_container", "surf": level_selector_container_surf, "layer": 0, "offset": vector(0, 0), "clickable": False, "func": None, "params": None})
+        container.append({"name": "Shop_container", "surf": level_selector_container_surf, "layer": 0, "offset": vector(0, 0), "clickable": False, "func": None, "params": None, 'click_sound': None})
 
         self.subtitle_surfaces.append(container)
     
@@ -977,18 +987,34 @@ class StoreOverlay(Overlay):
         container = []
         
         # hearts
-        heart_container_surf = pygame.Surface((self.container_size.x, self.container_size.y))
-        heart_container_surf.set_alpha(85)
+        # container
+        heart_container_surf = pygame.Surface((self.container_size.x, self.container_size.y * 2))
+        heart_container_surf.set_alpha(105)
         heart_container_surf.fill('#28282B')
-        container.append({"name": "heart_container_surf", "surf": heart_container_surf, "layer": 0, "offset": vector(0, 0), "clickable": True, "func": self.data.buy_heart, "params": None})
-
+        container.append({"name": "heart_container_surf", "surf": heart_container_surf, "layer": 0, "offset": vector(0, 0), "clickable": False, "func": None, "params": None, 'click_sound': None})
+        # desc
         heart_surf = self.overlay_frames['heart'][0]
-        heart_buy_surf = self.font.render(f' Buy with {self.data.shop_prices["heart"]} treats', False, "white", bgcolor=None, wraplength=0)
+        heart_buy_surf = self.font.render(f' Price: {self.data.shop_prices["heart"]} treats', False, "white", bgcolor=None, wraplength=0)
         total_len = heart_surf.get_width() + heart_buy_surf.get_width()
+        container.append({"name": "heart_surf", "surf": heart_surf, "layer": 1, "offset": vector(self.container_size.x/2 - total_len/2, 10), "clickable": False, "func": None, "params": None, 'click_sound': None})
+        container.append({"name": "heart_buy_surf", "surf": heart_buy_surf, "layer": 1, "offset": vector(self.container_size.x/2 + heart_surf.get_width() - total_len/2, 10), "clickable": False, "func": None, "params": None, 'click_sound': None})
+        # options
+        y_offset = max(heart_surf.get_height(), heart_buy_surf.get_height())
+        
+        if (self.data.denta >= self.data.shop_prices["heart"]):
+            heart_buy = self.font.render('Buy', False, "white", bgcolor=None, wraplength=0)
+            heart_buy_container = pygame.Surface((self.container_size.x/2 - 20, heart_buy.get_height() + 20))
+            heart_buy_container.set_alpha(105)
+            container.append({"name": "heart_buy_container", "surf": heart_buy_container, "layer": 1, "offset": vector(10, y_offset + 10), "clickable": True, "func": self.data.buy_heart, "params": None, 'click_sound': self.buy_sound})
+            container.append({"name": "heart_buy", "surf": heart_buy, "layer": 2, "offset": vector(10 + heart_buy_container.get_width()/2 - heart_buy.get_width()/2, y_offset + 10 + heart_buy_container.get_height()/2 - heart_buy.get_height()/2), "clickable": False, "func": None, "params": None, 'click_sound': None})
 
-        container.append({"name": "heart_surf", "surf": heart_surf, "layer": 1, "offset": vector(self.container_size.x/2 - total_len/2, 10), "clickable": False, "func": None, "params": None})
-        container.append({"name": "heart_buy_surf", "surf": heart_buy_surf, "layer": 1, "offset": vector(self.container_size.x/2 + heart_surf.get_width() - total_len/2, 10), "clickable": False, "func": None, "params": None})
-
+        if (self.data.player_health > 1):
+            heart_sell = self.font.render('Sell', False, "white", bgcolor=None, wraplength=0)
+            heart_sell_container = pygame.Surface((self.container_size.x/2 - 20, heart_sell.get_height() + 20))
+            heart_sell_container.set_alpha(105)
+            container.append({"name": "heart_sell_container", "surf": heart_sell_container, "layer": 1, "offset": vector(heart_container_surf.get_width()/2 + 10, y_offset + 10), "clickable": True, "func": self.data.sell_heart, "params": None, 'click_sound': self.sell_sound})
+            container.append({"name": "heart_sell", "surf": heart_sell, "layer": 2, "offset": vector(heart_container_surf.get_width()/2 + 10 + heart_sell_container.get_width()/2 - heart_sell.get_width()/2, y_offset + 10 + heart_sell_container.get_height()/2 - heart_sell.get_height()/2), "clickable": False, "func": None, "params": None, 'click_sound': None})
+        
         self.content_surfaces['center']['surfaces'].append(container)
         container = []
 
@@ -996,24 +1022,52 @@ class StoreOverlay(Overlay):
         for i in range(len(self.data.weapon_list)):
             weapon_name = str(self.data.weapon_list[i]['weapon'].weapon_name)
 
-            container_surf = pygame.Surface((self.container_size.x, self.container_size.y))
+            container_surf = pygame.Surface((self.container_size.x, self.container_size.y * 2 + 10))
             container_surf.fill('#28282B')
 
             surf = self.overlay_frames['weapons'][weapon_name]
 
+            
+
             if (self.data.check_if_max_level(i)):
                 container_surf.set_alpha(200)
-                container.append({"name": weapon_name + "_container_surf", "surf": container_surf, "layer": 0, "offset": vector(0, 0), "clickable": False, "func": None, "params": None})
+                container.append({"name": weapon_name + "_container_surf", "surf": container_surf, "layer": 0, "offset": vector(0, 0), "clickable": False, "func": None, "params": None, 'click_sound':None})
                 text_surf = self.font.render(' At max level', False, "white", bgcolor=None, wraplength=0)
             else:
-                container_surf.set_alpha(85)
-                container.append({"name": weapon_name + "_container_surf", "surf": container_surf, "layer": 0, "offset": vector(0, 0), "clickable": True, "func": self.data.upgrade_weapon, "params": [i]})
+                container_surf.set_alpha(105)
+                container.append({"name": weapon_name + "_container_surf", "surf": container_surf, "layer": 0, "offset": vector(0, 0), "clickable": False, "func": None, "params": None, 'click_sound':None})
                 text_surf = self.font.render(f' Upgrade with {self.data.shop_prices[weapon_name]} treats', False, "white", bgcolor=None, wraplength=0)
 
             total_len = surf.get_width() + text_surf.get_width()
 
-            container.append({"name": "stick_surf", "surf": surf, "layer": 1, "offset": vector(self.container_size.x/2 - total_len/2, 10), "clickable": False, "func": None, "params": None})
-            container.append({"name": "stick_text_surf", "surf": text_surf, "layer": 1, "offset": vector(self.container_size.x/2 + surf.get_width() - total_len/2, 10), "clickable": False, "func": None, "params": None})
+            container.append({"name": "stick_surf", "surf": surf, "layer": 1, "offset": vector(self.container_size.x/2 - total_len/2, 10), "clickable": False, "func": None, "params": None, 'click_sound':None})
+            container.append({"name": "stick_text_surf", "surf": text_surf, "layer": 1, "offset": vector(self.container_size.x/2 + surf.get_width() - total_len/2, 10), "clickable": False, "func": None, "params": None, 'click_sound':None})
+
+            # options
+            buy = True
+            sell = True
+
+            if (self.data.check_if_min_level(i)):
+                buy = True
+                sell = False
+            elif (self.data.check_if_max_level(i)):
+                buy = False
+                sell = True
+            # options
+            y_offset = max(surf.get_height(), text_surf.get_height())
+            if (buy):
+                buy_surf = self.font.render('Buy', False, "white", bgcolor=None, wraplength=0)
+                buy_container = pygame.Surface((self.container_size.x/2 - 20, buy_surf.get_height() + 20))
+                buy_container.set_alpha(105)
+                container.append({"name": "buy_container", "surf": buy_container, "layer": 1, "offset": vector(10, y_offset + 10), "clickable": True, "func": self.data.upgrade_weapon, "params": [i], 'click_sound': self.buy_sound})
+                container.append({"name": "buy_surf", "surf": buy_surf, "layer": 2, "offset": vector(10 + buy_container.get_width()/2 - buy_surf.get_width()/2, y_offset + 10 + buy_container.get_height()/2 - buy_surf.get_height()/2), "clickable": False, "func": None, "params": None, 'click_sound': None})
+
+            if (sell):
+                sell_surf = self.font.render('Sell', False, "white", bgcolor=None, wraplength=0)
+                sell_container = pygame.Surface((self.container_size.x/2 - 20, sell_surf.get_height() + 20))
+                sell_container.set_alpha(105)
+                container.append({"name": "sell_container", "surf": sell_container, "layer": 1, "offset": vector(container_surf.get_width()/2 + 10, y_offset + 10), "clickable": True, "func": self.data.degrade_weapon, "params": [i], 'click_sound': self.sell_sound})
+                container.append({"name": "sell_surf", "surf": sell_surf, "layer": 2, "offset": vector(container_surf.get_width()/2 + 10 + sell_container.get_width()/2 - sell_surf.get_width()/2, y_offset + 10 + sell_container.get_height()/2 - sell_surf.get_height()/2), "clickable": False, "func": None, "params": None, 'click_sound': None})
 
             self.content_surfaces['center']['surfaces'].append(container)
             container = []
@@ -1023,13 +1077,13 @@ class StoreOverlay(Overlay):
         container = []
         # Resume
         back_surf = self.font.render('Exit', False, "white", bgcolor=None, wraplength=0)
-        container.append({"name": "Exit", "surf": back_surf, "layer": 1, "offset": vector(10, 10), "clickable": False, "func": None, "params": None})
+        container.append({"name": "Exit", "surf": back_surf, "layer": 1, "offset": vector(10, 10), "clickable": False, "func": None, "params": None, 'click_sound':None})
 
         back_container_surf = pygame.Surface((back_surf.get_width() + 20, back_surf.get_height() + 20))
         back_container_surf.fill('#28282B')
-        back_container_surf.set_alpha(85)
+        back_container_surf.set_alpha(105)
 
-        container.append({"name": "Exit_container", "surf": back_container_surf, "layer": 0, "offset": vector(0, 0), "clickable": True, "func": self.func_resume_game, "params": None})
+        container.append({"name": "Exit_container", "surf": back_container_surf, "layer": 0, "offset": vector(0, 0), "clickable": True, "func": self.func_resume_game, "params": None, 'click_sound':self.back_sound})
         self.content_surfaces['left_1']['surfaces'].append(container)
         container = []
         

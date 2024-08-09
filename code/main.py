@@ -82,6 +82,10 @@ class Game:
             MUSIC_BOSS: self.boss_music
         }
 
+        # sounds
+        self.open_shop_sound = pygame.mixer.Sound(os.path.join("..", "audio", "sound_effects", "shop", "open_shop_cloth-heavy.wav"))
+        self.open_shop_sound.set_volume(0.25)
+
         self.boss_state = False
 
     def import_assets(self):
@@ -152,19 +156,19 @@ class Game:
             if (self.game_state == MAIN_MENU):
                 if (self.main_menus.get_current_menu().overlay == CREDITS and self.music_state != MUSIC_CRED):
                     self.turn_off_all_music()
-                    self.music_dict[MUSIC_CRED].play(-1, fade_ms=1000)
+                    self.music_dict[MUSIC_CRED].play(-1, fade_ms=250)
                     self.music_state = MUSIC_CRED
                 elif (self.main_menus.get_current_menu().overlay != CREDITS and self.music_state != MUSIC_MAIN):
                     self.turn_off_all_music()
-                    self.music_dict[MUSIC_MAIN].play(-1, fade_ms=1000)
+                    self.music_dict[MUSIC_MAIN].play(-1, fade_ms=250)
                     self.music_state = MUSIC_MAIN
             elif (self.game_state in [IN_STORE, LIVE] and self.music_state != MUSIC_GAME):
                 self.turn_off_all_music()
-                self.music_dict[MUSIC_GAME].play(-1, fade_ms=1000)
+                self.music_dict[MUSIC_GAME].play(-1, fade_ms=250)
                 self.music_state = MUSIC_GAME
             elif (self.game_state == GAME_COMPLETE and self.music_state != MUSIC_CRED):
                 self.turn_off_all_music()
-                self.music_dict[MUSIC_CRED].play(-1, fade_ms=1000)
+                self.music_dict[MUSIC_CRED].play(-1, fade_ms=250)
                 self.music_state = MUSIC_CRED
             elif (self.game_state == TRANSITION_LEVEL and self.music_state != MUSIC_TRANS):
                 self.music_dict[self.music_state].fadeout(250)
@@ -307,6 +311,7 @@ class Game:
                                 # for now just interact with first
                                 if (npc == HUSKY):
                                     # store
+                                    self.open_shop_sound.play()
                                     self.open_store()
 
                 if (event.type == pygame.MOUSEBUTTONDOWN):

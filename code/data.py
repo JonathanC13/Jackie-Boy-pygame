@@ -145,13 +145,33 @@ class Data:
                 return True
 
         return False
+    
+    def check_if_min_level(self, index):
+        weapon_name = self.weapon_list[index]['weapon'].weapon_name
+        if (weapon_name == STICK):
+            if (self.stick_level <= self._stick_level_min):
+                return True
+        elif (weapon_name == UMBRELLA):
+            if (self.lance_level <= self._lance_level_min):
+                return True
+        elif (weapon_name == BALL):
+            if (self.ball_level <= self._ball_level_min):
+                return True
+
+        return False
 
     def buy_heart(self):
-        print("heart")
         if (self.denta - self.shop_prices['heart'] >= 0):
             self.denta -= self.shop_prices['heart']
             self.player_health += 1
-            print("bought heart")
+            return True
+        
+        return False
+    
+    def sell_heart(self):
+        if (self.player_health > 1):
+            self.denta += self.shop_prices['heart']
+            self.player_health -= 1
             return True
         
         return False
@@ -178,6 +198,32 @@ class Data:
                 self.ball_level += 1
                 self.weapon_list[index]['weapon'].change_level(index, self.ball_level)
                 print('upgrade bl')
+                return True
+
+        return False
+    
+    def degrade_weapon(self, index):
+        weapon_name = self.weapon_list[index]['weapon'].weapon_name
+        if (weapon_name == STICK):
+            if (not self.check_if_min_level(index)):
+                self.denta += self.shop_prices[weapon_name]
+                self.stick_level -= 1
+                self.weapon_list[index]['weapon'].change_level(index, self.stick_level)  # in weapon.py will trigger creation of new weapon
+                print('degrade sk')
+                return True
+        elif (weapon_name == UMBRELLA):
+            if (not self.check_if_min_level(index)):
+                self.denta += self.shop_prices[weapon_name]
+                self.lance_level -= 1
+                self.weapon_list[index]['weapon'].change_level(index, self.lance_level)
+                print('degrade ln')
+                return True
+        elif (weapon_name == BALL):
+            if (not self.check_if_min_level(index)):
+                self.denta += self.shop_prices[weapon_name]
+                self.ball_level -= 1
+                self.weapon_list[index]['weapon'].change_level(index, self.ball_level)
+                print('degrade bl')
                 return True
 
         return False
