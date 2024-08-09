@@ -261,7 +261,13 @@ class Game:
 
     def open_store(self):
         self.game_state = IN_STORE
-        self.store_screen = StoreOverlay(self.font_title, self.font, self.overlay_frames, self.data, self.func_resume_game)
+        self.store_screen = StoreOverlay(self.font_title, self.font, self.overlay_frames, self.data, self.exit_store)
+
+    def exit_store(self):
+        # on exit of the store, save data into the save file. This is OK since the player can buy and sell without loss and will reduce the need to re-buy upgrades if they die before level completion
+        self.save_data()
+
+        self.func_resume_game()
 
     def draw_bg_tile(self, bg_tile_name):
         for row in range(int(WINDOW_HEIGHT / TILE_SIZE) + 1):
