@@ -135,7 +135,8 @@ class Game:
             'heart': import_folder('..', 'graphics', 'ui', 'heart'),
             'kibble': import_folder('..', 'graphics', 'ui', 'kibble'),
             'denta': import_folder('..', 'graphics', 'ui', 'denta'),
-            'weapons': import_folder_dict('..', 'graphics', 'ui', 'weapons')
+            'weapons': import_folder_dict('..', 'graphics', 'ui', 'weapons'),
+            'how_to_play': import_folder_dict('..', 'graphics', 'ui', 'how_to_play')
         }
 
     def set_boss_state(self, bool):
@@ -304,14 +305,14 @@ class Game:
                 if (event.type == pygame.QUIT):
                     self.quit_game()
                 elif event.type == pygame.KEYDOWN:
-                    if (event.key == pygame.K_ESCAPE):
+                    if (event.key == CONTROLS[CNTRL_ESC][PYGAME_CONST]):
                         if (self.game_state == LIVE and self.game_active):
                             self.game_active = False
                             self.pause_menu.goto_pause_main()
                         elif (self.game_state == LIVE and not self.game_active):
                             self.game_active = True
                     
-                    if (event.key == pygame.K_f):
+                    if (event.key == CONTROLS[CNTRL_INTERACT][PYGAME_CONST]):
                         if (self.run_level.npcs_in_contact):
                             for npc in self.run_level.npcs_in_contact:
                                 # for now just interact with first

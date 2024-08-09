@@ -41,6 +41,7 @@ CONTROL_HELP = "Control help"
 PAUSE_MAIN = "Pause main"
 CREDITS = "Credits"
 STORE = "Store"
+HOW_TO_PLAY = "How to play"
 
 # music keys
 MUSIC_MAIN = "main"
@@ -151,3 +152,68 @@ IMAGE_RIGHT = 90
 IMAGE_UP = 180
 IMAGE_LEFT = 270
 IMAGE_DOWN = 0
+
+# Controls
+CNTRL_WEAPON_1 = "weapon 1"
+CNTRL_WEAPON_2 = "weapon 2"
+CNTRL_WEAPON_3 = "weapon 3"
+CNTRL_JUMP = "jump"
+CNTRL_MOVE_LEFT = "left"
+CNTRL_MOVE_RIGHT = "right"
+CNTRL_MOVE_DOWN = "drop down"
+CNTRL_ESC = "escape"
+CNTRL_INTERACT = "interact"
+
+PYGAME_CONST = "pygame_const"
+KEY = "key"
+DESC = "desc"
+
+CONTROLS = {
+    CNTRL_WEAPON_1: {
+        PYGAME_CONST: pygame.K_1,
+        KEY: "1",
+        DESC: "Switch to weapon 1"
+    },
+    CNTRL_WEAPON_2: {
+        PYGAME_CONST: pygame.K_2,
+        KEY: "2",
+        DESC: "Switch to weapon 2"
+    },
+    CNTRL_WEAPON_3: {
+        PYGAME_CONST: pygame.K_3,
+        KEY: "3",
+        DESC: "Switch to weapon 3"
+    },
+    CNTRL_JUMP: {
+        PYGAME_CONST: pygame.K_SPACE,
+        KEY: "Space",
+        DESC: "Jump"
+    },
+    CNTRL_MOVE_LEFT: {
+        PYGAME_CONST: pygame.K_a,
+        KEY: "A",
+        DESC: "Move left"
+    },
+    CNTRL_MOVE_RIGHT: {
+        PYGAME_CONST: pygame.K_d,
+        KEY: "D",
+        DESC: "Move right"
+    },
+    CNTRL_MOVE_DOWN: {
+        PYGAME_CONST: pygame.K_s,
+        KEY: "S",
+        DESC: "Drop down"
+    },
+    CNTRL_ESC: {
+        PYGAME_CONST: pygame.K_ESCAPE,
+        KEY: "Esc",
+        DESC: "Exit pause menu"
+    },
+    CNTRL_INTERACT: {
+        PYGAME_CONST: pygame.K_f,
+        KEY: "F",
+        DESC: "Interact"
+    }
+}
+
+

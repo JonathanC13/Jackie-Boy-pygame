@@ -654,7 +654,7 @@ class Level:
             if (npc.type == HUSKY):
                 self.npcs_in_contact.append(npc.type)
 
-                text = self.font.render('F', False, "white", bgcolor=None, wraplength=0)
+                text = self.font.render(CONTROLS[CNTRL_INTERACT][KEY], False, "white", bgcolor=None, wraplength=0)
 
                 text_bg = Sprite(
                     pos = (npc.rect.centerx, npc.rect.top - 30),

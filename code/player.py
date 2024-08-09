@@ -142,40 +142,40 @@ class Player(pygame.sprite.Sprite):
         keys = pygame.key.get_pressed()
 
         # key down
-        if (keys[pygame.K_1]):
+        if (keys[CONTROLS[CNTRL_WEAPON_1][PYGAME_CONST]]):
             new_weapon_index = 0
-        elif (keys[pygame.K_2]):
+        elif (keys[CONTROLS[CNTRL_WEAPON_2][PYGAME_CONST]]):
             new_weapon_index = 1
-        elif (keys[pygame.K_3]):
+        elif (keys[CONTROLS[CNTRL_WEAPON_3][PYGAME_CONST]]):
             new_weapon_index = 2
         else:
             new_weapon_index = self.current_weapon_index
 
         self.select_weapon(new_weapon_index)
             
-        if (keys[pygame.K_SPACE]):
+        if (keys[CONTROLS[CNTRL_JUMP][PYGAME_CONST]]):
             self.jump()
 
         if (not self.timers["wall_jump_move_block"].active):
             # blocks these keys if just jumped off a wall. Prevent infinite climbing with wall jump
-            if (keys[pygame.K_a]):
+            if (keys[CONTROLS[CNTRL_MOVE_LEFT][PYGAME_CONST]]):
                 self.LEFT_KEY = True
                 self.facing_right = False
-            if (keys[pygame.K_d]):
+            if (keys[CONTROLS[CNTRL_MOVE_RIGHT][PYGAME_CONST]]):
                 self.RIGHT_KEY = True
                 self.facing_right = True
         
-        if (keys[pygame.K_s]):
+        if (keys[CONTROLS[CNTRL_MOVE_DOWN][PYGAME_CONST]]):
             self.timers["unlock_semi_drop_down"].activate()
         
         # key up
-        if (not keys[pygame.K_SPACE]):
+        if (not keys[CONTROLS[CNTRL_JUMP][PYGAME_CONST]]):
             if (self.is_jumping):
                 self.velocity.y *= 0.25
                 self.is_jumping = False
-        if (not keys[pygame.K_a]):
+        if (not keys[CONTROLS[CNTRL_MOVE_LEFT][PYGAME_CONST]]):
             self.LEFT_KEY = False
-        if (not keys[pygame.K_d]):
+        if (not keys[CONTROLS[CNTRL_MOVE_RIGHT][PYGAME_CONST]]):
             self.RIGHT_KEY = False
 
     def select_weapon(self, new_weapon_index):

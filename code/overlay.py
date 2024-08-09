@@ -26,7 +26,7 @@ class PauseMainControl:
 
         self.pause_menu_list.append({'menu_name': LEVEL_SELECTOR, 'obj': LevelSelectorOverlay(self.font_title, self.font, self.overlay_frames, self.level_names, self.func_load_save_file, self.go_back)})
 
-        #self.main_menu_list.append({'menu_name': CONTROL_HELP, 'obj': SavesOverlay(self.font_title, self.font, self.overlay_frames, True if (self.saves.get_all_saves) else False, self.goto_save_menu, self.func_new_save_file, self.goto_control_help, self.func_quit, self.go_back)})
+        self.pause_menu_list.append({'menu_name': CONTROL_HELP, 'obj': HowToPlayOverlay('How to play', self.font_title, self.font, self.overlay_frames, self.go_back)})
 
     def find_menu(self, name):
         for menu in self.pause_menu_list:
@@ -45,8 +45,7 @@ class PauseMainControl:
         self.current_menu.set_save_info(self.obj_data.save_filename, self.obj_data.highest_stage_level)
 
     def goto_control_help(self):
-        print("how to play")
-        #self.current_menu = self.find_menu(CONTROL_HELP)
+        self.current_menu = self.find_menu(CONTROL_HELP)
 
     def go_back(self):
         dest = PAUSE_MAIN
@@ -87,7 +86,7 @@ class MainMenuControl:
 
         self.main_menu_list.append({'menu_name': LEVEL_SELECTOR, 'obj': LevelSelectorOverlay(self.font_title, self.font, self.overlay_frames, self.level_names, self.func_load_save_file, self.go_back)})
 
-        #self.main_menu_list.append({'menu_name': CONTROL_HELP, 'obj': SavesOverlay(self.font_title, self.font, self.overlay_frames, True if (self.saves.get_all_saves) else False, self.goto_save_menu, self.func_new_save_file, self.goto_control_help, self.func_quit, self.go_back)})
+        self.main_menu_list.append({'menu_name': CONTROL_HELP, 'obj': HowToPlayOverlay('How to play', self.font_title, self.font, self.overlay_frames, self.go_back)})
 
         self.main_menu_list.append({'menu_name': CREDITS, 'obj': GameCompleteOverlay('Thank you for playing!', self.font_title, self.font, self.overlay_frames, self.go_back, self.func_quit)}) #Thank you!!!
 
@@ -116,8 +115,7 @@ class MainMenuControl:
                 break
 
     def goto_control_help(self):
-        print("how to play")
-        #self.current_menu = self.find_menu(CONTROL_HELP)
+        self.current_menu = self.find_menu(CONTROL_HELP)
 
     def goto_credits(self):
         self.current_menu = self.find_menu(CREDITS)
@@ -258,7 +256,7 @@ class Overlay:
         self.display_surface.blit(title_surf, topleft)
         self.current_total_spacing_y += title_surf.get_height() + self.between_spacing_y
 
-    def display_overlay(self, container_size, current_total_spacing_y, between_spacing_y):
+    def display_overlay(self, current_total_spacing_y, between_spacing_y):
         self.buttons = []
         # title
         x = self.content_surfaces['center']['content_col_x']
@@ -303,6 +301,149 @@ class Overlay:
                             if (surf['clickable']):
                                 self.buttons.append(Button(surf, (pos_x, pos_y)))
                         y += y_add + between_spacing_y
+
+class HowToPlayOverlay(Overlay):
+    def __init__(self, subtitle_text, font_title, font, overlay_frames, func_go_back):
+        super().__init__(HOW_TO_PLAY, font_title, font, overlay_frames)
+
+        self.subtitle_text = subtitle_text
+
+        self.func_go_back = func_go_back
+
+        test_text = self.font.render(subtitle_text, False, "white", bgcolor=None, wraplength=0)
+        self.container_size = vector(test_text.get_width() + 20, test_text.get_height() + 20)
+
+        self.content_surfaces['center']['content_col_x'] = WINDOW_WIDTH/2 - self.container_size.x/2
+
+        # sounds
+        self.back_sound = pygame.mixer.Sound(os.path.join("..", "audio", "sound_effects", "menu_select", "Menu_Navigate_03.wav"))
+        self.back_sound.set_volume(0.05) 
+
+        self.display_title() # just to update current_total_spacing_y
+        self.y_offset = self.current_total_spacing_y
+
+        #self.populate_subtitle_surfaces()
+        self.populate_center_surface()
+
+    def populate_center_surface(self):
+        container = self.create_content_surface('Back', self.func_go_back, None, self.back_sound)
+        self.content_surfaces['center']['surfaces'].append(container)
+
+    def populate_subtitle_surfaces(self):
+        self.subtitle_surfaces = []
+        container = []
+        # 'Saves' subtitle
+        subtitle_surf = self.font.render(self.subtitle_text, False, "white", bgcolor=None, wraplength=0)
+
+        subtitle_container_surf = pygame.Surface((self.container_size.x, subtitle_surf.get_height() + 20))
+        subtitle_container_surf.set_alpha(200)
+        subtitle_container_surf.fill('#28282B')
+
+        self.y_offset += subtitle_container_surf.get_height()
+
+        container.append({"name": "subtitle_text", "surf": subtitle_surf, "layer": 1, "offset": vector(subtitle_container_surf.get_width()/2 - subtitle_surf.get_width()/2, 10), "clickable": False, "func": None, "params": None, "click_sound": None})
+        container.append({"name": "subtitle_container", "surf": subtitle_container_surf, "layer": 0, "offset": vector(0, 0), "clickable": False, "func": None, "params": None, "click_sound": None})
+
+        self.subtitle_surfaces.append(container)
+
+    def display_movement_controls(self):
+        local_x_offset = self.between_spacing_x
+        local_y_offset = self.y_offset# + self.between_spacing_y
+
+        general_container_x = (WINDOW_WIDTH/2) - local_x_offset*2
+
+
+        movement_subtitle = self.font.render('Movement', False, "white", bgcolor=None, wraplength=0)
+        movement_subtitle_container = pygame.Surface((movement_subtitle.get_width() + 20, movement_subtitle.get_height() + 20))
+        movement_subtitle_container.set_alpha(200)
+
+        self.display_surface.blit(movement_subtitle_container, (local_x_offset + general_container_x/2 - movement_subtitle_container.get_width()/2, local_y_offset))
+        self.display_surface.blit(movement_subtitle, (local_x_offset + general_container_x/2 - movement_subtitle.get_width()/2,  local_y_offset + movement_subtitle_container.get_height()/2 - movement_subtitle.get_height()/2))
+
+        local_y_offset += movement_subtitle_container.get_height() + self.between_spacing_y
+
+        # left
+        move_left = self.font.render(CONTROLS[CNTRL_MOVE_LEFT][DESC] + " : [" + CONTROLS[CNTRL_MOVE_LEFT][KEY] + "]", False, "white", bgcolor=None, wraplength=0)
+        move_left_container = pygame.Surface((general_container_x/2 - 10, move_left.get_height() + 20))
+        move_left_container.set_alpha(200)
+        self.display_surface.blit(move_left_container, (local_x_offset,  local_y_offset))
+        self.display_surface.blit(move_left, (local_x_offset + 10,  local_y_offset + move_left_container.get_height()/2 - move_left.get_height()/2))
+
+        # right
+        move_right = self.font.render(CONTROLS[CNTRL_MOVE_RIGHT][DESC] + " : [" + CONTROLS[CNTRL_MOVE_RIGHT][KEY] + "]", False, "white", bgcolor=None, wraplength=0)
+        move_right_container = pygame.Surface((general_container_x/2 - 10, move_right.get_height() + 20))
+        move_right_container.set_alpha(200)
+        self.display_surface.blit(move_left_container, (local_x_offset + move_left_container.get_width() + 20,  local_y_offset))
+        self.display_surface.blit(move_right, (local_x_offset + move_left_container.get_width() + 20 + 10,  local_y_offset + move_right_container.get_height()/2 - move_right.get_height()/2))
+
+        local_y_offset += move_left_container.get_height() + 5
+
+        # drop down
+        move_down = self.font.render(CONTROLS[CNTRL_MOVE_DOWN][DESC] + " : [" + CONTROLS[CNTRL_MOVE_DOWN][KEY] + "] (To drop through half platforms, seen below)", False, "white", bgcolor=None, wraplength=0)
+        move_down_container = pygame.Surface((general_container_x, move_right.get_height() + 20))
+        move_down_container.set_alpha(200)
+        self.display_surface.blit(move_down_container, (local_x_offset,  local_y_offset))
+        self.display_surface.blit(move_down, (local_x_offset + 10,  local_y_offset + move_down_container.get_height()/2 - move_down.get_height()/2))
+
+        local_y_offset += move_down_container.get_height() + 5 / 2
+        # half platform images
+        half_plat_1 = self.overlay_frames['how_to_play']['half_plat_1']
+        half_plat_1_container = pygame.Surface((half_plat_1.get_width() + 10, half_plat_1.get_height() + 10))
+        self.display_surface.blit(half_plat_1_container, (local_x_offset + general_container_x/2 - 10 - half_plat_1_container.get_width(),  local_y_offset))
+        self.display_surface.blit(half_plat_1, (local_x_offset + general_container_x/2 - 10 - half_plat_1_container.get_width()/2 - half_plat_1.get_width()/2,  local_y_offset + half_plat_1_container.get_height()/2 - half_plat_1.get_height()/2))
+
+        half_plat_2 = self.overlay_frames['how_to_play']['half_plat_2']
+        half_plat_2_container = pygame.Surface((half_plat_1.get_width() + 10, half_plat_1.get_height() + 10))
+        self.display_surface.blit(half_plat_2_container, (local_x_offset + general_container_x/2 + 10,  local_y_offset))
+        self.display_surface.blit(half_plat_2, (local_x_offset + general_container_x/2 + 10 + half_plat_2_container.get_width()/2 - half_plat_2.get_width()/2,  local_y_offset + half_plat_2_container.get_height()/2 - half_plat_2.get_height()/2))
+
+        local_y_offset += half_plat_2_container.get_height() + 5
+
+        # jump
+        jumping_subtitle = self.font.render('Jumping', False, "white", bgcolor=None, wraplength=0)
+        jumping_subtitle_container = pygame.Surface((jumping_subtitle.get_width() + 20, jumping_subtitle.get_height() + 20))
+        jumping_subtitle_container.set_alpha(200)
+
+        self.display_surface.blit(jumping_subtitle_container, (local_x_offset + general_container_x/2 - jumping_subtitle_container.get_width()/2, local_y_offset))
+        self.display_surface.blit(jumping_subtitle, (local_x_offset + general_container_x/2 - jumping_subtitle.get_width()/2,  local_y_offset + jumping_subtitle_container.get_height()/2 - movement_subtitle.get_height()/2))
+
+        local_y_offset += jumping_subtitle_container.get_height() + 5
+
+        # tap jump
+        tap_jump = self.font.render("Tap [" + CONTROLS[CNTRL_JUMP][KEY] + "] for normal jump", False, "white", bgcolor=None, wraplength=0)
+        tap_jump_container = pygame.Surface((general_container_x/2 - 10, tap_jump.get_height() + 20))
+        tap_jump_container.set_alpha(200)
+        self.display_surface.blit(tap_jump_container, (local_x_offset,  local_y_offset))
+        self.display_surface.blit(tap_jump, (local_x_offset + 10,  local_y_offset + tap_jump_container.get_height()/2 - tap_jump.get_height()/2))
+
+        # hold jump
+        hold_jump_right = self.font.render("Hold [" + CONTROLS[CNTRL_JUMP][KEY] + "] for enhanced jump", False, "white", bgcolor=None, wraplength=0)
+        hold_jump_right_container = pygame.Surface((general_container_x/2 - 10, hold_jump_right.get_height() + 20))
+        hold_jump_right_container.set_alpha(200)
+        self.display_surface.blit(move_left_container, (local_x_offset + move_left_container.get_width() + 20,  local_y_offset))
+        self.display_surface.blit(hold_jump_right, (local_x_offset + move_left_container.get_width() + 20 + 10,  local_y_offset + hold_jump_right_container.get_height()/2 - hold_jump_right.get_height()/2))
+
+        local_y_offset += tap_jump_container.get_height() + 5
+
+        # jump images
+        tap_jump = self.overlay_frames['how_to_play']['tap_jump']
+        tap_jump_container = pygame.Surface((tap_jump.get_width() + 10, tap_jump.get_height() + 10))
+        self.display_surface.blit(tap_jump_container, (local_x_offset + general_container_x/2 - 10 - tap_jump_container.get_width(),  local_y_offset))
+        self.display_surface.blit(tap_jump, (local_x_offset + general_container_x/2 - 10 - tap_jump_container.get_width()/2 - tap_jump.get_width()/2,  local_y_offset + tap_jump_container.get_height()/2 - tap_jump.get_height()/2))
+
+        hold_jump = self.overlay_frames['how_to_play']['hold_jump']
+        hold_jump_container = pygame.Surface((hold_jump.get_width() + 10, hold_jump.get_height() + 10))
+        self.display_surface.blit(hold_jump_container, (local_x_offset + general_container_x/2 + 10,  local_y_offset))
+        self.display_surface.blit(hold_jump, (local_x_offset + general_container_x/2 + 10 + hold_jump_container.get_width()/2 - hold_jump.get_width()/2,  local_y_offset + hold_jump_container.get_height()/2 - hold_jump.get_height()/2))
+
+        local_y_offset += hold_jump_container.get_height() + self.between_spacing_y
+
+
+
+    def update(self, dt):
+        self.display_title()
+        self.display_overlay(self.current_total_spacing_y, self.between_spacing_y)
+        self.display_movement_controls()
 
 class GameCompleteOverlay(Overlay):
     def __init__(self, subtitle_text, font_title, font, overlay_frames, func_to_main_menu, func_quit):
@@ -443,7 +584,7 @@ class GameCompleteOverlay(Overlay):
 
     def update(self, dt):
         self.display_title()
-        self.display_overlay(self.container_size, self.current_total_spacing_y, self.between_spacing_y)
+        self.display_overlay(self.current_total_spacing_y, self.between_spacing_y)
 
         self.roll_credits(dt)
 
@@ -501,7 +642,7 @@ class PauseMainOverlay(Overlay):
         container = self.create_content_surface('Level select', self.goto_level_selector, None, self.select_sound)
         self.content_surfaces['center']['surfaces'].append(container)
 
-        container = self.create_content_surface('Player movement', self.func_goto_control_help, None, self.select_sound)
+        container = self.create_content_surface('How to play', self.func_goto_control_help, None, self.select_sound)
         self.content_surfaces['center']['surfaces'].append(container)
 
         container = self.create_content_surface('Quit game', self.func_quit, None, None)
@@ -509,7 +650,7 @@ class PauseMainOverlay(Overlay):
 
     def update(self, dt):
         self.display_title()
-        self.display_overlay(self.container_size, self.current_total_spacing_y, self.between_spacing_y)
+        self.display_overlay(self.current_total_spacing_y, self.between_spacing_y)
 
 class MainMenuOverlay(Overlay):
     def __init__(self, font_title, font, overlay_frames, have_save_data, func_goto_save_menu, func_new_game, func_to_control_help, func_goto_credits, func_quit):
@@ -549,7 +690,7 @@ class MainMenuOverlay(Overlay):
         container = self.create_content_surface('New game', self.func_new_game, None, self.select_sound)
         self.content_surfaces['center']['surfaces'].append(container)
 
-        container = self.create_content_surface('Player movement', self.func_to_control_help, None, self.select_sound)
+        container = self.create_content_surface('How to play', self.func_to_control_help, None, self.select_sound)
         self.content_surfaces['center']['surfaces'].append(container)
 
         container = self.create_content_surface('Credits', self.func_goto_credits, None, self.select_sound)
@@ -565,7 +706,7 @@ class MainMenuOverlay(Overlay):
 
     def update(self, dt):
         self.display_title()
-        self.display_overlay(self.container_size, self.current_total_spacing_y, self.between_spacing_y)
+        self.display_overlay(self.current_total_spacing_y, self.between_spacing_y)
 
 class ControlHelp(Overlay):
     def __init__(self, font_title, font, overlay_frames, func_go_back):
@@ -844,7 +985,7 @@ class SavesOverlay(Overlay):
 
     def update(self, dt):
         self.display_title()
-        self.display_overlay(self.container_size, self.current_total_spacing_y, self.between_spacing_y)
+        self.display_overlay(self.current_total_spacing_y, self.between_spacing_y)
     
         #self.draw_test()
 
@@ -930,7 +1071,7 @@ class LevelSelectorOverlay(Overlay):
 
     def update(self, dt):
         self.display_title()
-        self.display_overlay(self.container_size, self.current_total_spacing_y, self.between_spacing_y)
+        self.display_overlay(self.current_total_spacing_y, self.between_spacing_y)
 
 class StoreOverlay(Overlay):
     def __init__(self, font_title, font, overlay_frames, data, func_resume_game):
@@ -1092,7 +1233,7 @@ class StoreOverlay(Overlay):
     def update(self):
         self.display_title()
         self.populate_content_surface_center()
-        self.display_overlay(self.container_size, self.current_total_spacing_y, self.between_spacing_y)
+        self.display_overlay(self.current_total_spacing_y, self.between_spacing_y)
 
 class Transitions:
     def __init__(self):
