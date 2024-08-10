@@ -417,7 +417,7 @@ class HowToPlayOverlay(Overlay):
         self.display_surface.blit(tap_jump, (local_x_offset + 10,  local_y_offset + tap_jump_container.get_height()/2 - tap_jump.get_height()/2))
 
         # hold jump
-        hold_jump_right = self.font.render("Hold [" + CONTROLS[CNTRL_JUMP][KEY] + "] for enhanced jump", False, "white", bgcolor=None, wraplength=0)
+        hold_jump_right = self.font.render("Hold [" + CONTROLS[CNTRL_JUMP][KEY] + "] for higher jump", False, "white", bgcolor=None, wraplength=0)
         hold_jump_right_container = pygame.Surface((general_container_x/2 - 10, hold_jump_right.get_height() + 20))
         hold_jump_right_container.set_alpha(200)
         self.display_surface.blit(move_left_container, (local_x_offset + move_left_container.get_width() + 20,  local_y_offset))
@@ -438,12 +438,89 @@ class HowToPlayOverlay(Overlay):
 
         local_y_offset += hold_jump_container.get_height() + self.between_spacing_y
 
+    def display_combat_controls(self):
+        local_x_offset = WINDOW_WIDTH/2 + self.between_spacing_x
+        local_y_offset = self.y_offset# + self.between_spacing_y
+
+        general_container_x = (WINDOW_WIDTH/2) - self.between_spacing_x*2
+
+        attack_subtitle = self.font.render('Attacking', False, "white", bgcolor=None, wraplength=0)
+        attack_subtitle_container = pygame.Surface((attack_subtitle.get_width() + 20, attack_subtitle.get_height() + 20))
+        attack_subtitle_container.set_alpha(200)
+
+        self.display_surface.blit(attack_subtitle_container, (local_x_offset + general_container_x/2 - attack_subtitle_container.get_width()/2, local_y_offset))
+        self.display_surface.blit(attack_subtitle, (local_x_offset + general_container_x/2 - attack_subtitle.get_width()/2,  local_y_offset + attack_subtitle_container.get_height()/2 - attack_subtitle.get_height()/2))
+
+        local_y_offset += attack_subtitle_container.get_height() + self.between_spacing_y
+
+        # selecting weapon
+        selecting_weapon = self.font.render("Select a weapon with [" + CONTROLS[CNTRL_WEAPON_1][KEY] + "], ["  + CONTROLS[CNTRL_WEAPON_2][KEY] + "], and ["  + CONTROLS[CNTRL_WEAPON_3][KEY] + "] or the scroll wheel.", False, "white", bgcolor=None, wraplength=0)
+        selecting_weapon_container = pygame.Surface((general_container_x, selecting_weapon.get_height() + 20))
+        selecting_weapon_container.set_alpha(200)
+        self.display_surface.blit(selecting_weapon_container, (local_x_offset,  local_y_offset))
+        self.display_surface.blit(selecting_weapon, (local_x_offset + 10,  local_y_offset + selecting_weapon_container.get_height()/2 - selecting_weapon.get_height()/2))
+
+        local_y_offset += selecting_weapon_container.get_height() + 5 / 2
+
+        # weapons inventory image
+        weapon_inv = self.overlay_frames['how_to_play']['weapon_inv']
+        weapon_inv_container = pygame.Surface((weapon_inv.get_width() + 10, weapon_inv.get_height() + 10))
+        self.display_surface.blit(weapon_inv_container, (local_x_offset + general_container_x/2 - weapon_inv_container.get_width()/2,  local_y_offset))
+        self.display_surface.blit(weapon_inv, (local_x_offset + general_container_x/2 - weapon_inv.get_width()/2,  local_y_offset + weapon_inv_container.get_height()/2 - weapon_inv.get_height()/2))
+
+        local_y_offset += weapon_inv_container.get_height() + 5
+
+        # how to attack
+        attack = self.font.render("To attack, aim with the mouse and then click to attack.", False, "white", bgcolor=None, wraplength=0)
+        attack_container = pygame.Surface((general_container_x, attack.get_height() + 20))
+        attack_container.set_alpha(200)
+        self.display_surface.blit(attack_container, (local_x_offset,  local_y_offset))
+        self.display_surface.blit(attack, (local_x_offset + 10,  local_y_offset + attack_container.get_height()/2 - attack.get_height()/2))
+
+        local_y_offset += attack_container.get_height() + 5
+
+        # Enemies
+        enemies_mechanic = self.font.render("Enemies will have a coloured outline,", False, "white", bgcolor=None, wraplength=0)
+        enemies_mechanic_container = pygame.Surface((general_container_x, enemies_mechanic.get_height() + 20))
+        enemies_mechanic_container.set_alpha(200)
+        self.display_surface.blit(enemies_mechanic_container, (local_x_offset,  local_y_offset))
+        self.display_surface.blit(enemies_mechanic, (local_x_offset + 10,  local_y_offset + enemies_mechanic_container.get_height()/2 - enemies_mechanic.get_height()/2))
+
+        local_y_offset += enemies_mechanic_container.get_height()
+
+        enemies_mechanic_2 = self.font.render("hit them with the same colour weapon to inflict damage!", False, "white", bgcolor=None, wraplength=0)
+        enemies_mechanic_2_container = pygame.Surface((general_container_x, enemies_mechanic_2.get_height() + 20))
+        enemies_mechanic_2_container.set_alpha(200)
+        self.display_surface.blit(enemies_mechanic_container, (local_x_offset,  local_y_offset))
+        self.display_surface.blit(enemies_mechanic_2, (local_x_offset + 10,  local_y_offset + enemies_mechanic_2_container.get_height()/2 - enemies_mechanic_2.get_height()/2))
+        
+        local_y_offset += enemies_mechanic_2_container.get_height() + 5 / 2
+
+        # lance
+        lance_type = self.overlay_frames['how_to_play']['lance_type']
+        lance_type_container = pygame.Surface((lance_type.get_width() + 10, lance_type.get_height() + 10))
+        self.display_surface.blit(lance_type_container, (local_x_offset + general_container_x/2 - lance_type_container.get_width()/2,  local_y_offset))
+        self.display_surface.blit(lance_type, (local_x_offset + general_container_x/2 - lance_type.get_width()/2,  local_y_offset + lance_type_container.get_height()/2 - lance_type.get_height()/2))
+
+        # stick
+        stick_type = self.overlay_frames['how_to_play']['stick_type']
+        stick_type_container = pygame.Surface((lance_type.get_width() + 10, lance_type.get_height() + 10))
+        self.display_surface.blit(stick_type_container, (local_x_offset + general_container_x/2 - lance_type_container.get_width()/2 - 10 - stick_type_container.get_width(),  local_y_offset))
+        self.display_surface.blit(stick_type, (local_x_offset + general_container_x/2 - lance_type_container.get_width()/2 - 10 - stick_type_container.get_width()/2 - stick_type.get_width()/2,  local_y_offset + stick_type_container.get_height()/2 - stick_type.get_height()/2))
+        
+        # ball
+        ball_type = self.overlay_frames['how_to_play']['ball_type']
+        ball_type_container = pygame.Surface((ball_type.get_width() + 10, ball_type.get_height() + 10))
+        self.display_surface.blit(ball_type_container, (local_x_offset + general_container_x/2 + lance_type_container.get_width()/2 + 10,  local_y_offset))
+        self.display_surface.blit(ball_type, (local_x_offset + general_container_x/2 + lance_type_container.get_width()/2 + 10 + ball_type_container.get_width()/2 - ball_type.get_width()/2,  local_y_offset + ball_type_container.get_height()/2 - ball_type.get_height()/2))
+
 
 
     def update(self, dt):
         self.display_title()
         self.display_overlay(self.current_total_spacing_y, self.between_spacing_y)
         self.display_movement_controls()
+        self.display_combat_controls()
 
 class GameCompleteOverlay(Overlay):
     def __init__(self, subtitle_text, font_title, font, overlay_frames, func_to_main_menu, func_quit):
