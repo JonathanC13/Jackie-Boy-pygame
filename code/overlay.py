@@ -55,10 +55,11 @@ class PauseMainControl:
         return self.current_menu
 
 class MainMenuControl:
-    def __init__(self, font_title, font, overlay_frames, func_new_save_file, func_load_save_file, func_quit, level_names):
+    def __init__(self, font_title, font, font_creidts, overlay_frames, func_new_save_file, func_load_save_file, func_quit, level_names):
 
         self.font_title = font_title
         self.font = font
+        self.font_credits = font_creidts
         self.overlay_frames = overlay_frames
         self.level_names = level_names
 
@@ -88,7 +89,7 @@ class MainMenuControl:
 
         self.main_menu_list.append({'menu_name': CONTROL_HELP, 'obj': HowToPlayOverlay('How to play', self.font_title, self.font, self.overlay_frames, self.go_back)})
 
-        self.main_menu_list.append({'menu_name': CREDITS, 'obj': GameCompleteOverlay('Thank you for playing!', self.font_title, self.font, self.overlay_frames, self.go_back, self.func_quit)}) #Thank you!!!
+        self.main_menu_list.append({'menu_name': CREDITS, 'obj': GameCompleteOverlay('Thank you for playing!', self.font_title, self.font, self.font_credits, self.overlay_frames, self.go_back, self.func_quit)}) #Thank you!!!
 
     def find_menu(self, name):
         for menu in self.main_menu_list:
@@ -523,10 +524,12 @@ class HowToPlayOverlay(Overlay):
         self.display_combat_controls()
 
 class GameCompleteOverlay(Overlay):
-    def __init__(self, subtitle_text, font_title, font, overlay_frames, func_to_main_menu, func_quit):
+    def __init__(self, subtitle_text, font_title, font, font_credits, overlay_frames, func_to_main_menu, func_quit):
         super().__init__(CREDITS, font_title, font, overlay_frames)
 
         self.subtitle_text = subtitle_text
+
+        self.font_credits = font_credits
 
         self.func_to_main_menu = func_to_main_menu
         self.func_quit = func_quit
@@ -534,14 +537,15 @@ class GameCompleteOverlay(Overlay):
         test_text = self.font.render(subtitle_text, False, "white", bgcolor=None, wraplength=0)
         self.container_size = vector(test_text.get_width() + 20, test_text.get_height() + 20)
 
-        self.container_size_credits = vector(500, 450)
+        self.container_size_credits = vector(550, 450)
 
         self.subtitle_container_surf = None
 
         self.content_surfaces['center']['content_col_x'] = WINDOW_WIDTH/2 - 25
         self.content_surfaces['right_1']['content_col_x'] = self.content_surfaces['center']['content_col_x'] + 50 + self.between_spacing_x
 
-        self.credits_text = ['cred1', 'cred2', 'cred3', 'cred4', 'cred5', 'cred6', 'cred7', 'cred8', 'cred9', 'cred10', 'cred11', 'cred12', 'cred13', 'cred14', 'cred15']
+        self.credits_text = ['','','','','','',''] # empty so that credits start lower than the top
+        self.credits_path = os.path.join("..", "credits", "credits.txt")
         #self.credits = []
         self.credit_roll_speed = -0.25
         self.credits_q = deque()
@@ -553,9 +557,22 @@ class GameCompleteOverlay(Overlay):
         self.back_sound = pygame.mixer.Sound(os.path.join("..", "audio", "sound_effects", "menu_select", "Menu_Navigate_03.wav"))
         self.back_sound.set_volume(0.05) 
 
+        self.load_credits_from_file()
         self.populate_subtitle_surfaces()
         self.populate_content_surfaces()
         self.populate_credits()
+
+    def load_credits_from_file(self):
+        try:
+            f = open(self.credits_path, 'r')
+        except OSError:
+            print("Could not open/read file:", self.credits_path)
+            return None
+        else:
+            with f:
+                for line in f:
+                    #print(f'{line.strip()}')
+                    self.credits_text.append(line.strip())
     
     def populate_subtitle_surfaces(self):
         self.subtitle_surfaces = []
@@ -604,7 +621,7 @@ class GameCompleteOverlay(Overlay):
     def populate_credits(self):
         y_spacing = 10
         for credit in self.credits_text:
-            surf = self.font.render(credit, False, "white", bgcolor=None, wraplength=0)
+            surf = self.font_credits.render(credit, False, "white", bgcolor=None, wraplength=0)
             #self.credits.append({"surf": surf, "offset": vector(10, y_spacing)})
             self.credits_q.append({"surf": surf, "offset": vector(10, y_spacing)})
             y_spacing += surf.get_height() + 10

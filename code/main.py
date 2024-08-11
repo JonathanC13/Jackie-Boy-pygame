@@ -46,10 +46,10 @@ class Game:
         for i in range(len(self.level_maps)):
             self.level_names.append(str(self.level_maps[i]['stage_main']) + '-' + str(self.level_maps[i]['stage_sub']))
 
-        self.main_menus = MainMenuControl(self.font_title, self.font, self.overlay_frames, self.new_game, self.load_save_file, self.quit_game, self.level_names)
+        self.main_menus = MainMenuControl(self.font_title, self.font, self.font_credits, self.overlay_frames, self.new_game, self.load_save_file, self.quit_game, self.level_names)
         self.saves = Saves()
         self.pause_menu = PauseMainControl(self.font_title, self.font, self.overlay_frames, self.data, self.func_resume_game, self.to_main_menu, self.load_save_file, self.quit_game, self.level_names)
-        self.game_complete_screen = GameCompleteOverlay('Game completed!!! Thank you for playing!', self.font_title, self.font, self.overlay_frames, self.to_main_menu, self.quit_game)
+        self.game_complete_screen = GameCompleteOverlay('Game completed!!! Thank you for playing!', self.font_title, self.font, self.font_credits, self.overlay_frames, self.to_main_menu, self.quit_game)
         self.transition_screen = None
         self.store_screen = None
 
@@ -124,6 +124,7 @@ class Game:
 
         self.font_title = pygame.font.Font(join('..', 'graphics', 'ui', 'font', 'runescape_uf.ttf'), 45)
         self.font = pygame.font.Font(join('..', 'graphics', 'ui', 'font', 'runescape_uf.ttf'), 25)
+        self.font_credits = pygame.font.Font(join('..', 'graphics', 'ui', 'font', 'runescape_uf.ttf'), 15)
         
         self.ui_frames = {
             'heart': import_folder('..', 'graphics', 'ui', 'heart'),
