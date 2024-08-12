@@ -128,7 +128,11 @@
    </properties>
   </object>
   <object id="331" name="flag" gid="11" x="350" y="630" width="68" height="186"/>
-  <object id="346" name="husky" gid="14" x="700" y="630" width="66" height="48"/>
+  <object id="346" name="husky" gid="14" x="700" y="630" width="66" height="48">
+   <properties>
+    <property name="flip_hor" type="bool" value="false"/>
+   </properties>
+  </object>
   <object id="347" name="rock" gid="44" x="2030" y="490" width="70" height="41"/>
   <object id="348" name="rockAlt" gid="45" x="2940" y="560" width="70" height="48"/>
   <object id="349" name="rockAlt" gid="45" x="3640" y="490" width="70" height="48"/>

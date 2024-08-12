@@ -24,9 +24,15 @@ class Game:
         self.curr_level = 0
         self.game_active = True
 
+        self.secret_level_index = -1
+
         self.level_maps_test = [
             {"stage_main" :1, "stage_sub": 1, "tmx_map": load_pygame(os.path.join("..", "data", "levels", "menu.tmx")), "completion_reqs": {}},
             {"stage_main" :1, "stage_sub": 2, "tmx_map": load_pygame(os.path.join("..", "data", "levels", "test.tmx")), "completion_reqs": {"kibble": 5, "denta": 1}}
+        ]
+
+        self.secret_levels = [
+            {"stage_main" :999, "stage_sub": 1, "tmx_map": load_pygame(os.path.join("..", "data", "levels", "S_1.tmx")), "completion_reqs": {}}
         ]
 
         self.level_maps = [
@@ -36,10 +42,6 @@ class Game:
             {"stage_main" :1, "stage_sub": 3, "tmx_map": load_pygame(os.path.join("..", "data", "levels", "1_3.tmx")), "completion_reqs": {}},
             {"stage_main" :1, "stage_sub": 4, "tmx_map": load_pygame(os.path.join("..", "data", "levels", "1_4.tmx")), "completion_reqs": {"boss": None}}
             #,{"stage_main" :999, "stage_sub": 999, "tmx_map": load_pygame(os.path.join("..", "data", "levels", "test.tmx")), "completion_reqs": {}}
-        ]
-
-        self.secret_maps = [
-            {"stage_main" :0, "stage_sub": 0, "tmx_map": load_pygame(os.path.join("..", "data", "levels", "S_1.tmx")), "completion_reqs": {}}
         ]
 
         self.level_names = []
@@ -57,7 +59,7 @@ class Game:
 
         self.ui.game_state = self.game_state
         #self.run_level = Level(self.level_maps_test[self.curr_level], self.level_frames, self.data)
-        self.run_level = Level(self.level_maps[self.curr_level], self.level_frames, self.data, self.restart_level, self.level_complete, self.open_store, self.font, self.set_boss_state)
+        self.run_level = Level(self.level_maps[self.curr_level], self.level_frames, self.data, self.restart_level, self.level_complete, self.open_store, self.font, self.set_boss_state, self.func_manage_secret_level)
 
         # music
         self.music_state = MUSIC_MAIN
@@ -184,7 +186,7 @@ class Game:
 
         print("saves")
 
-    def load_save_file(self, filename, level_selected, text = None):
+    def load_save_file(self, filename, level_selected, text = None, secret_trigger = False):
         # load into data.py
         print(f'chosen: {level_selected}')
         data = ''
@@ -194,7 +196,8 @@ class Game:
             if (data):
                 self.data.load_save_data(filename, data)
                 #self.data.print_data()
-
+                if (not secret_trigger):
+                    self.set_secret_level_index(-1)
                 self.curr_level = level_selected
                 self.load_level_transition(text)
                 
@@ -228,6 +231,7 @@ class Game:
 
     def to_main_menu(self):
         self.curr_level = 0
+        self.set_secret_level_index(-1)
         self.game_state = TRANSITION_LEVEL
         self.load_level_transition()
 
@@ -278,12 +282,31 @@ class Game:
                 y = row * TILE_SIZE
                 self.display_surface.blit(self.level_frames['bg_tiles'][bg_tile_name], (x, y))
 
+    def func_manage_secret_level(self, index):
+        text = ''
+        if index != -1:
+            text = 'Entering'
+
+            if (self.data.data_dict['secret_levels'][self.secret_level_index]['locked']):
+                return
+        else:
+            text = 'Exiting'
+
+        self.set_secret_level_index(index)
+        self.save_data()    # save to account for taken items in the secret levels
+        self.load_save_file(self.data.save_filename, self.curr_level, text, True)  # load the file again to update self.data
+
+
+    def set_secret_level_index(self, index):
+        self.secret_level_index = index
+        self.data.secret_level_index = index
+
     def run(self):
         # moved previous time here due to remove the time it takes during initialization 
         self.previous_time = time.time()
         while (True):
 
-            dt = (time.time() - self.previous_time) * FPS_TARGET    # reason why I multiply bt FPS_TARGET is so that the speed values do not have to be set very high. I prefer i.e. 5 rather that 500
+            dt = (time.time() - self.previous_time) * FPS_TARGET    # reason why I multiply by FPS_TARGET is so that the speed values do not have to be set very high. I prefer i.e. 5 rather that 500
             self.previous_time = time.time()
 
             if (self.game_state == IN_STORE):
@@ -352,7 +375,11 @@ class Game:
                     if self.transition_screen.reverse and not self.transition_screen.bg_loaded:
                         self.transition_screen.bg_loaded = True
                         # transition requires new level background, load new level
-                        self.run_level = Level(self.level_maps[self.curr_level], self.level_frames, self.data, self.restart_level, self.level_complete, self.open_store, self.font, self.set_boss_state)
+                        if (self.secret_level_index != -1):
+                            level = self.secret_levels[self.secret_level_index]
+                        else:
+                            level = self.level_maps[self.curr_level]
+                        self.run_level = Level(level, self.level_frames, self.data, self.restart_level, self.level_complete, self.open_store, self.font, self.set_boss_state, self.func_manage_secret_level)
                     if self.transition_screen.reverse:
                         self.run_level.run(0, event_list) # run level but with 0 dt so that when transition is reversing the background is re drawn
 

@@ -11,7 +11,7 @@ from timerClass import Timer
 
 class Level:
 
-    def __init__(self, level_data, level_frames, data, func_restart_level, func_level_complete, func_open_store, font, func_set_boss_state):
+    def __init__(self, level_data, level_frames, data, func_restart_level, func_level_complete, func_open_store, font, func_set_boss_state, func_manage_secret_level):
 
         self.display_surface = pygame.display.get_surface()
 
@@ -25,6 +25,7 @@ class Level:
         self.func_level_complete = func_level_complete
         self.func_open_store = func_open_store
         self.func_set_boss_state = func_set_boss_state
+        self.func_manage_secret_level = func_manage_secret_level
 
         self.font = font
 
@@ -54,6 +55,7 @@ class Level:
             horizon_info = {'horizon_line': tmx_level_properties['horizon_line'], 'horizon_line_colour': tmx_level_properties['horizon_line_colour'], 'horizon_colour': tmx_level_properties['horizon_colour']},
             bg_tile = bg_tile,
             top_limit = tmx_level_properties['top_limit'])
+        self.trigger_sprites = pygame.sprite.Group()
         self.player_sprite = pygame.sprite.GroupSingle()
         self.player_weapon_sprites = pygame.sprite.Group()
         self.ball_sprites = pygame.sprite.Group()
@@ -236,6 +238,7 @@ class Level:
                     self.level_finish_rect = pygame.Rect((obj.x, obj.y), (obj.width, obj.height))
 
                 can_damage = False
+                flip_image = vector(1, 1)
 
                 # groups 
                 groups = [self.all_sprites]
@@ -246,6 +249,7 @@ class Level:
                     can_damage = False
                     groups.append(self.collision_sprites)
                     groups.append(self.npc_sprites)
+                    flip_image.x = 0 if obj.properties["flip_hor"] else 1
 
                 # z index
                 z = Z_LAYERS["main"] if not "bg" in obj.name else Z_LAYERS["bg_details"]
@@ -257,7 +261,9 @@ class Level:
                     type = obj.name, 
                     z = z,
                     animation_speed = ANIMATION_SPEED,
-                    can_damage = can_damage)
+                    can_damage = can_damage,
+                    flip_image = flip_image)
+
 
         # player objects
         for obj in self.tmx_map.get_layer_by_name(PLAYER_OBJECTS):
@@ -414,14 +420,22 @@ class Level:
                 
         # items
         for obj in self.tmx_map.get_layer_by_name(ITEM_OBJECTS):
+            name = obj.name
+            if self.data.secret_level_index != -1:
+                if not self.data.secret_levels[self.data.secret_level_index]['items_to_load'].get(obj.properties["item_name"]):
+                    # don't spawn object if already 'used'
+                    continue
+                else:
+                    name = obj.properties["item_name"]
+            
             Item(
                 item_type = obj.name, 
-                pos = (obj.x + TILE_SIZE/2, obj.y + TILE_SIZE/2), 
+                pos = (obj.x + obj.width/2, obj.y + obj.height/2), 
                 frames = level_frames["items"][obj.name], 
                 groups = (self.all_sprites, self.item_sprites),
-                data = self.data
+                data = self.data,
+                item_name = name
             )
-        
         # water
         for obj in self.tmx_map.get_layer_by_name(WATER_OBJECTS):
             rows = int(obj.height / TILE_SIZE)
@@ -437,6 +451,10 @@ class Level:
                         Sprite((x, y), level_frames['water_body'], self.all_sprites, WATER_OBJECTS, Z_LAYERS['water'])
 
         # triggers
+        for obj in self.tmx_map.get_layer_by_name(TRIGGERS):
+            surf = pygame.Surface((obj.width, obj.height))
+            surf.set_alpha(0)
+            Sprite((obj.x, obj.y), surf, (self.all_sprites, self.trigger_sprites), obj.properties["secret_level"], Z_LAYERS["invis"], 0, False)
 
     def create_ball(self, pos, angle_fired, owner_id):
         BallProjectile(pos, self.ball_frames, (self.all_sprites, self.ball_sprites), PLAYER_THROW_SPEED, angle_fired, owner_id, self.particle_frames, self.all_sprites, 1, self.data.ball_level)
@@ -601,6 +619,10 @@ class Level:
                             self.collect_denta.play()
                             sprite.activate()
 
+                        if self.data.secret_level_index != -1 and self.data.secret_levels[self.data.secret_level_index]['items_to_load'].get(sprite.item_name):
+                            self.data.secret_levels[self.data.secret_level_index]['items_to_load'][sprite.item_name] = False
+
+
     def attack_collision(self):
         """
         player attack interaction with enemy entities
@@ -719,6 +741,13 @@ class Level:
         else:
             return False
         
+    def check_trigger_contact(self):
+
+        collide_list = pygame.sprite.spritecollide(self.player_sprite.sprite, self.trigger_sprites, False)
+        if (collide_list):
+            for sprite in collide_list:
+                self.func_manage_secret_level(sprite.type)
+        
     def create_loot(self, pos):
         Item(
             item_type = "denta", 
@@ -765,6 +794,7 @@ class Level:
         self.update_timers()
         # update sprites
         self.all_sprites.update(dt, event_list)
+        self.check_trigger_contact()
         self.projectile_collision()
         self.hit_collision()
         self.item_collision()

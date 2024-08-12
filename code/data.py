@@ -14,16 +14,9 @@ class Data:
 
         self.save_filename = None
 
-        self.data_dict = {
-            "secret_levels_unlocked":[1], 
-            "player_health": self._default_player_health, 
-            "kibble":0,
-            "denta":0,
-            "stick_level":1,
-            "lance_level":1,
-            "ball_level":1,
-            "highest_stage_level": 1
-        }
+        self.data_dict = SAVE_NEW_TEMPLATE
+
+        self.secret_level_index = -1
 
         self.stick_level = self.data_dict['stick_level']
         self.lance_level = self.data_dict['lance_level']
@@ -47,6 +40,14 @@ class Data:
 
     def bound_values(self, value, min_val, max_val):
         return max(min(max_val, value), min_val)
+    
+    @property
+    def secret_levels(self):
+        return self.data_dict['secret_levels']
+    
+    @secret_levels.setter
+    def secret_levels(self, secret_levels_info):
+        self.data_dict['secret_levels'] = secret_levels_info
 
     @property
     def current_weapon_index(self):
@@ -233,8 +234,8 @@ class Data:
         
         for key, val in save_data.items():
             match key:
-                case 'secret_levels_unlocked':
-                    self.secret_levels_unlocked = val
+                case 'secret_levels':
+                    self.secret_levels = val
                 case 'player_health':
                     self.player_health = val
                 case 'kibble':

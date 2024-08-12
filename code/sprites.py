@@ -29,14 +29,15 @@ class Sprite(pygame.sprite.Sprite):
 		return self.type
 
 class AnimatedSprite(Sprite):
-	def __init__(self, pos, frames, groups, type = None, z = Z_LAYERS["main"], animation_speed = ANIMATION_SPEED, damage = 1, can_damage = False):
+	def __init__(self, pos, frames, groups, type = None, z = Z_LAYERS["main"], animation_speed = ANIMATION_SPEED, damage = 1, can_damage = False, flip_image = vector(1, 1)):
 
 		self.frames, self.frame_index = frames, 0
 		self.len_frames = len(frames)
+		self.flip_image = flip_image
 		super().__init__(pos, self.frames[self.frame_index], groups, type, z, damage, can_damage)
 
 		self.animation_speed = animation_speed
-		
+
 	def set_frames(self, frames):
 		self.frame_index = 0
 		self.frames = frames
@@ -47,18 +48,22 @@ class AnimatedSprite(Sprite):
 		if (self.frame_index >= self.len_frames):
 			self.frame_index = 0
 		self.image = self.frames[int(self.frame_index)]
+
+		self.image = pygame.transform.flip(self.image, True if int(self.flip_image.x) == 0 else False, True if int(self.flip_image.y) == 0 else False)
+
 		self.mask = pygame.mask.from_surface(self.image)
 
 	def update(self, dt, event_list):
 		self.animate(dt)
 
 class Item(AnimatedSprite):
-	def __init__(self, item_type, pos, frames, groups, data, player_obj = None):
+	def __init__(self, item_type, pos, frames, groups, data, player_obj = None, item_name = None):
 		super().__init__(pos, frames, groups, item_type)
 		self.rect.center = pos
 		self.item_type = item_type
 		self.data = data
 		self.player_obj = player_obj
+		self.item_name = item_name
 
 	def get_item_type(self):
 		return self.item_type

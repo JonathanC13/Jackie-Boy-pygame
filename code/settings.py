@@ -21,9 +21,11 @@ IN_STORE = "In store"
 
 # saves
 SAVES_DIR = os.path.join("..", "saves")
-SAVE_KEYS = ['secret_levels_unlocked', 'player_health', 'kibble', 'denta', 'stick_level', 'lance_level', 'ball_level', 'highest_stage_level']
+SAVE_KEYS = ['secret_levels', 'player_health', 'kibble', 'denta', 'stick_level', 'lance_level', 'ball_level', 'highest_stage_level']
 SAVE_NEW_TEMPLATE = {
-	"secret_levels_unlocked":[1], 
+	"secret_levels": [
+        {"locked": False, "items_to_load": {"denta_1":True, "denta_2":True, "denta_3":True, "denta_4":True, "denta_5":True, "denta_6":True}}
+    ],
 	"player_health":3, 
 	"kibble":0,
 	"denta":0,

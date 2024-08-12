@@ -883,9 +883,10 @@ class SavesOverlay(Overlay):
                 self.create_container_save_data(save)
 
             self.populate_right_col_1()
-            self.populate_left_col_1()
         else:
             print("display [No save data]")
+
+        self.populate_left_col_1()
 
     def populate_subtitle_surfaces(self):
         self.subtitle_surfaces = []
