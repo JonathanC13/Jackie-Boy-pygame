@@ -117,7 +117,7 @@ ENEMY_ACORN_PROJECTILE = "acorn_projectile"
 ENEMY_SIGN = "enemy_sign"
 
 # Dog
-DOG_ACCEL = 2
+DOG_ACCEL = 0.5
 DOG_MAX_VEL_X = 5
 DOG_VEL_Y = 6
 DOG_MAX_VEL_Y = 7

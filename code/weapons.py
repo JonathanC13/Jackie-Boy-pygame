@@ -151,7 +151,7 @@ class Ball(Weapon):
         
         # override class AnimatedSprite attr
         self.frames = frames
-        print(self.z)
+        #print(self.z)
 
     def change_level(self, index, level):
         """

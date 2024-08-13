@@ -153,16 +153,29 @@ class Movement():
                 if (sprite.type in [MOVING_OBJECTS, ENEMY_BIRD]):
                     move_offset = sprite.rect.width / 4 # abs(self.obj.velocity.x + sprite.speed * dt) # doesn't work
                     #print(move_offset)
-                elif (hasattr(sprite, "velocity")):
-                    # completely inelastic collision. final v = (ma * ua - mb * ub) / (ma + mb). Let ma = mb.   v = (ua - ub) / 2
+                elif (hasattr(self.obj, "velocity") and hasattr(sprite, "velocity") and self.obj != sprite):
+                    # completely inelastic collision. final v = (ma * ua - mb * ub) / (ma + mb).
+                    ma = 1
+                    mb = 1
+
+                    if (self.obj.type == PLAYER_OBJECTS):
+                        ma = 5
+                        mb = 2
+                    elif (sprite.type == PLAYER_OBJECTS):
+                        ma = 2
+                        mb = 5
+
                     # but sim elastic when adjust rects
-                    u_a = abs(max(self.obj.velocity.x, sprite.velocity.x))
-                    u_b = abs(min(self.obj.velocity.x, sprite.velocity.x))
+                    # u_a = abs(max(self.obj.velocity.x, sprite.velocity.x))  # max since right is positive
+                    # u_b = abs(min(self.obj.velocity.x, sprite.velocity.x))
+                    u_a = self.obj.velocity.x
+                    u_b = sprite.velocity.x
 
-                    final_spd = float((u_a - u_b) / 2)
+                    final_spd = float((ma * u_a - mb * u_b) / (ma + mb))
 
-                    self.obj.velocity.x = final_spd
-                    sprite.velocity.x = final_spd
+
+                    self.obj.velocity.x = final_spd# * obj_dir_x
+                    sprite.velocity.x = final_spd #* spr_dir_x
 
                     move_offset = sprite.rect.width / 4
                 
@@ -181,6 +194,7 @@ class Movement():
                         #self.obj.velocity.x = 0  
                     self.obj.hitbox_rect.right = sprite.rect.left
             else:
+                # vertical
                 moving_offset = 0
                 if (sprite.type == MOVING_OBJECTS):
                     moving_offset = sprite.speed

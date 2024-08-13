@@ -909,7 +909,7 @@ class Sign(FlyingEnemy):
         self.flight_speed = SIGN_FLIGHT_SPEED
 
     def set_destination(self, dest):
-        print(f'{self.get_rect_center()}, {dest}')
+        #print(f'{self.get_rect_center()}, {dest}')
         self.set_path_points(self.get_rect_center(), dest)
         self.determine_path()
 

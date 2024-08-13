@@ -698,20 +698,54 @@ class Level:
 
                 #self.func_open_store()
 
+    def enforce_constraints(self, sprite, constraint_name):
+        if (constraint_name == "left"):
+            if (sprite.hitbox_rect.left <= 0):
+                sprite.hitbox_rect.left = 0
+        elif (constraint_name == "right"):
+            if (sprite.hitbox_rect.right >= self.tmx_map_max_width):
+                sprite.hitbox_rect.right = self.tmx_map_max_width
+        elif (constraint_name == "top"):
+            if (sprite.hitbox_rect.bottom <= 0):
+                sprite.hitbox_rect.top = 0
+        elif (constraint_name == "bottom"):
+            if (sprite.hitbox_rect.bottom >= self.tmx_map_max_height):
+            # bottom constraint. Death, restart level.
+                if (sprite.type == PLAYER_OBJECTS):
+                    self.player_death.play()
+                    self.func_restart_level()
+                elif (hasattr(sprite, "enemy")):
+                    sprite.kill_weapon()
+                    sprite.kill()
+                    # spawn loot
+                    self.create_loot(sprite.rect.center)
+
     def check_constraint(self):
+        # player
         # side constraints
-        if (self.player.hitbox_rect.left <= 0):
-            self.player.hitbox_rect.left = 0
-        elif (self.player.hitbox_rect.right >= self.tmx_map_max_width):
-            self.player.hitbox_rect.right = self.tmx_map_max_width
+        self.enforce_constraints(self.player, "left")
+        self.enforce_constraints(self.player, "right")
+        # if (self.player.hitbox_rect.left <= 0):
+        #     self.player.hitbox_rect.left = 0
+        # elif (self.player.hitbox_rect.right >= self.tmx_map_max_width):
+        #     self.player.hitbox_rect.right = self.tmx_map_max_width
 
         # top and bottom constraints
-        if (self.player.hitbox_rect.bottom <= 0):
-            self.player.hitbox_rect.top = 0
-        elif (self.player.hitbox_rect.bottom >= self.tmx_map_max_height):
-            # bottom constraint. Death, restart level.
-            self.player_death.play()
-            self.func_restart_level()
+        self.enforce_constraints(self.player, "top")
+        self.enforce_constraints(self.player, "bottom")
+        # if (self.player.hitbox_rect.bottom <= 0):
+        #     self.player.hitbox_rect.top = 0
+        # elif (self.player.hitbox_rect.bottom >= self.tmx_map_max_height):
+        #     # bottom constraint. Death, restart level.
+        #     self.player_death.play()
+        #     self.func_restart_level()
+
+        # enemies
+        for spr in self.enemy_sprites:
+            self.enforce_constraints(spr, "left")
+            self.enforce_constraints(spr, "right")
+            self.enforce_constraints(spr, "top")
+            self.enforce_constraints(spr, "bottom")
 
         # completed level
         if (self.level_finish_rect is not None and self.player.hitbox_rect.colliderect(self.level_finish_rect)):
@@ -726,8 +760,8 @@ class Level:
                 if (requirements_met):
                     self.round_end.play()
                     self.func_level_complete()
-                else:
-                    print('not all requirements met')
+                #else:
+                    #print('not all requirements met')
 
     def check_requirement(self, key, value):
         if (key == "denta"):

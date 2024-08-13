@@ -182,13 +182,13 @@ class Game:
         if (self.current_saves == None):
             # get saves from dir if not loaded. This is set to none when leaving 'saves' menu, so that when returning it will load again
             self.current_saves = Saves()
-            print(self.current_saves.get_all_saves())
+            #print(self.current_saves.get_all_saves())
 
-        print("saves")
+        #print("saves")
 
     def load_save_file(self, filename, level_selected, text = None, secret_trigger = False):
         # load into data.py
-        print(f'chosen: {level_selected}')
+        #print(f'chosen: {level_selected}')
         data = ''
         if (filename):
             data = self.saves.read_save_file(filename)
