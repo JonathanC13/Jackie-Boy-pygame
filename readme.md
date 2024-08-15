@@ -1,14 +1,23 @@
 # Jackie Boy
 [Introduction](#introduction)
-[How to Play](#how_to_play)
+[Game exe](#game_exe)
 [Run source yourself](#run_source_yourself)
 [Credits](#credits)
 
 ## <a name="introduction"></a>Introduction
 
-## <a name="how_to_play"></a>How to Play
+## <a name="game_exe"></a>Game exe
+todo: after game complete, compile into an exe
 
 ## <a name="run_source_yourself"></a>Run source yourself
+If you would like to run the source code locally, be sure to install the involved libraries.
+| library | pip |
+|---|---|
+| pygame-ce | pip install pygame-ce |
+| pytmx | pip install pytmx |
+
+Map editor:
+⋅⋅* Tiled for levels (https://www.mapeditor.org/)
 
 ## <a name="credits"></a>Credits
 Tutorials

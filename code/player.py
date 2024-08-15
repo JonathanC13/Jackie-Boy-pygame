@@ -813,6 +813,7 @@ class Player(pygame.sprite.Sprite):
         #print(self.state)
 
     def update(self, dt, event_list):
+
         for event in event_list:
             # for mouse inputs, better to use events because if use mouse.get_pressed it gets the state at the time of call
             if (event.type == pygame.MOUSEBUTTONDOWN):

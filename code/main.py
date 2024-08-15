@@ -304,10 +304,17 @@ class Game:
     def run(self):
         # moved previous time here due to remove the time it takes during initialization 
         self.previous_time = time.time()
+        prev_dt = (time.time() - self.previous_time) * FPS_TARGET
         while (True):
 
             dt = (time.time() - self.previous_time) * FPS_TARGET    # reason why I multiply by FPS_TARGET is so that the speed values do not have to be set very high. I prefer i.e. 5 rather that 500
             self.previous_time = time.time()
+
+            # skip dt spike due to game inherit game pause due to window moving pauses the game
+            if (dt > prev_dt * 2 + 1):
+                continue
+
+            prev_dt = dt
 
             if (self.game_state == IN_STORE):
                 self.game_active = False
