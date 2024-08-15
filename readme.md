@@ -1,8 +1,8 @@
 # Jackie Boy
-⋅⋅* [Introduction](#introduction)
-⋅⋅* [Game exe](#game_exe)
-⋅⋅* [Run source yourself](#run_source_yourself)
-⋅⋅* [Credits](#credits)
+- [Introduction](#introduction)
+- [Game exe](#game_exe)
+- [Run source yourself](#run_source_yourself)
+- [Credits](#credits)
 
 ## <a name="introduction"></a>Introduction
 todo
@@ -23,19 +23,19 @@ Map editor:
 ## <a name="credits"></a>Credits
 ### Tutorials
 
-Clear Code
-Creating an amazing 2D platformer in Python [ SNES inspired ]
-https://www.youtube.com/watch?v=WViyCAa6yLI
+Clear Code<br>
+Creating an amazing 2D platformer in Python [ SNES inspired ]<br>
+https://www.youtube.com/watch?v=WViyCAa6yLI<br>
 - Greatly helpful by providing insight on how he organizes the files and classes, which enabled me to more easily implement my own features. For the features he has in this tutorial that I chose to include in my game, I would implement it on my own before comparing it with his method.
 
-CDcodes
-Pygame Tile Based Game Tutorial: Physics and Delta Time
-https://www.youtube.com/watch?v=v_linpA7uXo
+CDcodes<br>
+Pygame Tile Based Game Tutorial: Physics and Delta Time<br>
+https://www.youtube.com/watch?v=v_linpA7uXo<br>
 - Helped me understand the fundamentals of implementing movement and sprinkling some pseudo momentum. 
 
-DaFluffyPotato
-Ramps - Pygame Tutorial
-https://www.youtube.com/watch?v=EHfqrAEmVyg
+DaFluffyPotato<br>
+Ramps - Pygame Tutorial<br>
+https://www.youtube.com/watch?v=EHfqrAEmVyg<br>
 - Helped me understand how to implement a ramp, which is an image contained in a rectangluar tile, in the game so that the player interact properly with it.
 
 ### Graphics
@@ -55,7 +55,7 @@ Clear Code
 - ./graphics/level/water
 - ./graphics/objects/boat
 
-Platformer Art Complete Pack by Kenney Vleugels (www.kenney.nl). License (CC0)
+Platformer Art Complete Pack by Kenney Vleugels (www.kenney.nl). License (CC0)<br>
 https://opengameart.org/content/platformer-art-complete-pack-often-updated
 - ./graphics/enemies/bats
 - ./graphics/level/torch
@@ -63,84 +63,84 @@ https://opengameart.org/content/platformer-art-complete-pack-often-updated
 - ./graphics/tiles
 - ./graphics/weapons/umbrella
 
-MoikMellah. License (CC0)
+MoikMellah. License (CC0)<br>
 https://opengameart.org/content/animated-birds-32x32
 - ./graphics/enemies/bird_brown
 - ./graphics/enemies/bird_white
 
-Shepardskin (https://twitter.com/Shepardskin). License (CC0)
+Shepardskin (https://twitter.com/Shepardskin). License (CC0)<br>
 https://opengameart.org/content/german-shepherd-0
 - ./graphics/enemies/dog
 
-Hellkipz. Shepardskin (https://twitter.com/Shepardskin). License (CC0)
+Hellkipz. Shepardskin (https://twitter.com/Shepardskin). License (CC0)<br>
 https://opengameart.org/content/husky-sprites
 - ./graphics/npcs/husky
 
-alizard. License (CC0)
+alizard. License (CC0)<br>
 https://opengameart.org/content/pixel-squirrel
 - ./graphics/enemies/squirrel
 
-loltsilol. License (CC0)
+loltsilol. License (CC0)<br>
 https://opengameart.org/content/tennisball
 - ./graphics/projectile/ball
 
-Overaction Game Studio. License (CC0)
+Overaction Game Studio. License (CC0)<br>
 https://opengameart.org/content/wooden-stick
 - ./graphics/weapons/stick
 
 
 ### Audio
 
-cynicmusic.com pixelsphere.org. License (CC0)
+cynicmusic.com pixelsphere.org. License (CC0)<br>
 https://opengameart.org/content/battle-theme-a
 - ./audio/music/battleThemeA.mp3
 - ./audio/music/TownTheme.mp3
 
-Johan Brodd. License (CC BY-SA 3.0)
+Johan Brodd. License (CC BY-SA 3.0)<br>
 https://opengameart.org/content/sunny-paradise-act-1
 - ./audio/music/Sunny paradise act 1.mp3
 
-tcarisland. License (CC BY 4.0)
+tcarisland. License (CC BY 4.0)<br>
 https://opengameart.org/content/the-end
 - ./audio/music/End Theme.wav
 
-mieki256. License (CC0)
+mieki256. License (CC0)<br>
 https://opengameart.org/content/male-dead-voice
 - ./audio/sound_effects/enemy_hit
 
-Little Robot Sound Factory (www.littlerobotsoundfactory.com). License (CC BY 3.0)
+Little Robot Sound Factory (www.littlerobotsoundfactory.com). License (CC BY 3.0)<br>
 https://opengameart.org/content/8-bit-sound-effects-library
 - ./audio/sound_effects/menu_select
 - ./audio/sound_effects/player_collect
 
-artisticdude. License (CC0)
+artisticdude. License (CC0)<br>
 https://opengameart.org/content/rpg-sound-pack
 - ./audio/sound_effects/player_attacks
 - ./audio/sound_effects/shop
 - ./audio/sound_effects/sign_hit
 - ./audio/sound_effects/sign_spin
 
-sauer2. License (CC0)
+sauer2. License (CC0)<br>
 https://opengameart.org/content/oldschool-win-and-die-jump-and-run-sounds
 - ./audio/sound_effects/player_death
 - ./audio/sound_effects/round_end.wav
 
-Michel Baradari. License (CC BY 3.0)
+Michel Baradari. License (CC BY 3.0)<br>
 https://opengameart.org/content/11-male-human-paindeath-sounds
 - ./audio/sound_effects/player_hit
 
-Jesus Lastra. License (CC0)
+Jesus Lastra. License (CC0)<br>
 https://opengameart.org/content/8-bit-jump-1
 - ./audio/sound_effects/player_jump
 
-dklon. License (CC BY 3.0)
+dklon. License (CC BY 3.0)<br>
 https://opengameart.org/content/boom-pack-1
 - ./audio/sound_effects/sign_fire_poles
 
-Bart Kelsey. License (GPL 2.0)/(GPL 3.0)/(CC-BY-SA 3.0)
+Bart Kelsey. License (GPL 2.0)/(GPL 3.0)/(CC-BY-SA 3.0)<br>
 https://opengameart.org/content/whoosh-2
 - ./audio/sound_effects/sign_moving
 
-Composed by: Jon K. Fite. License (CC BY 3.0)
+Composed by: Jon K. Fite. License (CC BY 3.0)<br>
 https://opengameart.org/content/victory-2
 - ./audio/sound_effects/Victory!.wav
