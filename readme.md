@@ -1,10 +1,11 @@
 # Jackie Boy
-[Introduction](#introduction)
-[Game exe](#game_exe)
-[Run source yourself](#run_source_yourself)
-[Credits](#credits)
+⋅⋅* [Introduction](#introduction)
+⋅⋅* [Game exe](#game_exe)
+⋅⋅* [Run source yourself](#run_source_yourself)
+⋅⋅* [Credits](#credits)
 
 ## <a name="introduction"></a>Introduction
+todo
 
 ## <a name="game_exe"></a>Game exe
 todo: after game complete, compile into an exe
@@ -17,25 +18,29 @@ If you would like to run the source code locally, be sure to install the involve
 | pytmx | pip install pytmx |
 
 Map editor:
-⋅⋅* Tiled for levels (https://www.mapeditor.org/)
+- Tiled (https://www.mapeditor.org/)
 
 ## <a name="credits"></a>Credits
-Tutorials
+### Tutorials
 
 Clear Code
 Creating an amazing 2D platformer in Python [ SNES inspired ]
 https://www.youtube.com/watch?v=WViyCAa6yLI
+- Greatly helpful by providing insight on how he organizes the files and classes, which enabled me to more easily implement my own features. For the features he has in this tutorial that I chose to include in my game, I would implement it on my own before comparing it with his method.
 
 CDcodes
 Pygame Tile Based Game Tutorial: Physics and Delta Time
 https://www.youtube.com/watch?v=v_linpA7uXo
+- Helped me understand the fundamentals of implementing movement and sprinkling some pseudo momentum. 
 
 DaFluffyPotato
 Ramps - Pygame Tutorial
 https://www.youtube.com/watch?v=EHfqrAEmVyg
+- Helped me understand how to implement a ramp, which is an image contained in a rectangluar tile, in the game so that the player interact properly with it.
 
+### Graphics
 
-Graphics
+Very thankful to https://opengameart.org !!!
 
 Clear Code
 - ./graphics/effects/particle
@@ -84,7 +89,7 @@ https://opengameart.org/content/wooden-stick
 - ./graphics/weapons/stick
 
 
-Audio
+### Audio
 
 cynicmusic.com pixelsphere.org. License (CC0)
 https://opengameart.org/content/battle-theme-a
