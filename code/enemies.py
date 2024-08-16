@@ -1392,7 +1392,7 @@ class Bird(FlyingEnemy):
                         # check if home, if not return
                         self.set_path_points(self.get_rect_center(), self.spawn_pos)
                         self.determine_path()
-                        print(self.flight_src, ": ", self.flight_dest)
+                        #print(self.flight_src, ": ", self.flight_dest)
                         if (len(self.pathfinder.path_checkpoints) > 0 and self.home_rect is None):
                             self.home_rect = self.pathfinder.path_checkpoints[-1]
                         self.set_if_home()
