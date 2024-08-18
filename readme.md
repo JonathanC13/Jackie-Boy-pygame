@@ -5,13 +5,13 @@
 - [Credits](#credits)
 
 ## <a name="introduction"></a>Introduction
-todo
+todo and UML
 
 ## <a name="game_exe"></a>Game exe
-todo: after game complete, compile into an exe
+You can find all the releases zipped in the \Releases folder. Simply download the desired folder, unzip it, and then execute the shortcut file named 'JackieBoy'.
 
 ## <a name="run_source_yourself"></a>Run source yourself
-If you would like to run the source code locally, be sure to install the involved libraries.
+If you would like to run the source code locally; clone the project and then be sure to install the involved libraries. Afterwards, within your IDE, run main.py (python ./main.py)
 | library | pip |
 |---|---|
 | pygame-ce | pip install pygame-ce |

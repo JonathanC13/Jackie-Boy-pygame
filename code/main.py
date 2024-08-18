@@ -203,10 +203,10 @@ class Game:
                 
                 if (not self.game_active):
                     self.game_active = True
-            else:
-                print('Could not read save file.')
+            #else:
+                #print('Could not read save file.')
         else:
-            print('No filename provided.')
+            #print('No filename provided.')
             self.curr_level = 0
             self.load_level_transition(text)
 
@@ -309,10 +309,10 @@ class Game:
 
             dt = (time.time() - self.previous_time) * FPS_TARGET    # reason why I multiply by FPS_TARGET is so that the speed values do not have to be set very high. I prefer i.e. 5 rather that 500
             self.previous_time = time.time()
-
-            # skip dt spike due to game inherit game pause due to window moving pauses the game
+            
+            # hard code dt if spike due to game inherit game pause or abnormal delay. One certain cause is due to when the game window is moved it pauses the game
             if (dt > prev_dt * 2 + 1):
-                continue
+                dt = prev_dt
 
             prev_dt = dt
 
@@ -399,6 +399,7 @@ class Game:
                     self.store_screen.update()
 
             else:
+                
                 self.run_level.run(dt, event_list)
                 self.ui.update(dt, event_list)
 

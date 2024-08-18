@@ -87,7 +87,7 @@ class Data:
     def kibble(self, amount):
         new_amount = amount
         if (amount >= self.kibble_for_life):
-            self.data_dict['player_health'] += 1
+            self.player_health += 1
             new_amount -= self.kibble_for_life
         self.data_dict['kibble'] = new_amount
         self.ui.create_kibble_count_surf(self.data_dict['kibble'])

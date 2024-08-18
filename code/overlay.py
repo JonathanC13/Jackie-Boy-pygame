@@ -547,7 +547,7 @@ class GameCompleteOverlay(Overlay):
         self.credits_text = ['','','','','','',''] # empty so that credits start lower than the top
         self.credits_path = os.path.join("..", "credits", "credits.txt")
         #self.credits = []
-        self.credit_roll_speed = -0.25
+        self.credit_roll_speed = -0.5
         self.credits_q = deque()
 
         # sounds
@@ -883,8 +883,8 @@ class SavesOverlay(Overlay):
                 self.create_container_save_data(save)
 
             self.populate_right_col_1()
-        else:
-            print("display [No save data]")
+        #else:
+            #print("display [No save data]")
 
         self.populate_left_col_1()
 

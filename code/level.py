@@ -554,7 +554,7 @@ class Level:
         # better performance to check rect first and then mask, rather than always checking the mask
         if (pygame.sprite.spritecollide(self.player_sprite.sprite, self.damage_sprites, False)):
             #print('collide with rect')
-            hit_sprites = pygame.sprite.spritecollide(self.player_sprite.sprite, self.damage_sprites, False, pygame.sprite.collide_mask)
+            hit_sprites = pygame.sprite.spritecollide(self.player_sprite.sprite, self.damage_sprites, False, collided=pygame.sprite.collide_mask)
 
             if(hit_sprites):
                 for sprite in hit_sprites:
@@ -597,7 +597,7 @@ class Level:
         """
         if (self.item_sprites):
             if (pygame.sprite.spritecollide(self.player_sprite.sprite, self.item_sprites, False)):
-                items_collected = pygame.sprite.spritecollide(self.player_sprite.sprite, self.item_sprites, True, pygame.sprite.collide_mask)
+                items_collected = pygame.sprite.spritecollide(self.player_sprite.sprite, self.item_sprites, True, collided=pygame.sprite.collide_mask)
                 if (items_collected):
                     for sprite in items_collected:
                         ParticleEffectSprite(
@@ -605,7 +605,7 @@ class Level:
                             frames = self.particle_frames, 
                             groups = self.all_sprites
                         )
-                        if (sprite.get_item_type() == "skull"):
+                        if (sprite.get_item_type() == "skull" and self.boss_sprite.sprite is not None):
                             # lock the camera to the arena
                             
                             self.all_sprites.lock_camera_end()
@@ -632,14 +632,16 @@ class Level:
         if (target_sprite_grps and player_current_weapon.get_can_damage()):
             for grp in target_sprite_grps:
                 if (pygame.sprite.spritecollide(player_current_weapon, grp, False)):
-                    targets_hit = pygame.sprite.spritecollide(player_current_weapon, grp, False, pygame.sprite.collide_mask)
+                    
+                    targets_hit = pygame.sprite.spritecollide(player_current_weapon, grp, False, collided=pygame.sprite.collide_mask)
+
                     if (targets_hit):
                         for hit in targets_hit:
                             if (hit.type in [ENEMY_DOG, ENEMY_BIRD, ENEMY_SQUIRREL, ENEMY_SIGN]):
                                 # damage to enemey
                                 # since there can be multiple collisions within one attack, within enemy sprites have internal timer for cooldown to receive damage so only one instance of damage
                                 status = hit.evaluate_damage(player_current_weapon.get_damage(), player_current_weapon.type)
-
+                                
                                 if (status == DEAD):
                                     hit.kill()
                                     ParticleEffectSprite(
@@ -744,8 +746,9 @@ class Level:
         for spr in self.enemy_sprites:
             self.enforce_constraints(spr, "left")
             self.enforce_constraints(spr, "right")
-            self.enforce_constraints(spr, "top")
-            self.enforce_constraints(spr, "bottom")
+            
+            if (spr.type != ENEMY_SIGN):
+                self.enforce_constraints(spr, "bottom")
 
         # completed level
         if (self.level_finish_rect is not None and self.player.hitbox_rect.colliderect(self.level_finish_rect)):
@@ -847,8 +850,10 @@ class Level:
         self.data.current_weapon_index = self.player.current_weapon_index
         self.blit_enemy_weakness()
 
-        
-        
+        # debug player weapon mask
+        #self.player.get_current_weapon().rect.topleft += self.current_window_offset
+        #pygame.draw.rect(self.display_surface, "red", self.player.get_current_weapon().rect)
+        #self.display_surface.blit(self.player.get_current_weapon().mask.to_surface(), self.player.get_current_weapon().rect)
 
         if (self.boss_sprite.sprite is not None):
         #     sign_melee_range_rect = self.boss_sprite.sprite.hitbox_rect.inflate(150, 150)

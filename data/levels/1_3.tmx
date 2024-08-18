@@ -127,7 +127,7 @@
     <property name="inverted" type="bool" value="false"/>
    </properties>
   </object>
-  <object id="331" name="flag" gid="11" x="350" y="630" width="68" height="186"/>
+  <object id="331" name="flag" gid="11" x="4970" y="630.667" width="68" height="186"/>
   <object id="346" name="husky" gid="14" x="700" y="630" width="66" height="48">
    <properties>
     <property name="flip_hor" type="bool" value="false"/>
@@ -175,7 +175,7 @@
     <property name="start_end" type="bool" value="false"/>
    </properties>
   </object>
-  <object id="275" name="platform" x="2434.67" y="96.3333" width="482.667" height="10">
+  <object id="275" name="platform" x="2434.67" y="96.3333" width="651.667" height="10">
    <properties>
     <property name="flip" type="bool" value="false"/>
     <property name="full_collision" type="bool" value="false"/>
@@ -266,7 +266,7 @@
   <object id="325" name="kibble" gid="107" x="4033.33" y="377.333" width="64" height="64"/>
   <object id="351" name="denta" gid="106" x="719" y="541" width="28" height="28"/>
   <object id="352" name="denta" gid="106" x="4292" y="260" width="28" height="28"/>
-  <object id="353" name="denta" gid="106" x="2886" y="58" width="28" height="28"/>
+  <object id="353" name="denta" gid="106" x="2820" y="52" width="28" height="28"/>
   <object id="354" name="denta" gid="106" x="1002" y="115" width="28" height="28"/>
   <object id="355" name="denta" gid="106" x="1907" y="333" width="28" height="28"/>
  </objectgroup>

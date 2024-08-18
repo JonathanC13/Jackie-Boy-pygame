@@ -1,0 +1,180 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<map version="1.10" tiledversion="1.10.2" orientation="orthogonal" renderorder="right-down" width="19" height="11" tilewidth="70" tileheight="70" infinite="0" nextlayerid="20" nextobjectid="270">
+ <tileset firstgid="1" source="../tilesets/objects_characters.tsx"/>
+ <tileset firstgid="17" source="../tilesets/objects_env.tsx"/>
+ <tileset firstgid="78" source="../tilesets/tiles_terrain.tsx"/>
+ <tileset firstgid="106" source="../tilesets/items.tsx"/>
+ <layer id="4" name="BG" width="19" height="11">
+  <data encoding="csv">
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+</data>
+ </layer>
+ <objectgroup id="2" name="BG_details">
+  <object id="252" name="fence" gid="37" x="1260" y="280" width="70" height="70"/>
+  <object id="256" name="tree_small" gid="72" x="980" y="420" width="247" height="490"/>
+ </objectgroup>
+ <layer id="1" name="Terrain_basic" width="19" height="11">
+  <data encoding="csv">
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,84,84,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,79,79,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,79,79,79,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,79,79,79,79,
+37,0,0,0,0,0,0,0,0,0,0,0,0,0,79,79,79,79,79,
+84,84,84,84,84,84,84,84,84,84,84,84,81,79,79,79,79,79,79,
+79,79,79,79,79,79,79,79,79,79,79,79,79,79,79,79,79,79,79
+</data>
+ </layer>
+ <layer id="5" name="Terrain_floor_only" width="19" height="11">
+  <data encoding="csv">
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,102,103,104,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,105,0,0,0,105,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+</data>
+ </layer>
+ <layer id="6" name="Terrain_r_ramp" width="19" height="11">
+  <data encoding="csv">
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,80,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,80,81,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,80,81,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,80,81,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,80,81,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+</data>
+ </layer>
+ <layer id="7" name="Terrain_l_ramp" width="19" height="11">
+  <data encoding="csv">
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+</data>
+ </layer>
+ <layer id="8" name="Platforms_partial" width="19" height="11">
+  <data encoding="csv">
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+</data>
+ </layer>
+ <objectgroup id="12" name="Mid_details">
+  <object id="254" name="tree_large" gid="73" x="70" y="630" width="172" height="630"/>
+ </objectgroup>
+ <objectgroup id="10" name="General_objects"/>
+ <objectgroup id="9" name="Moving_objects"/>
+ <objectgroup id="3" name="Player_objects">
+  <object id="267" name="player" gid="5" x="1190" y="280" width="87" height="54"/>
+ </objectgroup>
+ <objectgroup id="13" name="Enemy_objects"/>
+ <objectgroup id="18" name="Item_objects">
+  <object id="261" name="denta" gid="106" x="511.333" y="399.333" width="28" height="28">
+   <properties>
+    <property name="item_name" value="denta_5"/>
+   </properties>
+  </object>
+  <object id="262" name="denta" gid="106" x="651.333" y="328.667" width="28" height="28">
+   <properties>
+    <property name="item_name" value="denta_3"/>
+   </properties>
+  </object>
+  <object id="263" name="denta" gid="106" x="795.333" y="399.333" width="28" height="28">
+   <properties>
+    <property name="item_name" value="denta_6"/>
+   </properties>
+  </object>
+  <object id="264" name="denta" gid="106" x="582" y="328.667" width="28" height="28">
+   <properties>
+    <property name="item_name" value="denta_2"/>
+   </properties>
+  </object>
+  <object id="265" name="denta" gid="106" x="722" y="328.667" width="28" height="28">
+   <properties>
+    <property name="item_name" value="denta_4"/>
+   </properties>
+  </object>
+  <object id="266" name="denta" gid="106" x="650" y="256.667" width="28" height="28">
+   <properties>
+    <property name="item_name" value="denta_1"/>
+   </properties>
+  </object>
+ </objectgroup>
+ <objectgroup id="17" name="Water_objects"/>
+ <layer id="11" name="FG" width="19" height="11">
+  <data encoding="csv">
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+</data>
+ </layer>
+ <objectgroup id="16" name="Triggers">
+  <object id="269" name="secret_level_1_exit" x="1314" y="-10" width="20" height="300">
+   <properties>
+    <property name="secret_level" type="int" value="-1"/>
+   </properties>
+  </object>
+ </objectgroup>
+ <objectgroup id="15" name="notes"/>
+ <objectgroup id="19" name="Data">
+  <object id="251" name="Data" x="0" y="0" width="70" height="70">
+   <properties>
+    <property name="bg" value=""/>
+    <property name="bottom_limit" type="int" value="770"/>
+    <property name="death_border_bottom" type="int" value="0"/>
+    <property name="horizon_colour" value="#93c596"/>
+    <property name="horizon_line" type="int" value="600"/>
+    <property name="horizon_line_colour" value="#93db24"/>
+    <property name="level_unlock" type="int" value="0"/>
+    <property name="top_limit" type="int" value="0"/>
+   </properties>
+  </object>
+ </objectgroup>
+</map>

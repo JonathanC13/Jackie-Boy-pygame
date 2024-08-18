@@ -676,7 +676,7 @@ class Sign(FlyingEnemy):
 
         super().__init__(pos = pos, frames = frames, groups = groups, collision_sprites = collision_sprites, semi_collision_sprites = semi_collision_sprites, ramp_collision_sprites = ramp_collision_sprites, player_sprite = player_sprite, enemy_sprites = enemy_sprites, type = type, jump_height = -DOG_VEL_Y, accel_x = DOG_ACCEL, vel_max_x = DOG_MAX_VEL_X, vel_max_y = DOG_MAX_VEL_Y, pathfinder = pathfinder, id = id)
 
-        self.health = 10
+        self.health = 15
         
         self.func_create_pole = func_create_pole
 
@@ -825,7 +825,6 @@ class Sign(FlyingEnemy):
                 self.is_hit = True
 
                 self._health -= damage
-
                 if (self._health <= 0):
                     # play victory music
                     self.boss_defeated.play()

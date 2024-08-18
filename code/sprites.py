@@ -208,6 +208,7 @@ class Orbit(AnimatedSprite):
 			self.image = pygame.transform.flip(self.image, False, True)
 		
 		self.rect = self.image.get_frect(center = self.center + direction * self.radius)
+		self.mask = pygame.mask.from_surface(self.image)
 		#pygame.draw.rect(pygame.display.get_surface(), "red", self.rect)
 
 	def orbit_to_angle(self, start_angle, end_angle, speed, clockwise, direction_changes):
@@ -297,7 +298,6 @@ class Orbit(AnimatedSprite):
 		y = self.center[1] + sin(radians(self.angle)) * self.radius
 		x = self.center[0] + cos(radians(self.angle)) * self.radius
 		self.rect.center = (x,y)
-
 
 	def update(self, dt, event_list):
 		self.update_angle(dt)
