@@ -11,7 +11,7 @@ todo and UML
 You will find all the releases zipped in the \Releases folder. Simply download the desired zipped folder, unzip it, and then execute the shortcut file named 'JackieBoy'.
 
 ## <a name="run_source_yourself"></a>Run source yourself
-If you would like to run the source code locally; clone the project and then be sure to install the involved libraries. Afterwards, within your IDE, run main.py (python ./main.py)
+If you would like to run the source code locally; clone the project and then be sure to install the involved libraries. Afterwards, within your IDE, in \code run main.py (e.g. python .\code\main.py)
 | library | pip |
 |---|---|
 | pygame-ce | pip install pygame-ce |
