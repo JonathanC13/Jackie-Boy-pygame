@@ -19,7 +19,7 @@ If you would like to run the source code locally; clone the project and then be 
 
 Map editor:
 - Tiled (https://www.mapeditor.org/)
-<br>
+
 Within the folder \data:
 - \levels contains the tmx files for the maps
 - \tilesets contains the tsx files for the tile sets
