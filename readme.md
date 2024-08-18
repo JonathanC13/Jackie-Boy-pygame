@@ -8,7 +8,7 @@
 todo and UML
 
 ## <a name="game_exe"></a>Game exe
-You can find all the releases zipped in the \Releases folder. Simply download the desired folder, unzip it, and then execute the shortcut file named 'JackieBoy'.
+You will find all the releases zipped in the \Releases folder. Simply download the desired zipped folder, unzip it, and then execute the shortcut file named 'JackieBoy'.
 
 ## <a name="run_source_yourself"></a>Run source yourself
 If you would like to run the source code locally; clone the project and then be sure to install the involved libraries. Afterwards, within your IDE, run main.py (python ./main.py)
@@ -18,7 +18,10 @@ If you would like to run the source code locally; clone the project and then be 
 | pytmx | pip install pytmx |
 
 Map editor:
-- Tiled (https://www.mapeditor.org/)
+- Tiled (https://www.mapeditor.org/)<br>
+Within the folder \data:
+- \levels contains the tmx files for the maps
+- \tilesets contains the tsx files for the tile sets
 
 ## <a name="credits"></a>Credits
 ### Tutorials
