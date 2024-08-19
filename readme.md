@@ -14,7 +14,8 @@ For example, I had one collision problem where while going up a ramp the player 
 <br>
 For this case, my solution was to create an additional flag for if the player is currently on a ramp and in combination with the player's current side collision states conduct a final final collision check at the end of the update cycle to correct the player's position on the ramp.
 
-On a final note, something personal, the reason I chose to make a video game is simply because I'm still attempting to 'determine' what I'd like to pursue. I have no requirement of salary, location, or title, I'd like a career that I'm proud of doing. Since I've never specialized in any field and I have no goals, I am truly lost. I read this quote recently and it's applicable, 'If a man knows not to which port he sails, no wind is favorable' - Seneca.
+On a final note, something personal, the reason I chose to make a video game is simply because I'm still attempting to 'determine' what I'd like to pursue. I have no requirement of salary, location, or title, I'd like a career that I'm proud of doing. Since I've never specialized in any field and I have no goals, I am truly lost. I read this quote recently and it's applicable;<br>
+>*'If a man knows not to which port he sails, no wind is favorable'* - **Seneca.**
 
 ## <a name="game_exe"></a>Game exe
 You will find all the releases zipped in the \Releases folder. Simply download the desired zipped folder, unzip it, and then execute the shortcut file named 'JackieBoy'.
