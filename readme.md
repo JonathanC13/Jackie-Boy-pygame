@@ -5,7 +5,16 @@
 - [Credits](#credits)
 
 ## <a name="introduction"></a>Introduction
-todo and UML
+This project is a video game written in Python with the use of the Pygame-ce. I decided to design and implement a 2D platformer with my dog, Jackie, as the playable character because I am tremendously fond of both.
+
+The reason I chose to create my first game with Pygame is because I think of it like 'learning to walk before I run.' I enjoy understanding and working on the entire stack of a system/project from the front to back. Pygame provided the fundamental modules to access the i/o like the display and key inputs and then it was up to me to implement the rest of game, for example; positions and behaviours of the grpahics and simple physics. By being able to implement the entire project, from attempting to design 'decent' maps for the levels to implementing the game code and managing all the assets' behaviours frame by frame, it was incredibly rewarding. Since I am result oriented, being able to view my progress by running the current version of the game was extremely satisfying.
+
+The most difficult challenge, aside from trying to create some graphics and being a level designer, was implementing the key component of a platformer, collisions. I spent a lot of time debugging with individual entities and in different combinations by analyzing all their collision states at each frame by checking the x and y vectors and which were overlapping.<br>
+For example, I had one collision problem where while going up a ramp the player encounters with a tile above them, but they were able to phase through it. The reason was the calculation for the player's y position to 'stand' on the ramp caused the player to surpass the collision threshold's y position for the tile above the player. The threshold contains two components, collision True/False and side of approach.
+<br>
+For this case, my solution was to create an additional flag for if the player is currently on a ramp and in combination with the player's current side collision states conduct a final final collision check at the end of the update cycle to correct the player's position on the ramp.
+
+On a final note, something personal, the reason I chose to make a video game is simply because I'm still attempting to 'determine' what I'd like to pursue. I have no requirement of salary, location, or title, I'd like a career that I'm proud of doing. Since I've never specialized in any field and I have no goals, I am truly lost. I read this quote recently and it's applicable, 'If a man knows not to which port he sails, no wind is favorable' - Seneca.
 
 ## <a name="game_exe"></a>Game exe
 You will find all the releases zipped in the \Releases folder. Simply download the desired zipped folder, unzip it, and then execute the shortcut file named 'JackieBoy'.

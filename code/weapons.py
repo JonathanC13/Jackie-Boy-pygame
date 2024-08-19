@@ -125,6 +125,7 @@ class Weapon(Orbit):
             self.frame_index = 0
 
         self.image = self.frames[self.state][int(self.frame_index)]
+        self.mask = pygame.mask.from_surface(self.image)
 
 # types of weapons
 class Ball(Weapon):

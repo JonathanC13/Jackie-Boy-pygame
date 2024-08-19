@@ -50,7 +50,6 @@ class AnimatedSprite(Sprite):
 		self.image = self.frames[int(self.frame_index)]
 
 		self.image = pygame.transform.flip(self.image, True if int(self.flip_image.x) == 0 else False, True if int(self.flip_image.y) == 0 else False)
-
 		self.mask = pygame.mask.from_surface(self.image)
 
 	def update(self, dt, event_list):
@@ -101,6 +100,7 @@ class ParticleEffectSprite(AnimatedSprite):
 		
 		if self.frame_index < len(self.frames):
 			self.image = self.frames[int(self.frame_index)]
+			self.mask = pygame.mask.from_surface(self.image)
 		else:
 			self.kill()
 
@@ -164,6 +164,7 @@ class MovingSprite(AnimatedSprite):
 		self.animate(dt)
 		if (self.flip):
 			self.image = pygame.transform.flip(self.image, self.reverse['x'], self.reverse['y'])
+			self.mask = pygame.mask.from_surface(self.image)
 
 class Orbit(AnimatedSprite):
 	def __init__(self, pos, frames, radius, speed, start_angle, end_angle, clockwise = True, groups = None, type = None,z = Z_LAYERS['main'], direction_changes = -1, rotate = False, image_orientation = IMAGE_RIGHT, damage = 1, can_damage = False, **kwargs):
@@ -306,6 +307,7 @@ class Orbit(AnimatedSprite):
 
 		if (self.direction > 0):
 			self.image = pygame.transform.flip(self.image, True, False)
+			self.mask = pygame.mask.from_surface(self.image)
 
 		if (self.rotate):
 			self.rotate_image(self.image_orientation)
