@@ -401,14 +401,14 @@ class HowToPlayOverlay(Overlay):
         local_y_offset += half_plat_2_container.get_height() + 5
 
         # jump
-        jumping_subtitle = self.font.render('Jumping', False, "white", bgcolor=None, wraplength=0)
-        jumping_subtitle_container = pygame.Surface((jumping_subtitle.get_width() + 20, jumping_subtitle.get_height() + 20))
-        jumping_subtitle_container.set_alpha(200)
+        # jumping_subtitle = self.font.render('Jumping', False, "white", bgcolor=None, wraplength=0)
+        # jumping_subtitle_container = pygame.Surface((jumping_subtitle.get_width() + 20, jumping_subtitle.get_height() + 20))
+        # jumping_subtitle_container.set_alpha(200)
 
-        self.display_surface.blit(jumping_subtitle_container, (local_x_offset + general_container_x/2 - jumping_subtitle_container.get_width()/2, local_y_offset))
-        self.display_surface.blit(jumping_subtitle, (local_x_offset + general_container_x/2 - jumping_subtitle.get_width()/2,  local_y_offset + jumping_subtitle_container.get_height()/2 - movement_subtitle.get_height()/2))
+        # self.display_surface.blit(jumping_subtitle_container, (local_x_offset + general_container_x/2 - jumping_subtitle_container.get_width()/2, local_y_offset))
+        # self.display_surface.blit(jumping_subtitle, (local_x_offset + general_container_x/2 - jumping_subtitle.get_width()/2,  local_y_offset + jumping_subtitle_container.get_height()/2 - movement_subtitle.get_height()/2))
 
-        local_y_offset += jumping_subtitle_container.get_height() + 5
+        local_y_offset += 5 #jumping_subtitle_container.get_height() + 5
 
         # tap jump
         tap_jump = self.font.render("Tap [" + CONTROLS[CNTRL_JUMP][KEY] + "] for normal jump", False, "white", bgcolor=None, wraplength=0)
@@ -437,7 +437,15 @@ class HowToPlayOverlay(Overlay):
         self.display_surface.blit(hold_jump_container, (local_x_offset + general_container_x/2 + 10,  local_y_offset))
         self.display_surface.blit(hold_jump, (local_x_offset + general_container_x/2 + 10 + hold_jump_container.get_width()/2 - hold_jump.get_width()/2,  local_y_offset + hold_jump_container.get_height()/2 - hold_jump.get_height()/2))
 
-        local_y_offset += hold_jump_container.get_height() + self.between_spacing_y
+        local_y_offset += hold_jump_container.get_height() + 5
+
+        wall_jump_instr = self.font.render('While touching a wall, jump to wall jump!', False, "white", bgcolor=None, wraplength=0)
+        wall_jump_instr_container = pygame.Surface((wall_jump_instr.get_width() + 20, wall_jump_instr.get_height() + 20))
+        wall_jump_instr_container.set_alpha(200)
+
+        self.display_surface.blit(wall_jump_instr_container, (local_x_offset + general_container_x/2 - wall_jump_instr_container.get_width()/2, local_y_offset))
+        self.display_surface.blit(wall_jump_instr, (local_x_offset + general_container_x/2 - wall_jump_instr.get_width()/2,  local_y_offset + wall_jump_instr_container.get_height()/2 - movement_subtitle.get_height()/2))
+
 
     def display_combat_controls(self):
         local_x_offset = WINDOW_WIDTH/2 + self.between_spacing_x

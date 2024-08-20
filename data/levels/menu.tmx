@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <map version="1.10" tiledversion="1.10.2" orientation="orthogonal" renderorder="right-down" width="19" height="11" tilewidth="70" tileheight="70" infinite="0" nextlayerid="20" nextobjectid="262">
  <tileset firstgid="1" source="../tilesets/objects_characters.tsx"/>
- <tileset firstgid="15" source="../tilesets/objects_env.tsx"/>
- <tileset firstgid="76" source="../tilesets/tiles_terrain.tsx"/>
+ <tileset firstgid="17" source="../tilesets/objects_env.tsx"/>
+ <tileset firstgid="78" source="../tilesets/tiles_terrain.tsx"/>
  <layer id="4" name="BG" width="19" height="11">
   <data encoding="csv">
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
@@ -27,11 +27,11 @@
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-35,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,35,
-82,82,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,82,82,
-77,77,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,77,77,
-77,77,77,81,82,82,82,82,82,82,82,82,82,82,82,79,77,77,77,
-77,77,77,77,77,77,77,77,77,77,77,77,77,77,77,77,77,77,77
+37,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,37,
+84,84,0,0,0,0,84,0,0,0,0,0,0,84,0,0,0,84,84,
+79,79,0,0,0,0,79,0,0,84,84,0,0,79,0,0,0,79,79,
+79,79,79,83,84,84,84,84,84,84,84,84,84,84,84,81,79,79,79,
+79,79,79,79,79,79,79,79,79,79,79,79,79,79,79,79,79,79,79
 </data>
  </layer>
  <layer id="5" name="Terrain_floor_only" width="19" height="11">
@@ -42,7 +42,7 @@
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-0,0,0,0,0,100,101,102,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,102,103,104,0,0,0,0,0,0,0,0,0,0,0,
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
@@ -58,8 +58,8 @@
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,78,0,0,
-0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,78,79,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,80,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,80,81,0,0,
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
 </data>
@@ -73,8 +73,8 @@
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-0,0,80,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-0,0,81,80,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,82,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,83,82,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
 </data>
@@ -95,12 +95,12 @@
 </data>
  </layer>
  <objectgroup id="12" name="Mid_details">
-  <object id="253" name="plant" gid="41" x="350" y="630" width="70" height="70"/>
-  <object id="255" name="plant" gid="41" x="980" y="630" width="70" height="70"/>
-  <object id="256" name="plant" gid="41" x="770" y="630" width="70" height="70"/>
-  <object id="257" name="plant" gid="41" x="70" y="490" width="70" height="70"/>
-  <object id="258" name="tinyShroom_brown" gid="47" x="367.667" y="631" width="70" height="70"/>
-  <object id="259" name="tinyShroom_tan" gid="49" x="1190" y="490" width="70" height="70"/>
+  <object id="253" name="plant" gid="43" x="350" y="630" width="70" height="70"/>
+  <object id="255" name="plant" gid="43" x="980" y="630" width="70" height="70"/>
+  <object id="256" name="plant" gid="43" x="770" y="630" width="70" height="70"/>
+  <object id="257" name="plant" gid="43" x="70" y="490" width="70" height="70"/>
+  <object id="258" name="tinyShroom_brown" gid="49" x="367.667" y="631" width="70" height="70"/>
+  <object id="259" name="tinyShroom_tan" gid="51" x="1190" y="490" width="70" height="70"/>
  </objectgroup>
  <objectgroup id="10" name="General_objects"/>
  <objectgroup id="9" name="Moving_objects">
@@ -124,7 +124,7 @@
   </object>
  </objectgroup>
  <objectgroup id="3" name="Player_objects">
-  <object id="250" name="player" gid="5" x="609" y="624.333" width="87" height="54"/>
+  <object id="250" name="player" gid="5" x="650.333" y="552.333" width="87" height="54"/>
  </objectgroup>
  <objectgroup id="13" name="Enemy_objects"/>
  <objectgroup id="18" name="Item_objects"/>
