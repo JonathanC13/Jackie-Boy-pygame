@@ -50,6 +50,8 @@ class Player(pygame.sprite.Sprite):
         self.on_ramp_slope = {"on": False, "ramp_type": None} 
         self.collision_side = {"top": False, "left": False, "bot": False, "right": False, "bot_left": False, "bot_right": False}
         self.list_collide_basic, self.list_collide_ramps, self.list_semi_collide = [], [], []
+
+        # current platform player is standing on
         self.platform = None
 
         # movement

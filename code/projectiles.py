@@ -48,7 +48,7 @@ class Projectiles(AnimatedSprite):
         # movement
         self.LEFT_KEY, self.RIGHT_KEY = False, False
         self.is_jumping = False
-        self.gravity, self.friction = GRAVITY_NORM, FRICTION   # incr frict for less slide
+        self.gravity = GRAVITY_NORM
         #self.position = pygame.math.Vector2(self.hitbox_rect.bottomleft)
         self.accel_x = projectile_speed
         self.vel_max_x = projectile_speed

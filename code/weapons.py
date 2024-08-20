@@ -19,6 +19,8 @@ class Weapon(Orbit):
 
         super().__init__(**kwargs)
 
+        self.target_angle = 0 if owner.facing_right else 180
+
         self.original_center = self.center
         self.original_radius = self.radius
         
@@ -44,10 +46,12 @@ class Weapon(Orbit):
     def get_can_damage(self):
         return self.can_damage
 
+    # for enemy weapon range in relation to the player or other sprite
     def check_within_rect(self, player_sprite):
         self.owner.player_proximity["weapon_in_range"] = self.weapon_range_rect.colliderect(player_sprite.hitbox_rect)
         #pygame.draw.rect(pygame.display.get_surface(), "green", self.weapon_range_rect)
 
+     # for enemy weapon range in relation to the player or other sprite
     def check_within_circle(self, player_sprite):
         """
         if weapon hit area is circular around owner
@@ -83,6 +87,7 @@ class Weapon(Orbit):
             self.owner.player_proximity["weapon_in_range"] = False
 
     def update_weapon_zone(self, owner_rect):
+        # update weapon rect in relation to the owner sprite
         self.center = owner_rect.center
         self.weapon_range_rect = pygame.FRect(owner_rect.center - pygame.Vector2(self.range, self.range), (self.range * 2, self.range * 2))
 
@@ -136,7 +141,6 @@ class Ball(Weapon):
         # owner sprite
         self.owner = owner
         self.owner_ball_offset = self.owner.rect.width / 2
-        self.target_angle = 0 if owner.facing_right else 180
 
         super().__init__(owner = owner, range = 0, weapon_range_rect = 0, damage = 1, damage_type = BALL, level = level, weapon_name = weapon_name, damage_colour = DAMAGE_COLOUR[BALL],
                          pos = pos, frames = frames[self.state], radius = self.owner_ball_offset, speed = 0, start_angle = 0, end_angle = 0, clockwise = True, groups = groups, type = BALL, z = Z_LAYERS['main'], direction_changes = 0, rotate = True, image_orientation = IMAGE_RIGHT
@@ -144,8 +148,8 @@ class Ball(Weapon):
         
         self.state = self.states["idle"]
 
-        self.image_temp = frames[self.state][self.frame_index]
-        self.rect_temp = self.image_temp.get_frect(topleft = pos)
+        # self.image_temp = frames[self.state][self.frame_index]
+        # self.rect_temp = self.image_temp.get_frect(topleft = pos)
         
         self.range = self.owner_ball_offset + frames[self.state][self.frame_index].get_width()/2 - 5 # -5 to ensure within range (radius)
         self.weapon_range_rect = pygame.FRect(self.owner.hitbox_rect.center - pygame.Vector2(self.range, self.range), (self.range * 2, self.range * 2)) # rect for the weapon
@@ -191,7 +195,6 @@ class Lance(Weapon):
         # owner sprite
         self.owner = owner
         self.owner_lance_offset = self.owner.rect.width / 1.5
-        self.target_angle = 0 if owner.facing_right else 180
 
         super().__init__(owner = owner, range = 0, weapon_range_rect = 0, damage = 1, damage_type = LANCE, level = level, weapon_name = weapon_name, damage_colour = DAMAGE_COLOUR[LANCE],
                          pos = pos, frames = frames[self.state], radius = self.owner_lance_offset, speed = 0, start_angle = 0, end_angle = 0, clockwise = True, groups = groups, type = LANCE, z = Z_LAYERS['main'], direction_changes = 0, rotate = True, image_orientation = IMAGE_RIGHT
@@ -239,14 +242,12 @@ class Lance(Weapon):
 # class Stick(Weapon, Orbit):
 class Stick(Weapon):
     def __init__(self, pos, groups, frames, owner, level, weapon_name = STICK):
-
         self.frame_index = 0
         self.state = "level1_idle"
 
         # owner sprite
         self.owner = owner
         self.owner_stick_offset = self.owner.rect.width / 1.5
-        self.target_angle = 0 if owner.facing_right else 180
 
         super().__init__(owner = owner, range = 0, weapon_range_rect = 0, damage = 1, damage_type = STICK, level = level, weapon_name = weapon_name, damage_colour = DAMAGE_COLOUR[STICK],
                          pos = pos, frames = frames[self.state], radius = self.owner_stick_offset, speed = 0, start_angle = 0, end_angle = 0, clockwise = True, groups = groups, type = STICK, z = Z_LAYERS['main'], direction_changes = 0, rotate = True, image_orientation = IMAGE_RIGHT
@@ -294,11 +295,10 @@ class Stick(Weapon):
 
 class HitboxWeapon(Weapon):
     def __init__(self, pos, groups, frames, owner, level, weapon_name = HITBOX_RECT):
-
         self.frame_index = 0
         self.state = "level1_idle"
-
-        rect = frames[self.state][self.frame_index].get_rect()
+    
+        rect = frames[self.state][self.frame_index].get_frect()
 
         # owner sprite
         self.owner = owner
@@ -318,7 +318,7 @@ class HitboxWeapon(Weapon):
         self.direction = pygame.math.Vector2(0, 0)
 
     def set_angle_info(self,direction, angle):
-        self.direction = direction
+        self.direction = pygame.math.Vector2(direction)
         self.angle = angle
         
     def rotate_image(self):
