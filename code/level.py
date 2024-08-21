@@ -235,7 +235,7 @@ class Level:
                     frames = [pygame.transform.flip(frame, False, True) for frame in frames]
 
                 if (obj.name == "flag"):
-                    self.level_finish_rect = pygame.Rect((obj.x, obj.y), (obj.width, obj.height))
+                    self.level_finish_rect = pygame.FRect((obj.x, obj.y), (obj.width, obj.height))
 
                 can_damage = False
                 flip_image = vector(1, 1)

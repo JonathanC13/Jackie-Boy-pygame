@@ -1,1 +1,1 @@
-{"secret_levels": [{"locked": false, "items_to_load": {"denta_1": true, "denta_2": true, "denta_3": true, "denta_4": true, "denta_5": true, "denta_6": true}}], "player_health": 3, "kibble": 14, "denta": 35, "stick_level": 1, "lance_level": 1, "ball_level": 1, "highest_stage_level": 4}
+{"secret_levels": [{"locked": false, "items_to_load": {"denta_1": true, "denta_2": true, "denta_3": true, "denta_4": true, "denta_5": true, "denta_6": true}}], "player_health": 2, "kibble": 10, "denta": 13, "stick_level": 2, "lance_level": 2, "ball_level": 1, "highest_stage_level": 4}

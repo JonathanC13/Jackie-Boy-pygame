@@ -162,7 +162,7 @@ class Enemy(pygame.sprite.Sprite):
             timer.update()
 
     def get_state(self):
-        pass
+        self.state = "idle"
 
     def fill_collide_lists(self, tar_rect):
         # tiles
