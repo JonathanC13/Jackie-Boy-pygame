@@ -862,6 +862,9 @@ class Level:
 
         #     self.display_surface.blit(self.boss_sprite.sprite.image, (self.boss_sprite.sprite.rect.topleft + self.current_window_offset))
 
+            if (not self.boss_sprite.sprite.active):
+                self.func_set_boss_state(False)
+
             # Sign hitbox check
             if self.boss_sprite.sprite.weapon is not None:
 

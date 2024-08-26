@@ -691,9 +691,9 @@ class Sign(FlyingEnemy):
         self.attack_patterns.update(
             {   
                 # {"timer_name":"", "func": , "can_damage": }
-                "dive": [{"timer_name":"set_home_top", "func": self.set_home_top, "can_damage": False}, {"timer_name":"assess_path", "func": self.assess_path, "can_damage": True}, {"timer_name":"locking_on", "func": self.locking_on, "can_damage": False}, {"timer_name":"locked_on", "func": self.locked_on, "can_damage": False}, {"timer_name":"assess_path", "func": self.assess_path, "can_damage": True}, {"timer_name":"idle", "func": self.idle, "can_damage": False}],
+                "dive": [{"timer_name":"set_home_top", "func": self.set_home_top, "can_damage": False}, {"timer_name":"assess_path", "func": self.assess_path, "can_damage": False}, {"timer_name":"locking_on", "func": self.locking_on, "can_damage": False}, {"timer_name":"locked_on", "func": self.locked_on, "can_damage": False}, {"timer_name":"assess_path", "func": self.assess_path, "can_damage": True}, {"timer_name":"idle", "func": self.idle, "can_damage": False}],
 
-                "parabola": [{"timer_name":"set_home_side", "func": self.set_home_side, "can_damage": False}, {"timer_name":"assess_path", "func": self.assess_path, "can_damage": False}, {"timer_name":"set_spin_attr", "func": self.set_spin_attr, "params": [1, -1],"can_damage": False}, {"timer_name":"start_spinning", "func": self.start_spinning, "can_damage": True}, {"timer_name":"set_parabola", "func": self.set_parabola, "can_damage": True}, {"timer_name":"assess_path", "func": self.assess_path, "can_damage": True}, {"timer_name":"stop_spinning", "func": self.stop_spinning, "can_damage": False}, {"timer_name":"idle", "func": self.idle, "can_damage": False}],
+                "parabola": [{"timer_name":"set_home_side", "func": self.set_home_side, "can_damage": False}, {"timer_name":"assess_path", "func": self.assess_path, "can_damage": False}, {"timer_name":"set_spin_attr", "func": self.set_spin_attr, "params": [0, -1],"can_damage": False}, {"timer_name":"start_spinning", "func": self.start_spinning, "can_damage": True}, {"timer_name":"set_parabola", "func": self.set_parabola, "can_damage": True}, {"timer_name":"assess_path", "func": self.assess_path, "can_damage": True}, {"timer_name":"stop_spinning", "func": self.stop_spinning, "can_damage": False}, {"timer_name":"idle", "func": self.idle, "can_damage": False}],
 
                 "fire_poles_cross": [{"timer_name":"set_home_center", "func": self.set_home_center, "can_damage": False}, {"timer_name":"assess_path", "func": self.assess_path, "can_damage": False}, {"timer_name":"locking_on", "func": self.locking_on, "can_damage": False}, {"timer_name":"locked_on", "func": self.locked_on, "can_damage": False}, {"timer_name":"fire_poles_cross", "func": self.fire_poles_cross, "can_damage": False}, {"timer_name":"idle", "func": self.idle, "can_damage": False}],
                 
@@ -957,7 +957,11 @@ class Sign(FlyingEnemy):
 
     def set_spin_attr(self, params):
         self.curr_rotations = 0
-        self.spin_direction = params[0]
+
+        dir = params[0]
+        if (params[0] == 0):
+            dir = choice([-1, 1])
+        self.spin_direction = dir
         self.spin_num_rotations = params[1]
 
     def start_spinning(self):

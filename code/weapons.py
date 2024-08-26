@@ -330,6 +330,7 @@ class HitboxWeapon(Weapon):
     def damage_active_mask(self):
 
         if (self.can_damage):
+            # damage active image
             surface = self.mask.to_surface()
             surface.set_colorkey('black')
 
@@ -340,8 +341,8 @@ class HitboxWeapon(Weapon):
                         surface.set_at((x, y), 'red')
 
             self.image = surface
-        else:
-            self.image.set_alpha(0)
+        # else:
+        #     self.image.set_alpha(0)
 
     def update_weapon_center(self, owner_rect):
         self.center = owner_rect.center
