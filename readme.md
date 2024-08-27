@@ -4,6 +4,9 @@
 - [Run source yourself](#run_source_yourself)
 - [Credits](#credits)
 
+## Video
+https://youtu.be/jIfb4QSSqZA
+
 ## <a name="introduction"></a>Introduction
 This project is a video game written in Python with the use of Pygame-ce. I decided to design and implement a 2D platformer with my dog, Jackie, as the playable character because I am tremendously fond of both.
 
