@@ -1,10 +1,11 @@
 # Jackie Boy
+- [Video](#video)
 - [Introduction](#introduction)
 - [Game exe](#game_exe)
 - [Run source yourself](#run_source_yourself)
 - [Credits](#credits)
 
-## Video
+## <a name="video"></a>Video
 https://youtu.be/jIfb4QSSqZA
 
 ## <a name="introduction"></a>Introduction
