@@ -5,7 +5,7 @@
 - [Credits](#credits)
 
 ## <a name="introduction"></a>Introduction
-This project is a video game written in Python with the use of the Pygame-ce. I decided to design and implement a 2D platformer with my dog, Jackie, as the playable character because I am tremendously fond of both.
+This project is a video game written in Python with the use of Pygame-ce. I decided to design and implement a 2D platformer with my dog, Jackie, as the playable character because I am tremendously fond of both.
 
 The reason I chose to create my first game with Pygame is because I think of it like 'learning to walk before I run.' I enjoy understanding and working on the entire stack of a system/project from the front to back. Pygame provided the fundamental modules to access the i/o like the display and key inputs and then it was up to me to implement the rest of game, for example; positions and behaviours of the grpahics and simple physics. By being able to implement the entire project, from attempting to design 'decent' maps for the levels to implementing the game code and managing all the assets' behaviours frame by frame, it was incredibly rewarding. Since I am result oriented, being able to view my progress by running the current version of the game was extremely satisfying.
 
