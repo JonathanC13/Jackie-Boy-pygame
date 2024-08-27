@@ -14,7 +14,7 @@ For example, I had one collision problem where while going up a ramp the player 
 <br>
 For this case, my solution was to create an additional flag for if the player is currently on a ramp, in combination with the player's current side collision states, conduct a final collision check at the end of the update cycle to correct the player's position in relation to the ramp and other involved tile.
 
-With this accrued experience, when I do develop with a modern game engine and use their built in systems or even just playing a game, I can have some insight of may be what was involved to get it to work a certain way.
+With this accrued experience, when I do develop with a modern game engine and use their built in systems or even when I am just playing a game, I have some insight of may be what was involved to get a feature or mechanic to work a certain way.
 
 On a final note, something personal, the reason I chose to make a video game is simply because I'm still attempting to 'determine' what I'd like to pursue. I have no requirement of salary, location, or title, I'd like a career that I'm proud of doing. Since I've never specialized in any field and I have no goals, I am truly lost. I read this quote recently and it's applicable;<br>
 >*'If a man knows not to which port he sails, no wind is favorable'* - **Seneca.**
